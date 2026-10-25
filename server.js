@@ -278,7 +278,7 @@ app.get('/api/gmap-search', async (req, res) => {
     `&viewbox=-122.52,37.84,-122.35,37.70&bounded=1&limit=6`;
   try {
     const r = await fetch(nomUrl, {
-      headers: { 'User-Agent': 'ViceCitySanFrancisco/1.0' }
+      headers: { 'User-Agent': 'ArgonDriveSanFrancisco/1.0' }
     });
     if (!r.ok) return res.json({ results: [] });
     const items = await r.json();
@@ -317,72 +317,148 @@ app.get('/sat_tiles/:z/:y/:x', async (req, res) => {
   }
 });
 
-// Ultra-fast, zero-dependency Mobile Controller page (<5KB) so QR scans over HTTPS tunnel or 5G load in <200ms!
+// Ultra-fast, zero-dependency Horizontal Mobile Controller page (<5KB)
 function renderMobileControllerHtml(playerStr) {
   const playerNum = Number(playerStr) === 2 ? 2 : 1;
-  const accent = playerNum === 1 ? '#ff2a85' : '#00f0ff';
-  const defaultCarColor = playerNum === 1 ? '#ff1e42' : '#00d4ff';
+  const accent = playerNum === 1 ? '#e04f33' : '#3b82f6';
+  const defaultCarColor = playerNum === 1 ? '#d90429' : '#2563eb';
 
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Player ${playerNum} Ferrari Controller — Vice City SF</title>
+  <title>Player ${playerNum} Controller — ArgonDrive SF</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
-    html, body { width: 100%; height: 100%; overflow: hidden; background: radial-gradient(circle at 50% 15%, #1e1035, #060911 80%); color: #fff; font-family: system-ui, -apple-system, sans-serif; touch-action: none; }
-    #mc-root { display: flex; flex-direction: column; justify-content: space-between; width: 100%; height: 100%; padding: 12px; gap: 8px; }
-    .hdr { display: flex; justify-content: space-between; align-items: center; background: rgba(8,12,22,0.9); padding: 10px 14px; border-radius: 12px; border: 1.5px solid ${accent}; flex-wrap: wrap; gap: 8px; }
-    .act-btn { padding: 7px 11px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.28); background: rgba(15,23,42,0.9); color: #f8fafc; font-size: 11px; font-weight: 800; text-transform: uppercase; cursor: pointer; }
-    .act-cyan { background: linear-gradient(135deg, #0284c7, #00f0ff); color: #031525; border-color: #fff; }
-    .act-pink { background: linear-gradient(135deg, #ff2a85, #9333ea); color: #fff; border-color: #fff; }
-    .status-pill { padding: 5px 10px; border-radius: 999px; background: rgba(0,240,255,0.14); border: 1px solid #00f0ff; color: #b8fbff; font-size: 11px; font-weight: 800; }
-    .paint-bar { display: flex; align-items: center; justify-content: space-between; background: rgba(8,12,22,0.8); padding: 8px 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); }
-    .swatch { width: 28px; height: 28px; border-radius: 50%; border: 2px solid #fff; cursor: pointer; }
-    .mc-pad-area { flex: 1; display: grid; grid-template-columns: 1.15fr 1fr; gap: 12px; min-height: 0; }
-    .steer-cluster { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .right-cluster { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 10px; }
-    .touch-btn { border-radius: 18px; border: 2px solid rgba(255,255,255,0.28); background: rgba(15,23,42,0.88); color: #fff; font-size: 22px; font-weight: 900; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; touch-action: none; transition: transform 0.05s; }
-    .touch-btn.pressed { background: rgba(255,42,133,0.48); border-color: #fff; transform: scale(0.96); box-shadow: 0 0 22px rgba(255,42,133,0.65); }
+    html, body {
+      width: 100%; height: 100%; overflow: hidden;
+      background: #0b0d12; color: #f3f4f6;
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      touch-action: none;
+    }
+    #mc-root {
+      display: flex; flex-direction: column; justify-content: space-between;
+      width: 100vw; height: 100vh; padding: 10px 14px; gap: 10px;
+      background: #0b0d12;
+    }
+    /* Force horizontal landscape layout even if phone is held vertically with rotation lock */
+    @media (orientation: portrait) {
+      #mc-root {
+        position: fixed;
+        top: 0;
+        left: 100vw;
+        width: 100vh;
+        height: 100vw;
+        transform-origin: top left;
+        transform: rotate(90deg);
+      }
+    }
+    .hdr {
+      display: flex; justify-content: space-between; align-items: center;
+      background: #131720; padding: 8px 14px; border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.1); gap: 10px; height: 48px; flex-shrink: 0;
+    }
+    .hdr-left { display: flex; align-items: center; gap: 14px; }
+    .p-badge {
+      font-size: 13px; font-weight: 800; letter-spacing: 0.04em;
+      padding: 4px 10px; border-radius: 6px;
+      background: ${accent}; color: #fff;
+    }
+    .swatches { display: flex; align-items: center; gap: 7px; }
+    .swatch {
+      width: 22px; height: 22px; border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.65); cursor: pointer;
+    }
+    .hdr-right { display: flex; align-items: center; gap: 8px; }
+    .act-btn {
+      padding: 6px 12px; border-radius: 7px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: #1c2230; color: #e5e7eb;
+      font-size: 11px; font-weight: 700; cursor: pointer;
+    }
+    .act-primary { background: #e04f33; border-color: #f06449; color: #fff; }
+    .status-pill {
+      padding: 5px 10px; border-radius: 6px;
+      background: rgba(16,185,129,0.14); border: 1px solid rgba(16,185,129,0.4);
+      color: #34d399; font-size: 11px; font-weight: 700;
+    }
+    .mc-pad-area {
+      flex: 1; display: grid; grid-template-columns: 1.15fr 1fr; gap: 16px; min-height: 0;
+    }
+    .steer-cluster {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    }
+    .pedal-cluster {
+      display: grid; grid-template-columns: 0.85fr 1.15fr; grid-template-rows: 0.7fr 1.3fr; gap: 12px;
+    }
+    .touch-btn {
+      border-radius: 14px; border: 1.5px solid rgba(255,255,255,0.14);
+      background: #151922; color: #f3f4f6;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 4px; touch-action: none; transition: background 0.05s, transform 0.05s;
+    }
+    .touch-btn .main-lbl { font-size: 22px; font-weight: 800; letter-spacing: 0.03em; }
+    .touch-btn .sub-lbl { font-size: 11px; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.06em; }
+    #btn-mc-brake { grid-column: 1; grid-row: 1 / span 2; border-color: rgba(239,68,68,0.4); background: #191519; }
+    #btn-mc-brake .main-lbl { color: #f87171; }
+    #btn-mc-nitro { grid-column: 2; grid-row: 1; border-color: rgba(245,158,11,0.45); background: #1c1914; }
+    #btn-mc-nitro .main-lbl { font-size: 17px; color: #fbbf24; }
+    #btn-mc-gas { grid-column: 2; grid-row: 2; border-color: rgba(16,185,129,0.5); background: #111f1b; }
+    #btn-mc-gas .main-lbl { font-size: 26px; color: #34d399; }
+    .touch-btn.pressed {
+      background: ${accent} !important;
+      border-color: #ffffff !important;
+      transform: scale(0.97);
+    }
+    .touch-btn.pressed .main-lbl, .touch-btn.pressed .sub-lbl { color: #ffffff !important; }
   </style>
 </head>
 <body>
   <div id="mc-root">
     <div class="hdr">
-      <div>
-        <div style="font-size:16px; font-weight:900; color:${accent};">PLAYER ${playerNum} FERRARI CONTROLLER</div>
-        <div style="font-size:10.5px; color:#94a3b8;">Slide Thumb to Steer • Hold Gas + Nitro/Drift</div>
+      <div class="hdr-left">
+        <div class="p-badge">PLAYER ${playerNum}</div>
+        <div class="swatches">
+          <button class="swatch" style="background:#d90429;" onclick="window.setMobilePaint('#d90429')"></button>
+          <button class="swatch" style="background:#2563eb;" onclick="window.setMobilePaint('#2563eb')"></button>
+          <button class="swatch" style="background:#e04f33;" onclick="window.setMobilePaint('#e04f33')"></button>
+          <button class="swatch" style="background:#eab308;" onclick="window.setMobilePaint('#eab308')"></button>
+          <button class="swatch" style="background:#10b981;" onclick="window.setMobilePaint('#10b981')"></button>
+        </div>
       </div>
-      <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-        <button class="act-btn" onclick="window.sendMobileAction('reset')">🔄 RESET</button>
-        <button class="act-btn act-cyan" onclick="window.sendMobileAction('1p_roam')">🌴 1P ROAM</button>
-        <button class="act-btn act-pink" onclick="window.sendMobileAction('start_race')">🏁 2P RACE</button>
-        <div id="mc-ws-status" class="status-pill">CONNECTING...</div>
-      </div>
-    </div>
-
-    <div class="paint-bar">
-      <span style="font-size:11px; font-weight:800; color:#cbd5e1;">FERRARI PAINT:</span>
-      <div style="display:flex; gap:8px;">
-        <button class="swatch" style="background:#ff1e42;" onclick="window.setMobilePaint('#ff1e42')"></button>
-        <button class="swatch" style="background:#00d4ff;" onclick="window.setMobilePaint('#00d4ff')"></button>
-        <button class="swatch" style="background:#ff2a85;" onclick="window.setMobilePaint('#ff2a85')"></button>
-        <button class="swatch" style="background:#ffd166;" onclick="window.setMobilePaint('#ffd166')"></button>
-        <button class="swatch" style="background:#06d6a0;" onclick="window.setMobilePaint('#06d6a0')"></button>
+      <div class="hdr-right">
+        <button class="act-btn" onclick="window.sendMobileAction('reset')">Reset Car</button>
+        <button class="act-btn" onclick="window.sendMobileAction('1p_roam')">1P Solo</button>
+        <button class="act-btn act-primary" onclick="window.sendMobileAction('start_race')">2P Race</button>
+        <div id="mc-ws-status" class="status-pill">Connecting...</div>
       </div>
     </div>
 
     <div class="mc-pad-area">
       <div class="steer-cluster">
-        <div class="touch-btn" id="btn-mc-left" style="border-color:#00f0ff;">◀<span style="font-size:12px;">STEER LEFT</span></div>
-        <div class="touch-btn" id="btn-mc-right" style="border-color:#00f0ff;">▶<span style="font-size:12px;">STEER RIGHT</span></div>
+        <div class="touch-btn" id="btn-mc-left">
+          <span class="main-lbl">◀ LEFT</span>
+          <span class="sub-lbl">Steer Left</span>
+        </div>
+        <div class="touch-btn" id="btn-mc-right">
+          <span class="main-lbl">RIGHT ▶</span>
+          <span class="sub-lbl">Steer Right</span>
+        </div>
       </div>
-      <div class="right-cluster">
-        <div class="touch-btn" id="btn-mc-nitro" style="border-color:#ffd166;">🔥<span style="font-size:11px; color:#ffd166;">NITRO BOOST</span></div>
-        <div class="touch-btn" id="btn-mc-gas" style="border-color:#06d6a0;">▲<span style="font-size:12px; color:#6bf5a6;">FULL GAS</span></div>
-        <div class="touch-btn" id="btn-mc-drift" style="border-color:#00f0ff;">💨<span style="font-size:11px; color:#80f8ff;">DRIFT</span></div>
-        <div class="touch-btn" id="btn-mc-brake" style="border-color:#ff2a85;">▼<span style="font-size:11px; color:#ff9ebb;">BRAKE / REV</span></div>
+      <div class="pedal-cluster">
+        <div class="touch-btn" id="btn-mc-brake">
+          <span class="main-lbl">BRAKE</span>
+          <span class="sub-lbl">Reverse</span>
+        </div>
+        <div class="touch-btn" id="btn-mc-nitro">
+          <span class="main-lbl">BOOST</span>
+          <span class="sub-lbl">Hold + Gas</span>
+        </div>
+        <div class="touch-btn" id="btn-mc-gas">
+          <span class="main-lbl">GAS</span>
+          <span class="sub-lbl">Accelerate</span>
+        </div>
       </div>
     </div>
   </div>
@@ -417,16 +493,16 @@ function renderMobileControllerHtml(playerStr) {
         const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
         ws = new WebSocket(proto + '//' + location.host);
         ws.onopen = () => {
-          statusEl.textContent = '🟢 ONLINE • 60HZ';
+          statusEl.textContent = 'Connected';
           ws.send(JSON.stringify({ type: 'register_controller', ...mobileState }));
           sendState();
         };
         ws.onclose = () => {
-          statusEl.textContent = '🟢 HTTP SYNC';
+          statusEl.textContent = 'Connected';
           setTimeout(connectWs, 1500);
         };
       } catch (e) {
-        statusEl.textContent = '🟢 HTTP SYNC';
+        statusEl.textContent = 'Connected';
       }
     }
     connectWs();
@@ -435,7 +511,7 @@ function renderMobileControllerHtml(playerStr) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ type: 'register_controller', ...mobileState })
     }).then(() => {
-      if (!ws || ws.readyState !== 1) statusEl.textContent = '🟢 HTTP SYNC';
+      statusEl.textContent = 'Connected';
     }).catch(() => {});
 
     window.setMobilePaint = function (hex) {
@@ -454,12 +530,11 @@ function renderMobileControllerHtml(playerStr) {
     };
 
     const padButtons = [
-      { id: 'btn-mc-left', key: 'left', pad: 12 },
-      { id: 'btn-mc-right', key: 'right', pad: 12 },
-      { id: 'btn-mc-gas', key: 'gas', pad: 14 },
+      { id: 'btn-mc-left', key: 'left', pad: 10 },
+      { id: 'btn-mc-right', key: 'right', pad: 10 },
+      { id: 'btn-mc-gas', key: 'gas', pad: 12 },
       { id: 'btn-mc-brake', key: 'brake', pad: 10 },
-      { id: 'btn-mc-nitro', key: 'nitro', pad: 14 },
-      { id: 'btn-mc-drift', key: 'drift', pad: 12 }
+      { id: 'btn-mc-nitro', key: 'nitro', pad: 12 }
     ].map(b => ({ ...b, el: document.getElementById(b.id) }));
 
     function syncAllTouches(e) {
@@ -468,6 +543,7 @@ function renderMobileControllerHtml(playerStr) {
       for (let i = 0; i < e.touches.length; i++) {
         const t = e.touches[i];
         for (const btn of padButtons) {
+          if (!btn.el) continue;
           const r = btn.el.getBoundingClientRect();
           if (t.clientX >= r.left - btn.pad && t.clientX <= r.right + btn.pad &&
               t.clientY >= r.top - btn.pad && t.clientY <= r.bottom + btn.pad) {
@@ -481,7 +557,7 @@ function renderMobileControllerHtml(playerStr) {
           mobileState[btn.key] = next[btn.key];
           changed = true;
         }
-        btn.el.classList.toggle('pressed', next[btn.key]);
+        if (btn.el) btn.el.classList.toggle('pressed', next[btn.key]);
       }
       if (changed) sendState(true);
     }
@@ -493,6 +569,7 @@ function renderMobileControllerHtml(playerStr) {
     padArea.addEventListener('touchcancel', syncAllTouches, { passive: false });
 
     for (const btn of padButtons) {
+      if (!btn.el) continue;
       btn.el.addEventListener('mousedown', (e) => {
         e.preventDefault();
         mobileState[btn.key] = true;
@@ -512,14 +589,14 @@ function renderMobileControllerHtml(playerStr) {
     window.addEventListener('blur', () => {
       for (const btn of padButtons) {
         mobileState[btn.key] = false;
-        btn.el.classList.remove('pressed');
+        if (btn.el) btn.el.classList.remove('pressed');
       }
       sendState(true);
     });
 
     setInterval(() => {
       if (mobileState.left || mobileState.right || mobileState.gas ||
-          mobileState.brake || mobileState.drift || mobileState.nitro) {
+          mobileState.brake || mobileState.nitro) {
         sendState(false);
       }
     }, 55);
@@ -844,7 +921,7 @@ app.post('/api/argon-enhance', async (req, res) => {
       shadowLift: 0.18,
       windowGlow: 0.78,
       sharpness: 1.3,
-      critique: `GEMINI 4 ARGON [VICE SUNSET HD]: Injected golden-hour specular window reflections & neon cyan/pink street glow across ${locationName}, flattened road photogrammetry artifacts, and boosted Z20 facade micro-contrast (+18%).`
+      critique: `GEMINI 4 ARGON [GOLDEN HOUR HD]: Injected warm golden-hour window reflections across ${locationName}, flattened road photogrammetry artifacts, and boosted Z20 facade micro-contrast (+18%).`
     },
     night: {
       contrast: 1.24,
@@ -852,7 +929,7 @@ app.post('/api/argon-enhance', async (req, res) => {
       shadowLift: 0.12,
       windowGlow: 1.35,
       sharpness: 1.35,
-      critique: `GEMINI 4 ARGON [NEON NIGHT HD]: Extracted skyscraper window luminance across ${locationName} for emissive Vice City neon glow, activated streetlamp pools, and de-melted roadway photogrammetry.`
+      critique: `GEMINI 4 ARGON [SF NIGHT HD]: Extracted skyscraper window luminance across ${locationName} for architectural evening glow, activated streetlamp pools, and de-melted roadway photogrammetry.`
     }
   };
 
@@ -863,7 +940,7 @@ app.post('/api/argon-enhance', async (req, res) => {
       const rawB64 = imageBase64.split('base64,')[1];
       const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-4-argon:generateContent?key=${apiKey}`;
       const promptText =
-        `You are Gemini 4 Argon (gemini-4-argon), the Real2Sim 3D City Visual Architect for Vice City: San Francisco. ` +
+        `You are Gemini 4 Argon (gemini-4-argon), the Real2Sim 3D City Visual Architect for ArgonDrive San Francisco. ` +
         `Inspect this live Three.js street-level render at "${locationName}" (lighting mode: ${timeMode}, Z20 street-level tiles active: ${z20Loaded}). ` +
         `Return a JSON object with keys: "critique" (1 concise sentence describing how you enhanced the photogrammetry textures, de-melted road blobs, and tuned window reflections for ${locationName}), ` +
         `"contrast" (1.08 to 1.28), "saturation" (1.20 to 1.55), "shadowLift" (0.10 to 0.24), "windowGlow" (0.25 to 1.45).`;

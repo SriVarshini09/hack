@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Vice City: San Francisco — Open-World 3D Photogrammetry Street Racing</title>
+  <title>ArgonDrive SF — San Francisco 3D Street Circuit</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
@@ -18,13 +18,19 @@
 
   <style>
     :root {
-      --vc-pink: #ff2a85;
-      --vc-cyan: #00f0ff;
-      --vc-gold: #ffd166;
-      --vc-green: #06d6a0;
-      --vc-dark: rgba(8, 12, 22, 0.86);
-      --vc-border: rgba(255, 255, 255, 0.22);
-      --world-vibrancy: saturate(1.42) contrast(1.07) brightness(1.03);
+      --sf-vermilion: #e04f33;
+      --sf-vermilion-hover: #f06449;
+      --sf-blue: #3b82f6;
+      --sf-emerald: #10b981;
+      --sf-amber: #f59e0b;
+      --sf-surface: rgba(13, 16, 22, 0.92);
+      --sf-panel: #12161f;
+      --sf-card: #181d27;
+      --sf-border: rgba(255, 255, 255, 0.1);
+      --sf-border-strong: rgba(255, 255, 255, 0.18);
+      --sf-text: #f3f4f6;
+      --sf-muted: #9ca3af;
+      --world-vibrancy: saturate(1.22) contrast(1.05) brightness(1.02);
     }
 
     * {
@@ -39,16 +45,17 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: #4f9fd0;
-      color: #f8fafc;
+      background: #0b0d12;
+      color: var(--sf-text);
       font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
     }
 
     #broadcast-root {
       position: fixed;
       inset: 0;
       overflow: hidden;
-      background: linear-gradient(#4f9fd0, #c8e5f2 72%, #71866f);
+      background: #0b0d12;
     }
 
     #webgl-canvas {
@@ -61,99 +68,113 @@
       filter: var(--world-vibrancy);
     }
 
-    /* ================= SLEEK TOP VICE CITY: SF BAR ================= */
+    /* ================= TOP TELEMETRY & NAVIGATION BAR ================= */
     #top-hud {
       position: absolute;
       top: 12px;
-      left: 14px;
-      right: 14px;
-      height: 54px;
-      background: var(--vc-dark);
-      border: 1.5px solid rgba(255, 42, 133, 0.55);
-      border-radius: 14px;
-      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45), 0 0 20px rgba(255, 42, 133, 0.2);
-      backdrop-filter: blur(14px);
+      left: 16px;
+      right: 16px;
+      height: 50px;
+      background: var(--sf-surface);
+      border: 1px solid var(--sf-border-strong);
+      border-radius: 12px;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+      backdrop-filter: blur(16px);
       display: flex;
       align-items: center;
       justify-content: space-between;
       padding: 0 16px;
       z-index: 55;
-      gap: 10px;
+      gap: 12px;
     }
 
     .brand-cluster {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 9px;
+      min-width: 0;
     }
 
     .vc-logo {
-      font-family: "Arial Black", Impact, sans-serif;
-      font-size: 18px;
-      font-style: italic;
-      letter-spacing: 0.04em;
-      background: linear-gradient(90deg, #ff2a85, #ff9e00, #00f0ff);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      text-shadow: 0 2px 10px rgba(255, 42, 133, 0.35);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 7px;
       white-space: nowrap;
     }
 
+    .vc-logo::before {
+      content: "";
+      display: inline-block;
+      width: 9px;
+      height: 9px;
+      border-radius: 2px;
+      background: var(--sf-vermilion);
+    }
+
     .route-pill {
-      padding: 5px 11px;
-      border-radius: 999px;
-      font-size: 11px;
-      font-weight: 800;
-      background: rgba(0, 240, 255, 0.14);
-      border: 1px solid rgba(0, 240, 255, 0.5);
-      color: #80f8ff;
-      letter-spacing: 0.04em;
+      padding: 4px 9px;
+      border-radius: 6px;
+      font-size: 10.5px;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--sf-border);
+      color: #d1d5db;
       white-space: nowrap;
     }
 
     .hud-btn-group {
       display: flex;
       align-items: center;
-      gap: 7px;
+      gap: 5px;
       flex-wrap: nowrap;
     }
 
     .vc-btn {
-      padding: 7px 12px;
-      border-radius: 9px;
-      border: 1px solid rgba(255, 255, 255, 0.25);
-      background: rgba(18, 25, 42, 0.85);
-      color: #fff;
-      font-size: 11.5px;
-      font-weight: 800;
-      letter-spacing: 0.04em;
+      padding: 5px 9px;
+      border-radius: 7px;
+      border: 1px solid var(--sf-border);
+      background: rgba(255, 255, 255, 0.04);
+      color: #d1d5db;
+      font-size: 10.5px;
+      font-weight: 600;
+      letter-spacing: 0.01em;
       cursor: pointer;
-      transition: all 0.15s ease;
+      transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
       white-space: nowrap;
     }
 
     .vc-btn:hover {
-      border-color: var(--vc-cyan);
-      transform: translateY(-1px);
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.25);
+      color: #ffffff;
     }
 
     .vc-btn.active-pink {
-      background: linear-gradient(135deg, #ff2a85, #b5179e);
-      border-color: #ff9ebb;
-      box-shadow: 0 4px 16px rgba(255, 42, 133, 0.45);
+      background: var(--sf-vermilion);
+      border-color: var(--sf-vermilion-hover);
+      color: #ffffff;
     }
 
     .vc-btn.active-cyan {
-      background: linear-gradient(135deg, #00b4d8, #0077b6);
-      border-color: #90e0ef;
-      box-shadow: 0 4px 16px rgba(0, 240, 255, 0.4);
+      background: rgba(59, 130, 246, 0.18);
+      border-color: rgba(59, 130, 246, 0.55);
+      color: #93c5fd;
     }
 
     .vc-btn.map-cta {
-      background: linear-gradient(135deg, #ff9e00, #ff2a85);
-      border-color: #ffe082;
-      color: #fff;
-      box-shadow: 0 4px 16px rgba(255, 158, 0, 0.45);
+      background: #f3f4f6;
+      border-color: #ffffff;
+      color: #0b0d12;
+      font-weight: 700;
+    }
+
+    .vc-btn.map-cta:hover {
+      background: #ffffff;
+      color: #000000;
     }
 
     /* 2P Split Screen Center Divider */
@@ -162,10 +183,9 @@
       top: 0;
       bottom: 0;
       left: 50%;
-      width: 3px;
+      width: 2px;
       transform: translateX(-50%);
-      background: linear-gradient(180deg, var(--vc-pink), var(--vc-cyan));
-      box-shadow: 0 0 14px rgba(255, 42, 133, 0.7);
+      background: rgba(255, 255, 255, 0.22);
       z-index: 10;
       pointer-events: none;
       display: none;
@@ -174,40 +194,41 @@
     /* Player Header Badges */
     .player-top-tag {
       position: absolute;
-      top: 76px;
+      top: 72px;
       z-index: 12;
-      padding: 6px 13px;
-      border-radius: 10px;
-      background: var(--vc-dark);
-      border: 1px solid var(--vc-border);
+      padding: 6px 12px;
+      border-radius: 8px;
+      background: var(--sf-surface);
+      border: 1px solid var(--sf-border);
       font-size: 11px;
-      font-weight: 900;
-      letter-spacing: 0.07em;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: #e5e7eb;
       display: flex;
       align-items: center;
       gap: 8px;
       pointer-events: none;
-      backdrop-filter: blur(10px);
+      backdrop-filter: blur(12px);
     }
 
     #tag-p1 {
       left: 16px;
-      border-left: 4px solid var(--vc-pink);
+      border-left: 3px solid var(--sf-vermilion);
     }
 
     #tag-p2 {
       right: 16px;
-      border-right: 4px solid var(--vc-cyan);
+      border-right: 3px solid var(--sf-blue);
       display: none;
     }
 
-    /* ================= GTA VICE CITY ROTATING RADAR MINIMAP ================= */
+    /* ================= CIRCULAR SAN FRANCISCO RADAR MINIMAP ================= */
     #vc-radar-wrap {
       position: absolute;
       bottom: 18px;
       left: 20px;
-      width: 210px;
-      height: 210px;
+      width: 204px;
+      height: 204px;
       z-index: 15;
       transition: left 0.25s ease, transform 0.25s ease;
     }
@@ -222,9 +243,10 @@
       width: 100%;
       height: 100%;
       border-radius: 50%;
-      padding: 5px;
-      background: linear-gradient(135deg, var(--vc-pink), var(--vc-cyan));
-      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.65), 0 0 22px rgba(255, 42, 133, 0.45);
+      padding: 4px;
+      background: rgba(18, 22, 31, 0.95);
+      border: 1.5px solid rgba(255, 255, 255, 0.22);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
       cursor: pointer;
     }
 
@@ -233,24 +255,24 @@
       height: 100%;
       border-radius: 50%;
       display: block;
-      background: #0b1924;
+      background: #0d131a;
     }
 
     #vc-north-pin {
       position: absolute;
-      width: 24px;
-      height: 24px;
+      width: 22px;
+      height: 22px;
       border-radius: 50%;
-      background: #080c16;
-      border: 2px solid var(--vc-gold);
-      color: var(--vc-gold);
-      font-weight: 900;
-      font-size: 12px;
+      background: #12161f;
+      border: 1.5px solid rgba(255, 255, 255, 0.35);
+      color: #f3f4f6;
+      font-weight: 800;
+      font-size: 10px;
       display: grid;
       place-items: center;
       top: -6px;
-      left: calc(50% - 12px);
-      box-shadow: 0 2px 8px rgba(0,0,0,0.75);
+      left: calc(50% - 11px);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.7);
       pointer-events: none;
     }
 
@@ -259,319 +281,329 @@
       bottom: -8px;
       left: 50%;
       transform: translateX(-50%);
-      background: rgba(8, 12, 22, 0.92);
-      border: 1px solid rgba(255, 255, 255, 0.28);
-      border-radius: 999px;
-      padding: 3px 10px;
+      background: #12161f;
+      border: 1px solid var(--sf-border-strong);
+      border-radius: 6px;
+      padding: 3px 9px;
       font-size: 9.5px;
-      font-weight: 800;
-      letter-spacing: 0.06em;
-      color: var(--vc-gold);
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: #d1d5db;
       white-space: nowrap;
       pointer-events: none;
     }
 
-    /* ================= VICE CITY SPEEDOMETER & TELEMETRY CARDS ================= */
+    /* ================= SPEEDOMETER & TELEMETRY CARDS ================= */
     .vc-speed-card {
       position: absolute;
       bottom: 18px;
       z-index: 14;
-      background: var(--vc-dark);
-      border: 1.5px solid rgba(255, 255, 255, 0.24);
-      border-radius: 14px;
-      padding: 10px 18px;
-      min-width: 225px;
-      backdrop-filter: blur(14px);
-      box-shadow: 0 12px 34px rgba(0, 0, 0, 0.5);
+      background: var(--sf-surface);
+      border: 1px solid var(--sf-border-strong);
+      border-radius: 12px;
+      padding: 12px 18px;
+      min-width: 220px;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
       pointer-events: none;
     }
 
     #p1-hud-card {
       right: 18px;
-      border-right: 5px solid var(--vc-pink);
+      border-right: 3px solid var(--sf-vermilion);
       text-align: right;
     }
 
     #p1-hud-card.split-left {
       right: auto;
       left: 18px;
-      border-right: 1.5px solid rgba(255, 255, 255, 0.24);
-      border-left: 5px solid var(--vc-pink);
+      border-right: 1px solid var(--sf-border-strong);
+      border-left: 3px solid var(--sf-vermilion);
       text-align: left;
     }
 
     #p2-hud-card {
       right: 18px;
-      border-right: 5px solid var(--vc-cyan);
+      border-right: 3px solid var(--sf-blue);
       text-align: right;
       display: none;
     }
 
     .speed-big {
-      font-family: "Arial Black", Impact, sans-serif;
-      font-size: 40px;
-      font-style: italic;
-      line-height: 0.95;
-      color: #fff;
-      text-shadow: 2px 2px 0 var(--vc-pink);
+      font-size: 38px;
+      font-weight: 800;
+      line-height: 1;
+      color: #ffffff;
+      letter-spacing: -0.03em;
       font-variant-numeric: tabular-nums;
-    }
-
-    #p2-hud-card .speed-big {
-      text-shadow: 2px 2px 0 #0096c7;
     }
 
     .speed-unit {
       font-size: 11px;
-      font-weight: 900;
-      color: var(--vc-gold);
-      letter-spacing: 0.1em;
+      font-weight: 700;
+      color: var(--sf-muted);
+      letter-spacing: 0.08em;
       margin-left: 4px;
     }
 
     .nitro-bar-track {
       width: 100%;
-      height: 6px;
-      background: rgba(255, 255, 255, 0.14);
+      height: 5px;
+      background: rgba(255, 255, 255, 0.1);
       border-radius: 99px;
       overflow: hidden;
-      margin: 7px 0 5px;
+      margin: 8px 0 6px;
     }
 
     .nitro-bar-fill {
       height: 100%;
       width: 100%;
-      background: linear-gradient(90deg, var(--vc-cyan), var(--vc-pink));
+      background: var(--sf-vermilion);
       transition: width 0.1s linear;
+    }
+
+    #p2-hud-card .nitro-bar-fill {
+      background: var(--sf-blue);
     }
 
     .hud-sub-line {
       font-size: 11px;
-      font-weight: 800;
-      color: #cbd5e1;
-      letter-spacing: 0.04em;
+      font-weight: 700;
+      color: #e5e7eb;
+      letter-spacing: 0.02em;
     }
 
     .hud-key-hint {
-      font-size: 9.5px;
-      color: rgba(255, 255, 255, 0.65);
+      font-size: 10px;
+      color: var(--sf-muted);
       margin-top: 2px;
     }
 
-    /* ================= FULL SAN FRANCISCO INTERACTIVE CITY MAP MODAL ================= */
+    /* ================= ONBOARDING & ROUTE SETUP MODAL ================= */
     #sf-map-modal {
       position: absolute;
-      top: 68px;
+      top: 66px;
       left: 0;
       right: 0;
       bottom: 0;
       z-index: 40;
-      background: rgba(6, 10, 18, 0.84);
-      backdrop-filter: blur(16px);
+      background: rgba(8, 10, 14, 0.82);
+      backdrop-filter: blur(14px);
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 12px 18px;
+      padding: 14px 20px;
     }
 
     .map-modal-card {
-      width: min(1140px, 96vw);
-      height: min(720px, calc(100vh - 92px));
-      background: rgba(10, 15, 28, 0.96);
-      border: 2px solid var(--vc-pink);
-      border-radius: 18px;
-      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.8), 0 0 40px rgba(255, 42, 133, 0.28);
+      width: min(1180px, 96vw);
+      height: min(740px, calc(100vh - 90px));
+      background: var(--sf-panel);
+      border: 1px solid var(--sf-border-strong);
+      border-radius: 16px;
+      box-shadow: 0 32px 80px rgba(0, 0, 0, 0.75);
       display: grid;
-      grid-template-columns: 1fr 350px;
+      grid-template-columns: 1fr 390px;
       overflow: hidden;
     }
 
     .map-canvas-pane {
       position: relative;
-      background: #0c2230;
+      background: #0d131a;
       overflow: hidden;
       display: flex;
       align-items: center;
       justify-content: center;
     }
 
-    #full-sf-map-canvas {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      cursor: crosshair;
-      display: block;
-    }
-
     .map-floating-instructions {
       position: absolute;
-      top: 14px;
-      left: 14px;
-      background: rgba(8, 12, 22, 0.88);
-      border: 1px solid rgba(0, 240, 255, 0.5);
-      border-radius: 10px;
-      padding: 8px 13px;
-      font-size: 12px;
-      font-weight: 800;
-      color: #fff;
+      top: 12px;
+      left: 54px;
+      background: rgba(13, 16, 22, 0.92);
+      border: 1px solid var(--sf-border-strong);
+      border-radius: 8px;
+      padding: 7px 12px;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: #f3f4f6;
       pointer-events: none;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
     }
 
     .map-sidebar {
-      padding: 18px;
+      padding: 14px 16px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      border-left: 1px solid rgba(255, 255, 255, 0.14);
+      background: var(--sf-panel);
+      border-left: 1px solid var(--sf-border);
       overflow-y: auto;
-      gap: 12px;
+      gap: 9px;
+    }
+
+    .sidebar-eyebrow {
+      font-size: 9.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--sf-vermilion);
+      margin-bottom: 2px;
     }
 
     .sidebar-title {
-      font-family: "Arial Black", Impact, sans-serif;
-      font-size: 20px;
-      font-style: italic;
-      background: linear-gradient(90deg, #ff2a85, #ffd166, #00f0ff);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #ffffff;
     }
 
     .sidebar-section {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      border-radius: 12px;
-      padding: 11px 12px;
+      background: var(--sf-card);
+      border: 1px solid var(--sf-border);
+      border-radius: 9px;
+      padding: 9px 11px;
     }
 
     .sidebar-section h4 {
-      font-size: 10.5px;
+      font-size: 9.5px;
+      font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: var(--vc-gold);
-      margin-bottom: 8px;
+      letter-spacing: 0.08em;
+      color: var(--sf-muted);
+      margin-bottom: 6px;
     }
 
     .click-mode-row {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 8px;
+      gap: 6px;
     }
 
     .mode-pill-btn {
-      padding: 8px;
-      border-radius: 8px;
-      border: 1.5px solid rgba(255, 255, 255, 0.25);
-      background: rgba(15, 23, 42, 0.8);
-      color: #fff;
+      padding: 6px 8px;
+      border-radius: 6px;
+      border: 1px solid var(--sf-border);
+      background: #12161f;
+      color: #d1d5db;
       font-size: 11px;
-      font-weight: 800;
+      font-weight: 700;
       cursor: pointer;
       text-align: center;
+      transition: all 0.15s ease;
     }
 
     .mode-pill-btn.active-start {
-      border-color: var(--vc-green);
-      background: rgba(6, 214, 160, 0.25);
-      color: #6bf5a6;
+      border-color: var(--sf-emerald);
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
     }
 
     .mode-pill-btn.active-finish {
-      border-color: var(--vc-pink);
-      background: rgba(255, 42, 133, 0.28);
-      color: #ff9ebb;
+      border-color: var(--sf-vermilion);
+      background: rgba(224, 79, 51, 0.16);
+      color: #f87171;
     }
 
     .landmark-chips {
       display: flex;
       flex-wrap: wrap;
-      gap: 5px;
-      max-height: 155px;
+      gap: 4px;
+      max-height: 86px;
       overflow-y: auto;
     }
 
     .lm-chip {
-      padding: 5px 8px;
-      border-radius: 6px;
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.18);
-      color: #e2e8f0;
+      padding: 4px 8px;
+      border-radius: 5px;
+      background: #12161f;
+      border: 1px solid var(--sf-border);
+      color: #d1d5db;
       font-size: 10.5px;
-      font-weight: 700;
+      font-weight: 600;
       cursor: pointer;
+      transition: all 0.12s ease;
     }
 
     .lm-chip:hover {
-      background: rgba(0, 240, 255, 0.22);
-      border-color: var(--vc-cyan);
-      color: #fff;
+      background: rgba(224, 79, 51, 0.15);
+      border-color: var(--sf-vermilion);
+      color: #ffffff;
     }
 
     .launch-btn-primary {
       width: 100%;
-      padding: 13px;
-      border-radius: 11px;
-      border: none;
-      background: linear-gradient(90deg, #ff2a85, #ff9e00);
-      color: #fff;
-      font-size: 14px;
-      font-weight: 900;
-      letter-spacing: 0.05em;
+      padding: 11px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--sf-vermilion-hover);
+      background: var(--sf-vermilion);
+      color: #ffffff;
+      font-size: 12.5px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
       cursor: pointer;
-      box-shadow: 0 8px 25px rgba(255, 42, 133, 0.5);
-      margin-bottom: 8px;
+      transition: background 0.15s ease;
+      margin-bottom: 6px;
+    }
+
+    .launch-btn-primary:hover {
+      background: var(--sf-vermilion-hover);
     }
 
     .launch-btn-secondary {
       width: 100%;
-      padding: 10px;
-      border-radius: 10px;
-      border: 1.5px solid var(--vc-cyan);
-      background: rgba(0, 240, 255, 0.15);
-      color: #90e0ef;
-      font-size: 12px;
-      font-weight: 800;
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--sf-border-strong);
+      background: var(--sf-card);
+      color: #e5e7eb;
+      font-size: 11.5px;
+      font-weight: 600;
       cursor: pointer;
+      transition: background 0.15s ease;
+    }
+
+    .launch-btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.08);
     }
 
     /* QR Popup Drawer */
     #qr-drawer {
       position: absolute;
-      top: 74px;
+      top: 70px;
       right: 16px;
       width: 340px;
-      background: var(--vc-dark);
-      border: 1.5px solid var(--vc-cyan);
-      border-radius: 14px;
-      padding: 12px;
+      background: var(--sf-panel);
+      border: 1px solid var(--sf-border-strong);
+      border-radius: 12px;
+      padding: 14px;
       z-index: 60;
       display: none;
-      backdrop-filter: blur(14px);
-      box-shadow: 0 16px 40px rgba(0,0,0,0.65);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.7);
     }
 
     .qr-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 10px;
-      margin-top: 8px;
+      margin-top: 10px;
     }
 
     .qr-box {
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid rgba(255, 255, 255, 0.16);
-      border-radius: 10px;
-      padding: 8px;
+      background: var(--sf-card);
+      border: 1px solid var(--sf-border);
+      border-radius: 8px;
+      padding: 10px;
       text-align: center;
     }
 
     .qr-box img {
-      width: 88px;
-      height: 88px;
+      width: 92px;
+      height: 92px;
       background: #fff;
       padding: 4px;
-      border-radius: 8px;
-      margin: 5px auto;
+      border-radius: 6px;
+      margin: 6px auto;
       display: block;
     }
 
@@ -582,75 +614,94 @@
       left: 50%;
       transform: translate(-50%, -50%);
       z-index: 35;
-      font-family: "Arial Black", Impact, sans-serif;
-      font-size: 110px;
-      font-style: italic;
-      color: #fff;
-      text-shadow: 4px 4px 0 var(--vc-pink), 0 0 40px var(--vc-cyan);
+      font-size: 112px;
+      font-weight: 900;
+      color: #ffffff;
+      text-shadow: 0 8px 32px rgba(0, 0, 0, 0.75);
       pointer-events: none;
       display: none;
     }
 
     #winner-banner {
       position: absolute;
-      top: 130px;
+      top: 120px;
       left: 50%;
       transform: translateX(-50%);
       z-index: 36;
-      background: rgba(8, 12, 22, 0.95);
-      border: 2px solid var(--vc-gold);
-      border-radius: 16px;
-      padding: 20px 32px;
+      background: var(--sf-panel);
+      border: 1px solid var(--sf-border-strong);
+      border-radius: 14px;
+      padding: 24px 36px;
       text-align: center;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.75), 0 0 35px rgba(255, 209, 102, 0.45);
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.75);
       display: none;
     }
 
-    /* ================= MOBILE CONTROLLER VIEW (?player=1 or ?player=2) ================= */
+    /* ================= HORIZONTAL MOBILE CONTROLLER VIEW ================= */
     #mobile-controller-root {
       display: none;
       width: 100vw;
       height: 100vh;
-      background: linear-gradient(160deg, #190a28 0%, #09131c 85%);
+      background: #0b0d12;
       flex-direction: column;
       justify-content: space-between;
-      padding: 14px;
+      padding: 10px 14px;
+      gap: 10px;
+    }
+
+    @media (orientation: portrait) {
+      #mobile-controller-root {
+        position: fixed;
+        top: 0;
+        left: 100vw;
+        width: 100vh;
+        height: 100vw;
+        transform-origin: top left;
+        transform: rotate(90deg);
+      }
     }
 
     .mc-pad-area {
       flex: 1;
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 18px;
-      margin-top: 12px;
-      align-items: stretch;
+      grid-template-columns: 1.15fr 1fr;
+      gap: 16px;
+      min-height: 0;
     }
 
-    .steer-cluster, .pedal-cluster {
+    .steer-cluster {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 12px;
     }
 
+    .pedal-cluster {
+      display: grid;
+      grid-template-columns: 0.85fr 1.15fr;
+      grid-template-rows: 0.7fr 1.3fr;
+      gap: 12px;
+    }
+
     .touch-btn {
-      background: rgba(15, 26, 38, 0.9);
-      border: 2px solid rgba(255, 255, 255, 0.35);
-      border-radius: 18px;
-      color: #fff;
-      font-size: 24px;
-      font-weight: 900;
+      background: #151922;
+      border: 1.5px solid rgba(255, 255, 255, 0.14);
+      border-radius: 14px;
+      color: #f3f4f6;
+      font-size: 22px;
+      font-weight: 800;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 6px;
+      gap: 4px;
       touch-action: none;
     }
 
     .touch-btn.pressed {
-      transform: scale(0.96);
-      background: rgba(255, 42, 133, 0.5);
-      border-color: #fff;
+      transform: scale(0.97);
+      background: var(--sf-vermilion) !important;
+      border-color: #ffffff !important;
+      color: #ffffff !important;
     }
   </style>
 </head>
@@ -660,56 +711,50 @@
   <div id="broadcast-root">
     <canvas id="webgl-canvas"></canvas>
 
-    <!-- Sleek Top Bar: View Switcher (1P / 2P Split Screen) + Full SF Map Picker -->
+    <!-- Top Navigation & Telemetry Bar -->
     <header id="top-hud">
       <div class="brand-cluster">
-        <div class="vc-logo">VICE CITY // SAN FRANCISCO</div>
+        <div class="vc-logo">ARGONDRIVE // SAN FRANCISCO</div>
         <div class="route-pill" id="hud-route-label">Ferry Building → Pier 39</div>
-        <div class="route-pill" id="tile-stream-badge" style="border-color:rgba(6,214,160,0.5); color:#6bf5a6;">
-          SF 3D TILES STREAMING
+        <div class="route-pill" id="tile-stream-badge" style="color:#34d399; border-color:rgba(16,185,129,0.35);">
+          SF 3D TILES ACTIVE
         </div>
       </div>
 
       <div class="hud-btn-group">
         <button class="vc-btn map-cta" onclick="window.toggleFullSFMap(true)">
-          🗺️ SF MAP (M)
+          Route Map (M)
         </button>
         <button class="vc-btn" id="btn-mode-1p-roam" onclick="window.launchOnePlayerRoam()">
-          🌴 1P FREE ROAM
+          1P Solo Roam
         </button>
         <button class="vc-btn active-pink" id="btn-mode-2p-race" onclick="window.launchTwoPlayerRace()">
-          🏁 2P SPLIT RACE
+          2P Split Race
         </button>
-        <button class="vc-btn" id="btn-view-1p-p1" onclick="window.setViewMode('1p_p1')">
-          👤 1P (P1)
-        </button>
-        <button class="vc-btn" id="btn-view-1p-p2" onclick="window.setViewMode('1p_p2')">
-          👤 1P (P2)
-        </button>
-        <button class="vc-btn active-pink" id="btn-view-2p" onclick="window.setViewMode('2p_split')">
-          👥 2P SPLIT
-        </button>
+        <button class="vc-btn" id="btn-view-1p-p1" style="display:none;" onclick="window.setViewMode('1p_p1')">P1</button>
+        <button class="vc-btn" id="btn-view-1p-p2" style="display:none;" onclick="window.setViewMode('1p_p2')">P2</button>
+        <button class="vc-btn active-pink" id="btn-view-2p" style="display:none;" onclick="window.setViewMode('2p_split')">2P</button>
         <button class="vc-btn" id="btn-p2-ai" onclick="window.toggleP2AiRival()">
-          🤖 P2 AI: OFF
+          P2 AI: Off
         </button>
         <button class="vc-btn active-cyan" id="btn-cursor-look" onclick="window.cycleCursorLookMode()">
-          🎥 LOOK: FREE
+          Look: Free
         </button>
-        <button class="vc-btn active-cyan" id="btn-time-mode" onclick="window.cycleTimeMood()">
-          ☀️ SF DAY
+        <button class="vc-btn" id="btn-time-mode" onclick="window.cycleTimeMood()">
+          Time: Day
         </button>
-        <button class="vc-btn active-pink" id="btn-argon-enhance" onclick="window.runArgonCityEnhance()">
-          ✨ ARGON HD
+        <button class="vc-btn" id="btn-argon-enhance" onclick="window.runArgonCityEnhance()">
+          Argon Enhance
         </button>
         <button class="vc-btn" onclick="window.toggleQrDrawer()">
-          📱 PHONE QR
+          Phone QR
         </button>
       </div>
     </header>
 
     <!-- Gemini 4 Argon Live City Visual Critique & Shader Enhancement Toast -->
-    <div id="argon-enhance-toast" style="position:absolute; top:74px; left:50%; transform:translateX(-50%); z-index:25; background:rgba(8,12,22,0.92); border:1.5px solid #ffd166; border-radius:12px; padding:8px 16px; font-size:11.5px; color:#f8fafc; box-shadow:0 10px 30px rgba(0,0,0,0.55); backdrop-filter:blur(12px); display:none; max-width:780px; text-align:center;">
-      <strong style="color:#ffd166;">✨ GEMINI 4 ARGON CITY ARCHITECT:</strong>
+    <div id="argon-enhance-toast" style="position:absolute; top:70px; left:50%; transform:translateX(-50%); z-index:25; background:var(--sf-panel); border:1px solid var(--sf-border-strong); border-radius:10px; padding:9px 16px; font-size:11.5px; color:#f3f4f6; box-shadow:0 12px 32px rgba(0,0,0,0.6); display:none; max-width:780px; text-align:center;">
+      <strong style="color:var(--sf-vermilion);">GEMINI 4 ARGON ARCHITECT:</strong>
       <span id="argon-toast-text">16x Anisotropic Filtering + Z20 Street Photogrammetry + Road De-Melting Active.</span>
     </div>
 
@@ -718,24 +763,24 @@
 
     <!-- Player Viewport Header Badges -->
     <div class="player-top-tag" id="tag-p1">
-      <span style="color:#ff2a85;">●</span>
+      <span style="color:var(--sf-vermilion);">●</span>
       <span id="tag-p1-text">PLAYER 1 • FERRARI 458 ROSSO CORSA (WASD / SHIFT BOOST)</span>
     </div>
     <div class="player-top-tag" id="tag-p2">
-      <span id="tag-p2-text">PLAYER 2 • FERRARI 458 MIAMI BLUE (ARROWS / ENTER BOOST)</span>
-      <span style="color:#00f0ff;">●</span>
+      <span id="tag-p2-text">PLAYER 2 • FERRARI 458 RACING BLUE (ARROWS / ENTER BOOST)</span>
+      <span style="color:var(--sf-blue);">●</span>
     </div>
 
-    <!-- GTA Vice City Rotating Radar Minimap -->
-    <div id="vc-radar-wrap" class="split-center" title="Click to open Full San Francisco Map (M)" onclick="window.toggleFullSFMap(true)">
+    <!-- Circular Rotating San Francisco Radar Minimap -->
+    <div id="vc-radar-wrap" class="split-center" title="Click to open San Francisco Route Map (M)" onclick="window.toggleFullSFMap(true)">
       <div id="vc-radar-ring">
         <canvas id="vc-radar-canvas" width="220" height="220"></canvas>
         <div id="vc-north-pin">N</div>
       </div>
-      <div id="vc-radar-caption">CLICK RADAR OR [M] FOR FULL SF MAP</div>
+      <div id="vc-radar-caption">CLICK OR PRESS [M] FOR ROUTE MAP</div>
     </div>
 
-    <!-- Player 1 Vice City Speedometer -->
+    <!-- Player 1 Telemetry Speedometer -->
     <div class="vc-speed-card split-left" id="p1-hud-card">
       <div>
         <span class="speed-big" id="p1-speed">0</span>
@@ -745,10 +790,10 @@
         <div class="nitro-bar-fill" id="p1-nitro-bar"></div>
       </div>
       <div class="hud-sub-line" id="p1-dist">FINISH: 1200m</div>
-      <div class="hud-key-hint">WASD Drive • Move Cursor Look/Tilt • Scroll Zoom • R Reset</div>
+      <div class="hud-key-hint">WASD Drive • Cursor Look/Tilt • Scroll Zoom • R Reset</div>
     </div>
 
-    <!-- Player 2 Vice City Speedometer -->
+    <!-- Player 2 Telemetry Speedometer -->
     <div class="vc-speed-card" id="p2-hud-card">
       <div>
         <span class="speed-big" id="p2-speed">0</span>
@@ -758,101 +803,114 @@
         <div class="nitro-bar-fill" id="p2-nitro-bar"></div>
       </div>
       <div class="hud-sub-line" id="p2-dist">FINISH: 1200m</div>
-      <div class="hud-key-hint">ARROWS Drive • ENTER Nitro • OR PHONE 2 QR</div>
+      <div class="hud-key-hint">ARROWS Drive • ENTER Boost • Phone 2 QR</div>
     </div>
 
     <!-- Phone QR Code Drawer -->
     <div id="qr-drawer">
       <div style="display:flex; justify-content:space-between; align-items:center;">
-        <strong style="font-size:12px; color:var(--vc-cyan);">📱 SCAN FOR MOBILE CONTROLLERS</strong>
+        <strong style="font-size:12px; color:#f3f4f6; letter-spacing:0.03em;">PHONE CONTROLLERS</strong>
         <button class="vc-btn" style="padding:3px 8px;" onclick="window.toggleQrDrawer()">✕</button>
       </div>
       <div class="qr-grid">
         <div class="qr-box">
-          <div style="font-size:11px; font-weight:800; color:#ff2a85;">PLAYER 1</div>
+          <div style="font-size:11px; font-weight:700; color:var(--sf-vermilion);">PLAYER 1</div>
           <img id="qr-img-p1" alt="P1 QR" src="" />
-          <div id="p1-lobby-pill" style="font-size:10px; color:#cbd5e1;">WASD / Phone 1</div>
+          <div id="p1-lobby-pill" style="font-size:10px; color:var(--sf-muted);">WASD / Phone 1</div>
         </div>
         <div class="qr-box">
-          <div style="font-size:11px; font-weight:800; color:#00f0ff;">PLAYER 2</div>
+          <div style="font-size:11px; font-weight:700; color:var(--sf-blue);">PLAYER 2</div>
           <img id="qr-img-p2" alt="P2 QR" src="" />
-          <div id="p2-lobby-pill" style="font-size:10px; color:#cbd5e1;">ARROWS / Phone 2</div>
+          <div id="p2-lobby-pill" style="font-size:10px; color:var(--sf-muted);">Arrows / Phone 2</div>
         </div>
       </div>
     </div>
 
-    <!-- Full San Francisco Interactive REAL GOOGLE MAPS Modal -->
+    <!-- San Francisco Route & Race Setup Onboarding Modal -->
     <div id="sf-map-modal">
       <div class="map-modal-card">
         <div class="map-canvas-pane">
           <div id="google-sf-map" style="width:100%; height:100%; z-index:1;"></div>
           <div class="map-floating-instructions" style="z-index:500;">
-            🖱️ <strong>REAL GOOGLE MAPS (SAN FRANCISCO)</strong> — Zoom/Pan &amp; Click ANY street to set
-            <span style="color:#06d6a0;">START (A)</span> or
-            <span style="color:#ff2a85;">FINISH (B)</span>!
+            Click any street or landmark pin to set <strong style="color:#34d399;">Origin (A)</strong> or <strong style="color:#f87171;">Destination (B)</strong>
           </div>
-          <div style="position:absolute; bottom:14px; left:14px; z-index:500; display:flex; gap:6px;">
-            <button class="vc-btn active-cyan" id="btn-gmap-m" onclick="window.setGoogleMapLayer('m')">🗺️ Google Road Map</button>
-            <button class="vc-btn" id="btn-gmap-y" onclick="window.setGoogleMapLayer('y')">🛰️ Google Hybrid</button>
-            <button class="vc-btn" id="btn-gmap-s" onclick="window.setGoogleMapLayer('s')">🌎 Google Satellite</button>
+          <div style="position:absolute; bottom:14px; left:14px; z-index:500; display:flex; gap:6px; background:rgba(13,16,22,0.9); padding:4px; border-radius:8px; border:1px solid var(--sf-border-strong);">
+            <button class="vc-btn active-cyan" id="btn-gmap-m" onclick="window.setGoogleMapLayer('m')">Street Map</button>
+            <button class="vc-btn" id="btn-gmap-y" onclick="window.setGoogleMapLayer('y')">Hybrid</button>
+            <button class="vc-btn" id="btn-gmap-s" onclick="window.setGoogleMapLayer('s')">Satellite</button>
           </div>
         </div>
 
         <div class="map-sidebar">
           <div>
-            <div class="sidebar-title">GOOGLE MAPS // SF GPS</div>
-            <div style="display:flex; gap:6px; margin-top:8px;">
-              <input id="gmap-search-input" type="text" placeholder="Search any SF street or place..." style="flex:1; padding:7px 10px; border-radius:8px; border:1px solid rgba(255,255,255,0.28); background:#080c16; color:#fff; font-size:11.5px;" onkeydown="if(event.key==='Enter') window.searchGoogleMapSF()" />
-              <button class="vc-btn active-cyan" onclick="window.searchGoogleMapSF()">🔍</button>
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+              <div>
+                <div class="sidebar-eyebrow">ArgonDrive // San Francisco</div>
+                <div class="sidebar-title">Circuit &amp; Controller Setup</div>
+              </div>
+              <button class="vc-btn" style="padding:4px 9px;" title="Close Map (M)" onclick="window.toggleFullSFMap(false)">✕</button>
+            </div>
+            <div style="display:flex; gap:6px; margin-top:10px;">
+              <input id="gmap-search-input" type="text" placeholder="Search San Francisco street or landmark..." style="flex:1; padding:8px 11px; border-radius:7px; border:1px solid var(--sf-border-strong); background:#0c0f16; color:#f3f4f6; font-size:11.5px; outline:none;" onkeydown="if(event.key==='Enter') window.searchGoogleMapSF()" />
+              <button class="vc-btn" style="padding:8px 12px;" onclick="window.searchGoogleMapSF()">Search</button>
             </div>
             <div id="gmap-search-results" style="margin-top:5px; display:flex; flex-direction:column; gap:4px;"></div>
           </div>
 
           <div class="sidebar-section">
-            <h4>1. Map Click sets:</h4>
+            <h4>1. Route Endpoints</h4>
             <div class="click-mode-row">
               <button class="mode-pill-btn" id="btn-pick-start" onclick="window.setMapClickMode('start')">
-                📍 SET START
+                Set Origin (A)
               </button>
               <button class="mode-pill-btn active-finish" id="btn-pick-finish" onclick="window.setMapClickMode('finish')">
-                🏁 SET FINISH
+                Set Destination (B)
               </button>
             </div>
-            <div style="margin-top:9px; font-size:11.5px; line-height:1.5;">
-              <div><strong style="color:#06d6a0;">START:</strong> <span id="map-start-name">Ferry Building / Embarcadero</span></div>
-              <div><strong style="color:#ff2a85;">FINISH:</strong> <span id="map-finish-name">Pier 39 / Fisherman's Wharf</span></div>
-              <div><strong style="color:#ffd166;">GPS ROUTE:</strong> <span id="map-route-dist">2.1 KM along SF Streets</span></div>
+            <div style="margin-top:10px; font-size:11.5px; line-height:1.65; color:#d1d5db;">
+              <div style="display:flex; justify-content:space-between; gap:8px;">
+                <span style="color:var(--sf-muted); font-weight:600;">ORIGIN (A)</span>
+                <span id="map-start-name" style="color:#f3f4f6; font-weight:600; text-align:right;">Ferry Building / Embarcadero</span>
+              </div>
+              <div style="display:flex; justify-content:space-between; gap:8px;">
+                <span style="color:var(--sf-muted); font-weight:600;">DESTINATION (B)</span>
+                <span id="map-finish-name" style="color:#f3f4f6; font-weight:600; text-align:right;">Pier 39 / Fisherman's Wharf</span>
+              </div>
+              <div style="display:flex; justify-content:space-between; gap:8px; border-top:1px solid var(--sf-border); margin-top:6px; padding-top:6px;">
+                <span style="color:var(--sf-muted); font-weight:600;">DISTANCE</span>
+                <span id="map-route-dist" style="color:#34d399; font-weight:700; text-align:right;">2.10 km via SF Streets</span>
+              </div>
             </div>
           </div>
 
           <div class="sidebar-section">
-            <h4>2. Quick-Pick SF Landmarks (Or Click Map):</h4>
+            <h4>2. San Francisco Landmarks</h4>
             <div class="landmark-chips" id="landmark-chips-container"></div>
           </div>
 
           <div class="sidebar-section">
-            <h4>3. Mobile Phone QR Controllers (Works on Wi-Fi &amp; 5G):</h4>
+            <h4>3. Phone Controllers (Scan QR or Use Keyboard)</h4>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; text-align:center;">
-              <div style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,42,133,0.45); border-radius:9px; padding:6px;">
-                <div style="font-size:10px; font-weight:900; color:#ff2a85;">PLAYER 1 PHONE</div>
-                <img id="modal-qr-p1" alt="P1 QR" style="width:76px; height:76px; background:#fff; padding:3px; border-radius:6px; margin:4px auto; display:block;" src="" />
-                <div id="modal-status-p1" style="font-size:9.5px; color:#cbd5e1; font-weight:700;">Scan or use WASD</div>
+              <div style="background:#12161f; border:1px solid var(--sf-border); border-radius:8px; padding:6px;">
+                <div style="font-size:10px; font-weight:700; color:var(--sf-vermilion); letter-spacing:0.04em;">PLAYER 1</div>
+                <img id="modal-qr-p1" alt="P1 QR" style="width:64px; height:64px; background:#fff; padding:3px; border-radius:5px; margin:4px auto; display:block;" src="" />
+                <div id="modal-status-p1" style="font-size:9.5px; color:var(--sf-muted); font-weight:600;">WASD or Scan QR</div>
               </div>
-              <div style="background:rgba(255,255,255,0.05); border:1px solid rgba(0,240,255,0.45); border-radius:9px; padding:6px;">
-                <div style="font-size:10px; font-weight:900; color:#00f0ff;">PLAYER 2 PHONE</div>
-                <img id="modal-qr-p2" alt="P2 QR" style="width:76px; height:76px; background:#fff; padding:3px; border-radius:6px; margin:4px auto; display:block;" src="" />
-                <div id="modal-status-p2" style="font-size:9.5px; color:#cbd5e1; font-weight:700;">Scan or use Arrows</div>
+              <div style="background:#12161f; border:1px solid var(--sf-border); border-radius:8px; padding:6px;">
+                <div style="font-size:10px; font-weight:700; color:var(--sf-blue); letter-spacing:0.04em;">PLAYER 2</div>
+                <img id="modal-qr-p2" alt="P2 QR" style="width:64px; height:64px; background:#fff; padding:3px; border-radius:5px; margin:4px auto; display:block;" src="" />
+                <div id="modal-status-p2" style="font-size:9.5px; color:var(--sf-muted); font-weight:600;">Arrows or Scan QR</div>
               </div>
             </div>
-            <div id="qr-tunnel-note" style="font-size:9.5px; color:#6bf5a6; text-align:center; margin-top:5px; word-break:break-all;"></div>
+            <div id="qr-tunnel-note" style="font-size:9.5px; color:var(--sf-muted); text-align:center; margin-top:4px; word-break:break-all;"></div>
           </div>
 
           <div>
             <button class="launch-btn-primary" onclick="window.launchTwoPlayerRace()">
-              🏁 START 2-PLAYER RACE ON THIS SF ROUTE
+              Start 2-Player Split-Screen Race
             </button>
             <button class="launch-btn-secondary" onclick="window.launchOnePlayerRoam()">
-              🌴 1-PLAYER FREE ROAM (SOLO DRIVE AROUND SF)
+              Solo Free Roam (1 Player)
             </button>
           </div>
         </div>
@@ -863,59 +921,67 @@
     <div id="countdown-overlay">3</div>
 
     <div id="winner-banner">
-      <h1 id="winner-title" style="font-size:28px; color:var(--vc-gold); margin-bottom:6px;">
-        🏆 PLAYER 1 WINS IN SAN FRANCISCO!
+      <h1 id="winner-title" style="font-size:26px; font-weight:800; color:#ffffff; margin-bottom:6px;">
+        PLAYER 1 WINS
       </h1>
-      <p id="winner-subtitle" style="font-size:14px; color:#e2e8f0; margin-bottom:14px;">
-        Completed the SF Street Race!
+      <p id="winner-subtitle" style="font-size:14px; color:var(--sf-muted); margin-bottom:16px;">
+        Completed the San Francisco Street Circuit
       </p>
       <div style="display:flex; gap:10px; justify-content:center;">
-        <button class="vc-btn active-pink" onclick="window.restartCurrentRace()">🏁 RACE AGAIN</button>
-        <button class="vc-btn map-cta" onclick="window.toggleFullSFMap(true)">🗺️ PICK NEW SF ROUTE</button>
+        <button class="vc-btn active-pink" style="padding:9px 16px;" onclick="window.restartCurrentRace()">Race Again</button>
+        <button class="vc-btn map-cta" style="padding:9px 16px;" onclick="window.toggleFullSFMap(true)">Select New Route</button>
       </div>
     </div>
   </div>
 
-  <!-- ================= MOBILE QR CONTROLLER MODE (?player=1 or ?player=2) ================= -->
+  <!-- ================= HORIZONTAL MOBILE CONTROLLER MODE (?player=1 or ?player=2) ================= -->
   <div id="mobile-controller-root">
-    <div style="display:flex; justify-content:space-between; align-items:center; background:var(--vc-dark); padding:10px 14px; border-radius:12px; border:1.5px solid var(--vc-pink); gap:8px; flex-wrap:wrap;">
-      <div>
-        <div id="mc-header-title" style="font-size:17px; font-weight:900; color:#ff2a85;">PLAYER 1 FERRARI CONTROLLER</div>
-        <div style="font-size:10.5px; color:#94a3b8;">Slide Thumb to Steer • Hold Gas + Nitro/Drift</div>
+    <div style="display:flex; justify-content:space-between; align-items:center; background:#131720; padding:8px 14px; border-radius:10px; border:1px solid rgba(255,255,255,0.1); height:48px; flex-shrink:0; gap:10px;">
+      <div style="display:flex; align-items:center; gap:14px;">
+        <div id="mc-header-title" style="font-size:13px; font-weight:800; padding:4px 10px; border-radius:6px; background:var(--sf-vermilion); color:#fff;">PLAYER 1</div>
+        <div style="display:flex; gap:7px;">
+          <button onclick="window.setMobilePaint('#d90429')" style="width:22px;height:22px;border-radius:50%;background:#d90429;border:2px solid rgba(255,255,255,0.65);cursor:pointer;"></button>
+          <button onclick="window.setMobilePaint('#2563eb')" style="width:22px;height:22px;border-radius:50%;background:#2563eb;border:2px solid rgba(255,255,255,0.65);cursor:pointer;"></button>
+          <button onclick="window.setMobilePaint('#e04f33')" style="width:22px;height:22px;border-radius:50%;background:#e04f33;border:2px solid rgba(255,255,255,0.65);cursor:pointer;"></button>
+          <button onclick="window.setMobilePaint('#eab308')" style="width:22px;height:22px;border-radius:50%;background:#eab308;border:2px solid rgba(255,255,255,0.65);cursor:pointer;"></button>
+          <button onclick="window.setMobilePaint('#10b981')" style="width:22px;height:22px;border-radius:50%;background:#10b981;border:2px solid rgba(255,255,255,0.65);cursor:pointer;"></button>
+        </div>
       </div>
-      <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-        <button class="vc-btn" style="padding:6px 10px; font-size:11px;" onclick="window.sendMobileAction('reset')">🔄 RESET</button>
-        <button class="vc-btn active-cyan" style="padding:6px 10px; font-size:11px;" onclick="window.sendMobileAction('1p_roam')">🌴 1P ROAM</button>
-        <button class="vc-btn active-pink" style="padding:6px 10px; font-size:11px;" onclick="window.sendMobileAction('start_race')">🏁 2P RACE</button>
-        <div id="mc-ws-status" class="route-pill">CONNECTING...</div>
-      </div>
-    </div>
-
-    <!-- Ferrari Paint Color Swatches on Mobile -->
-    <div style="display:flex; align-items:center; justify-content:space-between; background:rgba(8,12,22,0.75); padding:8px 12px; border-radius:10px; margin-top:8px; border:1px solid rgba(255,255,255,0.15);">
-      <span style="font-size:11px; font-weight:800; color:#cbd5e1;">FERRARI PAINT:</span>
-      <div style="display:flex; gap:8px;">
-        <button onclick="window.setMobilePaint('#ff1e42')" style="width:28px;height:28px;border-radius:50%;background:#ff1e42;border:2px solid #fff;cursor:pointer;"></button>
-        <button onclick="window.setMobilePaint('#00d4ff')" style="width:28px;height:28px;border-radius:50%;background:#00d4ff;border:2px solid #fff;cursor:pointer;"></button>
-        <button onclick="window.setMobilePaint('#ff2a85')" style="width:28px;height:28px;border-radius:50%;background:#ff2a85;border:2px solid #fff;cursor:pointer;"></button>
-        <button onclick="window.setMobilePaint('#ffd166')" style="width:28px;height:28px;border-radius:50%;background:#ffd166;border:2px solid #fff;cursor:pointer;"></button>
-        <button onclick="window.setMobilePaint('#06d6a0')" style="width:28px;height:28px;border-radius:50%;background:#06d6a0;border:2px solid #fff;cursor:pointer;"></button>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <button class="vc-btn" onclick="window.sendMobileAction('reset')">Reset Car</button>
+        <button class="vc-btn" onclick="window.sendMobileAction('1p_roam')">1P Solo</button>
+        <button class="vc-btn active-pink" onclick="window.sendMobileAction('start_race')">2P Race</button>
+        <div id="mc-ws-status" class="route-pill" style="color:#34d399; border-color:rgba(16,185,129,0.4);">Connected</div>
       </div>
     </div>
 
     <div class="mc-pad-area">
-      <!-- Left Thumb: Slide-enabled Steering Cluster -->
+      <!-- Left Half: Horizontal Steering Pads -->
       <div class="steer-cluster" id="mc-steer-zone">
-        <div class="touch-btn" id="btn-mc-left" style="border-color:#00f0ff;">◀<span style="font-size:12px;">STEER LEFT</span></div>
-        <div class="touch-btn" id="btn-mc-right" style="border-color:#00f0ff;">▶<span style="font-size:12px;">STEER RIGHT</span></div>
+        <div class="touch-btn" id="btn-mc-left">
+          <span>◀ LEFT</span>
+          <span style="font-size:11px; color:#9ca3af; font-weight:600;">STEER LEFT</span>
+        </div>
+        <div class="touch-btn" id="btn-mc-right">
+          <span>RIGHT ▶</span>
+          <span style="font-size:11px; color:#9ca3af; font-weight:600;">STEER RIGHT</span>
+        </div>
       </div>
 
-      <!-- Right Thumb: Gas, Brake, Nitro Boost & Drift -->
-      <div style="display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; gap:10px;">
-        <div class="touch-btn" id="btn-mc-nitro" style="border-color:#ffd166; font-size:20px;">🔥<span style="font-size:11px; color:#ffd166;">NITRO BOOST</span></div>
-        <div class="touch-btn" id="btn-mc-gas" style="border-color:#06d6a0; font-size:22px;">▲<span style="font-size:12px; color:#6bf5a6;">FULL GAS</span></div>
-        <div class="touch-btn" id="btn-mc-drift" style="border-color:#00f0ff; font-size:20px;">💨<span style="font-size:11px; color:#80f8ff;">DRIFT</span></div>
-        <div class="touch-btn" id="btn-mc-brake" style="border-color:#ff2a85; font-size:20px;">▼<span style="font-size:11px; color:#ff9ebb;">BRAKE / REV</span></div>
+      <!-- Right Half: Brake, Boost & Gas Pedals -->
+      <div class="pedal-cluster">
+        <div class="touch-btn" id="btn-mc-brake" style="grid-column:1; grid-row:1 / span 2; border-color:rgba(239,68,68,0.4); background:#191519;">
+          <span style="color:#f87171;">BRAKE</span>
+          <span style="font-size:11px; color:#9ca3af; font-weight:600;">REVERSE</span>
+        </div>
+        <div class="touch-btn" id="btn-mc-nitro" style="grid-column:2; grid-row:1; border-color:rgba(245,158,11,0.45); background:#1c1914;">
+          <span style="font-size:17px; color:#fbbf24;">BOOST</span>
+          <span style="font-size:11px; color:#9ca3af; font-weight:600;">HOLD + GAS</span>
+        </div>
+        <div class="touch-btn" id="btn-mc-gas" style="grid-column:2; grid-row:2; border-color:rgba(16,185,129,0.5); background:#111f1b;">
+          <span style="font-size:26px; color:#34d399;">GAS</span>
+          <span style="font-size:11px; color:#9ca3af; font-weight:600;">ACCELERATE</span>
+        </div>
       </div>
     </div>
   </div>
@@ -1000,8 +1066,8 @@
       const mcRoot = document.getElementById('mobile-controller-root');
       mcRoot.style.display = 'flex';
       const titleEl = document.getElementById('mc-header-title');
-      titleEl.textContent = `PLAYER ${playerNum} FERRARI CONTROLLER`;
-      titleEl.style.color = playerNum === 1 ? '#ff2a85' : '#00f0ff';
+      titleEl.textContent = `PLAYER ${playerNum}`;
+      titleEl.style.background = playerNum === 1 ? '#e04f33' : '#3b82f6';
 
       const mobileState = {
         player: playerNum,
@@ -1152,13 +1218,13 @@
         if (anyActive) sendState(false);
       }, 50);
     } else {
-      initViceCitySanFrancisco();
+      initArgonDriveSanFrancisco();
     }
 
     // =========================================================================
-    // MODE B: VICE CITY SAN FRANCISCO OPEN-WORLD 3D RACER
+    // MODE B: ARGONDRIVE SAN FRANCISCO OPEN-WORLD 3D RACER
     // =========================================================================
-    function initViceCitySanFrancisco() {
+    function initArgonDriveSanFrancisco() {
       let lastQrP1Url = '';
       function applyQrUrls(info) {
         const p1Url = info.player1Url || `${window.location.origin}/?player=1`;
@@ -1177,8 +1243,8 @@
         const noteEl = document.getElementById('qr-tunnel-note');
         if (noteEl) {
           noteEl.textContent = info.publicOrigin
-            ? `🌐 Global Mobile Link Ready: ${info.publicOrigin}`
-            : `📶 LAN Link: ${info.baseOrigin || window.location.origin}`;
+            ? `Mobile Controller Link: ${info.publicOrigin}`
+            : `LAN Controller Link: ${info.baseOrigin || window.location.origin}`;
         }
       }
 
@@ -1272,7 +1338,7 @@
         currentTimeMood = mood;
         const btn = document.getElementById('btn-time-mode');
         if (mood === 'day') {
-          if (btn) btn.textContent = '☀️ MOOD: SF DAY';
+          if (btn) btn.textContent = 'Time: Day';
           scene.background.setHex(0x83bddc);
           scene.fog.color.setHex(0xc2dce8);
           sunVec.setFromSphericalCoords(1, THREE.MathUtils.degToRad(90 - 44), THREE.MathUtils.degToRad(135));
@@ -1285,28 +1351,28 @@
           argonShaderUniforms.uNightFactor.value = 0.0;
           argonShaderUniforms.uWindowGlow.value = 0.25;
         } else if (mood === 'sunset') {
-          if (btn) btn.textContent = '🌅 MOOD: VICE SUNSET';
-          scene.background.setHex(0xd97b93);
-          scene.fog.color.setHex(0xe09891);
+          if (btn) btn.textContent = 'Time: Sunset';
+          scene.background.setHex(0xd4856a);
+          scene.fog.color.setHex(0xdca088);
           sunVec.setFromSphericalCoords(1, THREE.MathUtils.degToRad(90 - 11), THREE.MathUtils.degToRad(240));
           sky.material.uniforms['sunPosition'].value.copy(sunVec);
-          hemiLight.color.setHex(0xffb5d0);
-          hemiLight.groundColor.setHex(0x2b1e38);
+          hemiLight.color.setHex(0xffd2b8);
+          hemiLight.groundColor.setHex(0x2d2824);
           hemiLight.intensity = 1.18;
           sunLight.color.setHex(0xff9e44);
           sunLight.intensity = 1.45;
           argonShaderUniforms.uNightFactor.value = 0.42;
           argonShaderUniforms.uWindowGlow.value = 0.78;
         } else {
-          if (btn) btn.textContent = '🌃 MOOD: NEON NIGHT';
+          if (btn) btn.textContent = 'Time: Night';
           scene.background.setHex(0x091124);
           scene.fog.color.setHex(0x101b36);
           sunVec.setFromSphericalCoords(1, THREE.MathUtils.degToRad(90 - 2), THREE.MathUtils.degToRad(250));
           sky.material.uniforms['sunPosition'].value.copy(sunVec);
           hemiLight.color.setHex(0x38bdf8);
-          hemiLight.groundColor.setHex(0x140b29);
+          hemiLight.groundColor.setHex(0x111827);
           hemiLight.intensity = 0.75;
-          sunLight.color.setHex(0xff2a85);
+          sunLight.color.setHex(0x93c5fd);
           sunLight.intensity = 0.65;
           argonShaderUniforms.uNightFactor.value = 1.0;
           argonShaderUniforms.uWindowGlow.value = 1.35;
@@ -1358,10 +1424,10 @@
                     float newLuma = dot(gl_FragColor.rgb, vec3(0.299, 0.587, 0.114));
                     gl_FragColor.rgb = clamp(mix(vec3(newLuma), gl_FragColor.rgb, uSaturation), 0.0, 1.0);
 
-                    // 3. Smart Skyscraper Window Specular / Vice City Neon Emissive Extraction
+                    // 3. Smart Skyscraper Window Specular & Warm Architectural Luminance
                     float darkGlass = smoothstep(0.24, 0.06, luma);
-                    vec3 viceGlow = mix(vec3(1.0, 0.72, 0.38), vec3(0.0, 0.94, 1.0), step(0.5, fract(gl_FragCoord.x * 0.013 + gl_FragCoord.y * 0.017)));
-                    gl_FragColor.rgb += darkGlass * uWindowGlow * uNightFactor * viceGlow * 0.55;
+                    vec3 windowTint = mix(vec3(1.0, 0.78, 0.48), vec3(0.55, 0.82, 1.0), step(0.5, fract(gl_FragCoord.x * 0.013 + gl_FragCoord.y * 0.017)));
+                    gl_FragColor.rgb += darkGlass * uWindowGlow * uNightFactor * windowTint * 0.55;
                     #include <dithering_fragment>
                     `
                   );
@@ -1924,21 +1990,21 @@
           .catch(() => {});
       }
 
-      // Creates a sleek, translucent Holographic GPS Route Guide Strip so 100% of the real Z20 SF street asphalt & crosswalks remain visible!
-      function createViceCityRoadTexture() {
+      // Creates a sleek, translucent GPS Route Guide Strip so 100% of the real Z20 SF street asphalt & crosswalks remain visible!
+      function createRouteGuideTexture() {
         const c = document.createElement('canvas');
         c.width = 256;
         c.height = 512;
         const ctx = c.getContext('2d');
         ctx.clearRect(0, 0, 256, 512);
 
-        // Subtle glowing cyan/pink GPS guide rails & center chevron
-        ctx.fillStyle = 'rgba(0, 240, 255, 0.78)';
-        ctx.fillRect(10, 0, 12, 512);
-        ctx.fillStyle = 'rgba(255, 42, 133, 0.78)';
-        ctx.fillRect(234, 0, 12, 512);
+        // Subtle GPS guide rails & center chevron
+        ctx.fillStyle = 'rgba(59, 130, 246, 0.78)';
+        ctx.fillRect(10, 0, 10, 512);
+        ctx.fillStyle = 'rgba(224, 79, 51, 0.78)';
+        ctx.fillRect(236, 0, 10, 512);
 
-        ctx.fillStyle = 'rgba(255, 209, 102, 0.85)';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
         for (let y = 32; y < 512; y += 96) {
           ctx.beginPath();
           ctx.moveTo(128, y);
@@ -1957,7 +2023,7 @@
         tex.colorSpace = THREE.SRGBColorSpace;
         return tex;
       }
-      const roadRibbonTex = createViceCityRoadTexture();
+      const roadRibbonTex = createRouteGuideTexture();
 
       function buildClearRoadRibbonMesh() {
         while (routeVisualGroup.children.length > 0) {
@@ -2021,7 +2087,7 @@
         });
         routeVisualGroup.add(new THREE.Mesh(geo, mat));
 
-        // Glowing Vice City Neon Pink Checkered Finish Arch at the Final Point
+        // Golden Gate Vermilion Finish Arch at the Final Point
         const [fx, fy, fz] = activeRoutePoints[activeRoutePoints.length - 1];
         const [px, , pz] = activeRoutePoints[Math.max(0, activeRoutePoints.length - 2)];
         const finishYaw = Math.atan2(-(fx - px), -(fz - pz));
@@ -2030,19 +2096,19 @@
         arch.position.set(fx, fy + 0.3, fz);
         arch.rotation.y = finishYaw;
 
-        const neonPinkMat = new THREE.MeshBasicMaterial({ color: 0xff2a85 });
-        const neonCyanMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
+        const vermilionMat = new THREE.MeshBasicMaterial({ color: 0xe04f33 });
+        const whiteMat = new THREE.MeshBasicMaterial({ color: 0xf3f4f6 });
 
-        const leftPillar = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 11, 12), neonPinkMat);
+        const leftPillar = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 11, 12), vermilionMat);
         leftPillar.position.set(-7.5, 5.5, 0);
-        const rightPillar = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 11, 12), neonCyanMat);
+        const rightPillar = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 11, 12), vermilionMat);
         rightPillar.position.set(7.5, 5.5, 0);
-        const topBeam = new THREE.Mesh(new THREE.BoxGeometry(16, 1.4, 0.8), neonPinkMat);
+        const topBeam = new THREE.Mesh(new THREE.BoxGeometry(16, 1.4, 0.8), whiteMat);
         topBeam.position.set(0, 11, 0);
 
         const corona = new THREE.Mesh(
           new THREE.RingGeometry(5.5, 7.2, 32),
-          new THREE.MeshBasicMaterial({ color: 0xff2a85, side: THREE.DoubleSide })
+          new THREE.MeshBasicMaterial({ color: 0xe04f33, side: THREE.DoubleSide })
         );
         corona.rotation.x = -Math.PI / 2;
         corona.position.y = 0.25;
@@ -2207,29 +2273,29 @@
 
       const startIcon = L.divIcon({
         className: 'gmap-pin-start',
-        html: `<div style="width:26px;height:26px;border-radius:50%;background:#06d6a0;border:3px solid #fff;color:#041f14;font-weight:900;font-size:13px;display:grid;place-items:center;box-shadow:0 3px 12px rgba(0,0,0,0.65);">A</div>`,
+        html: `<div style="width:26px;height:26px;border-radius:50%;background:#10b981;border:2.5px solid #fff;color:#fff;font-weight:800;font-size:12px;display:grid;place-items:center;box-shadow:0 3px 10px rgba(0,0,0,0.55);">A</div>`,
         iconSize: [26, 26],
         iconAnchor: [13, 13]
       });
 
       const finishIcon = L.divIcon({
         className: 'gmap-pin-finish',
-        html: `<div style="width:26px;height:26px;border-radius:50%;background:#ff2a85;border:3px solid #fff;color:#fff;font-weight:900;font-size:13px;display:grid;place-items:center;box-shadow:0 3px 12px rgba(0,0,0,0.65);">B</div>`,
+        html: `<div style="width:26px;height:26px;border-radius:50%;background:#e04f33;border:2.5px solid #fff;color:#fff;font-weight:800;font-size:12px;display:grid;place-items:center;box-shadow:0 3px 10px rgba(0,0,0,0.55);">B</div>`,
         iconSize: [26, 26],
         iconAnchor: [13, 13]
       });
 
       const startMarker = L.marker([selectedStart.lat, selectedStart.lon], { icon: startIcon, draggable: true }).addTo(gmap);
       const finishMarker = L.marker([selectedFinish.lat, selectedFinish.lon], { icon: finishIcon, draggable: true }).addTo(gmap);
-      const routeGlowLine = L.polyline([], { color: '#ff2a85', weight: 8, opacity: 0.45 }).addTo(gmap);
-      const routeCoreLine = L.polyline([], { color: '#1a73e8', weight: 5, opacity: 0.95 }).addTo(gmap);
+      const routeGlowLine = L.polyline([], { color: '#ffffff', weight: 7, opacity: 0.7 }).addTo(gmap);
+      const routeCoreLine = L.polyline([], { color: '#2563eb', weight: 4.5, opacity: 0.98 }).addTo(gmap);
 
       // Add clickable landmark pins on Google Map
       SF_LANDMARKS.forEach((lm) => {
         const dot = L.circleMarker([lm.lat, lm.lon], {
-          radius: 6,
-          fillColor: '#ffd166',
-          color: '#080c16',
+          radius: 5.5,
+          fillColor: '#e04f33',
+          color: '#ffffff',
           weight: 2,
           fillOpacity: 0.95
         }).addTo(gmap);
@@ -2339,7 +2405,7 @@
         setTimeout(() => gmap.invalidateSize(), 60);
       }
 
-      // Live Rotating Google Maps Tile Cache for the Circular Vice City Radar Minimap
+      // Live Rotating Google Maps Tile Cache for the Circular SF Radar Minimap
       const radarCanvas = document.getElementById('vc-radar-canvas');
       const radarCtx = radarCanvas.getContext('2d');
       const northPinEl = document.getElementById('vc-north-pin');
@@ -2355,7 +2421,7 @@
         return img;
       }
 
-      function drawViceCityRadar() {
+      function drawSanFranciscoRadar() {
         const focusCar = viewMode === '1p_p2' ? carP2 : carP1;
         const W = radarCanvas.width, H = radarCanvas.height;
         const cx = W / 2, cy = H / 2;
@@ -2403,12 +2469,12 @@
           -(wx - focusCar.x) * pxPerMeter
         ];
 
-        // 2. Draw Glowing Google Maps Blue + Vice City Neon Pink GPS Route on Radar
+        // 2. Draw GPS Route on Radar
         if (!isFreeRoamMode && activeRoutePoints.length >= 2) {
           radarCtx.lineCap = 'round';
           radarCtx.lineJoin = 'round';
-          radarCtx.strokeStyle = '#ff2a85';
-          radarCtx.lineWidth = 7;
+          radarCtx.strokeStyle = '#ffffff';
+          radarCtx.lineWidth = 6.5;
           radarCtx.beginPath();
           activeRoutePoints.forEach(([x, , z], i) => {
             const [lx, ly] = toLocalPx(x, z);
@@ -2417,15 +2483,15 @@
           });
           radarCtx.stroke();
 
-          radarCtx.strokeStyle = '#1a73e8';
-          radarCtx.lineWidth = 3.5;
+          radarCtx.strokeStyle = '#2563eb';
+          radarCtx.lineWidth = 4;
           radarCtx.stroke();
         }
 
         // 3. Draw Other Car Blip on Radar
         const otherCar = focusCar === carP1 ? carP2 : carP1;
         const [ox, oy] = toLocalPx(otherCar.x, otherCar.z);
-        radarCtx.fillStyle = focusCar === carP1 ? '#00f0ff' : '#ff2a85';
+        radarCtx.fillStyle = focusCar === carP1 ? '#3b82f6' : '#e04f33';
         radarCtx.strokeStyle = '#ffffff';
         radarCtx.lineWidth = 2;
         radarCtx.beginPath();
@@ -2438,7 +2504,7 @@
         // Center Player Arrow
         radarCtx.save();
         radarCtx.translate(cx, cy);
-        radarCtx.fillStyle = focusCar === carP1 ? '#ff2a85' : '#00f0ff';
+        radarCtx.fillStyle = focusCar === carP1 ? '#e04f33' : '#3b82f6';
         radarCtx.strokeStyle = '#ffffff';
         radarCtx.lineWidth = 2.2;
         radarCtx.beginPath();
@@ -2464,7 +2530,7 @@
           const bx = cx + (distPx > maxR ? (rx / distPx) * maxR : rx);
           const by = cy + (distPx > maxR ? (ry / distPx) * maxR : ry);
 
-          radarCtx.fillStyle = '#ff2a85';
+          radarCtx.fillStyle = '#e04f33';
           radarCtx.strokeStyle = '#ffffff';
           radarCtx.lineWidth = 2;
           radarCtx.beginPath();
@@ -2518,7 +2584,7 @@
       window.toggleP2AiRival = function () {
         p2AiEnabled = !p2AiEnabled;
         const btn = document.getElementById('btn-p2-ai');
-        btn.textContent = p2AiEnabled ? '🤖 P2 AI RIVAL: ON' : '🤖 P2 AI RIVAL: OFF';
+        btn.textContent = p2AiEnabled ? 'P2 AI: On' : 'P2 AI: Off';
         btn.className = 'vc-btn' + (p2AiEnabled ? ' active-cyan' : '');
       };
 
@@ -2648,13 +2714,13 @@
         cursorLookMode = modes[(modes.indexOf(cursorLookMode) + 1) % modes.length];
         const btn = document.getElementById('btn-cursor-look');
         if (cursorLookMode === 'free') {
-          btn.textContent = '🎥 CURSOR LOOK: FREE';
+          btn.textContent = 'Look: Free';
           btn.className = 'vc-btn active-cyan';
         } else if (cursorLookMode === 'drag') {
-          btn.textContent = '🎥 CURSOR LOOK: DRAG';
+          btn.textContent = 'Look: Drag';
           btn.className = 'vc-btn active-pink';
         } else {
-          btn.textContent = '🎥 CURSOR LOOK: OFF';
+          btn.textContent = 'Look: Off';
           btn.className = 'vc-btn';
           targetYawOffsetP1 = 0; targetPitchOffsetP1 = 0;
           targetYawOffsetP2 = 0; targetPitchOffsetP2 = 0;
@@ -2784,19 +2850,19 @@
             if (msg.type === 'lan_info') {
               applyQrUrls(msg);
             } else if (msg.type === 'lobby') {
-              const s1 = msg.p1Connected ? '🟢 PHONE 1 READY' : 'WASD / Scan QR';
-              const s2 = msg.p2Connected ? '🟢 PHONE 2 READY' : 'Arrows / Scan QR';
+              const s1 = msg.p1Connected ? 'Phone 1 Connected' : 'WASD or Scan QR';
+              const s2 = msg.p2Connected ? 'Phone 2 Connected' : 'Arrows or Scan QR';
               document.getElementById('p1-lobby-pill').textContent = s1;
               document.getElementById('p2-lobby-pill').textContent = s2;
               const ms1 = document.getElementById('modal-status-p1');
               const ms2 = document.getElementById('modal-status-p2');
               if (ms1) {
                 ms1.textContent = s1;
-                ms1.style.color = msg.p1Connected ? '#6bf5a6' : '#cbd5e1';
+                ms1.style.color = msg.p1Connected ? '#34d399' : '#9ca3af';
               }
               if (ms2) {
                 ms2.textContent = s2;
-                ms2.style.color = msg.p2Connected ? '#6bf5a6' : '#cbd5e1';
+                ms2.style.color = msg.p2Connected ? '#34d399' : '#9ca3af';
               }
               if (msg.p1Spec?.color) carP1.bodyMat.color.set(msg.p1Spec.color);
               if (msg.p2Spec?.color) carP2.bodyMat.color.set(msg.p2Spec.color);
@@ -2890,7 +2956,7 @@
               car.x + Math.sin(car.rotationY) * 2.4,
               car.y + 0.45,
               car.z + Math.cos(car.rotationY) * 2.4,
-              0x00f0ff,
+              0xf59e0b,
               0.26,
               0.5,
               0.22
@@ -3126,7 +3192,7 @@
           document.getElementById('p2-dist').textContent = 'FREE ROAM • SAN FRANCISCO';
         }
 
-        drawViceCityRadar();
+        drawSanFranciscoRadar();
 
         // Render 1P Fullscreen OR 2P Side-by-Side Split Screen
         const W = window.innerWidth;
