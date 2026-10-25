@@ -640,61 +640,59 @@
     /* ================= HORIZONTAL MOBILE CONTROLLER VIEW ================= */
     #mobile-controller-root {
       display: none;
-      width: 100vw;
-      height: 100vh;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
       background: #0b0d12;
       flex-direction: column;
       justify-content: space-between;
-      padding: 10px 14px;
+      padding: 14px 32px;
       gap: 10px;
-    }
-
-    @media (orientation: portrait) {
-      #mobile-controller-root {
-        position: fixed;
-        top: 0;
-        left: 100vw;
-        width: 100vh;
-        height: 100vw;
-        transform-origin: top left;
-        transform: rotate(90deg);
-      }
+      overflow: hidden;
     }
 
     .mc-pad-area {
       flex: 1;
       display: grid;
-      grid-template-columns: 1.15fr 1fr;
-      gap: 16px;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
       min-height: 0;
+      min-width: 0;
     }
 
     .steer-cluster {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 12px;
+      gap: 8px;
+      min-height: 0;
     }
 
     .pedal-cluster {
       display: grid;
       grid-template-columns: 0.85fr 1.15fr;
-      grid-template-rows: 0.7fr 1.3fr;
-      gap: 12px;
+      grid-template-rows: 0.72fr 1.28fr;
+      gap: 8px;
+      min-height: 0;
     }
 
     .touch-btn {
       background: #151922;
-      border: 1.5px solid rgba(255, 255, 255, 0.14);
-      border-radius: 14px;
+      border: 1.5px solid rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
       color: #f3f4f6;
-      font-size: 22px;
+      font-size: clamp(15px, 3.8vmin, 22px);
       font-weight: 800;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 4px;
+      gap: 2px;
       touch-action: none;
+      min-height: 0;
+      min-width: 0;
+      overflow: hidden;
     }
 
     .touch-btn.pressed {
@@ -711,34 +709,20 @@
   <div id="broadcast-root">
     <canvas id="webgl-canvas"></canvas>
 
-    <!-- Top Navigation & Telemetry Bar -->
+    <!-- Minimal, Non-Repetitive Top Bar -->
     <header id="top-hud">
       <div class="brand-cluster">
         <div class="vc-logo">ARGONDRIVE // SAN FRANCISCO</div>
         <div class="route-pill" id="hud-route-label">Ferry Building → Pier 39</div>
-        <div class="route-pill" id="tile-stream-badge" style="color:#34d399; border-color:rgba(16,185,129,0.35);">
-          SF 3D TILES ACTIVE
-        </div>
+        <div class="route-pill" id="tile-stream-badge" style="display:none;">SF 3D TILES ACTIVE</div>
       </div>
 
       <div class="hud-btn-group">
         <button class="vc-btn map-cta" onclick="window.toggleFullSFMap(true)">
-          Route Map (M)
+          Route &amp; Setup (M)
         </button>
-        <button class="vc-btn" id="btn-mode-1p-roam" onclick="window.launchOnePlayerRoam()">
-          1P Solo Roam
-        </button>
-        <button class="vc-btn active-pink" id="btn-mode-2p-race" onclick="window.launchTwoPlayerRace()">
-          2P Split Race
-        </button>
-        <button class="vc-btn" id="btn-view-1p-p1" style="display:none;" onclick="window.setViewMode('1p_p1')">P1</button>
-        <button class="vc-btn" id="btn-view-1p-p2" style="display:none;" onclick="window.setViewMode('1p_p2')">P2</button>
-        <button class="vc-btn active-pink" id="btn-view-2p" style="display:none;" onclick="window.setViewMode('2p_split')">2P</button>
-        <button class="vc-btn" id="btn-p2-ai" onclick="window.toggleP2AiRival()">
-          P2 AI: Off
-        </button>
-        <button class="vc-btn active-cyan" id="btn-cursor-look" onclick="window.cycleCursorLookMode()">
-          Look: Free
+        <button class="vc-btn active-pink" id="btn-mode-toggle" onclick="window.toggleRaceMode()">
+          Mode: 2P Split
         </button>
         <button class="vc-btn" id="btn-time-mode" onclick="window.cycleTimeMood()">
           Time: Day
@@ -746,9 +730,14 @@
         <button class="vc-btn" id="btn-argon-enhance" onclick="window.runArgonCityEnhance()">
           Argon Enhance
         </button>
-        <button class="vc-btn" onclick="window.toggleQrDrawer()">
-          Phone QR
-        </button>
+        <!-- Hidden legacy hooks for internal state sync -->
+        <button id="btn-mode-1p-roam" style="display:none;"></button>
+        <button id="btn-mode-2p-race" style="display:none;"></button>
+        <button id="btn-view-1p-p1" style="display:none;"></button>
+        <button id="btn-view-1p-p2" style="display:none;"></button>
+        <button id="btn-view-2p" style="display:none;"></button>
+        <button id="btn-p2-ai" style="display:none;"></button>
+        <button id="btn-cursor-look" style="display:none;"></button>
       </div>
     </header>
 
@@ -936,22 +925,21 @@
 
   <!-- ================= HORIZONTAL MOBILE CONTROLLER MODE (?player=1 or ?player=2) ================= -->
   <div id="mobile-controller-root">
-    <div style="display:flex; justify-content:space-between; align-items:center; background:#131720; padding:8px 14px; border-radius:10px; border:1px solid rgba(255,255,255,0.1); height:48px; flex-shrink:0; gap:10px;">
-      <div style="display:flex; align-items:center; gap:14px;">
-        <div id="mc-header-title" style="font-size:13px; font-weight:800; padding:4px 10px; border-radius:6px; background:var(--sf-vermilion); color:#fff;">PLAYER 1</div>
-        <div style="display:flex; gap:7px;">
-          <button onclick="window.setMobilePaint('#d90429')" style="width:22px;height:22px;border-radius:50%;background:#d90429;border:2px solid rgba(255,255,255,0.65);cursor:pointer;"></button>
-          <button onclick="window.setMobilePaint('#2563eb')" style="width:22px;height:22px;border-radius:50%;background:#2563eb;border:2px solid rgba(255,255,255,0.65);cursor:pointer;"></button>
-          <button onclick="window.setMobilePaint('#e04f33')" style="width:22px;height:22px;border-radius:50%;background:#e04f33;border:2px solid rgba(255,255,255,0.65);cursor:pointer;"></button>
-          <button onclick="window.setMobilePaint('#eab308')" style="width:22px;height:22px;border-radius:50%;background:#eab308;border:2px solid rgba(255,255,255,0.65);cursor:pointer;"></button>
-          <button onclick="window.setMobilePaint('#10b981')" style="width:22px;height:22px;border-radius:50%;background:#10b981;border:2px solid rgba(255,255,255,0.65);cursor:pointer;"></button>
+    <div style="display:flex; justify-content:space-between; align-items:center; background:#131720; padding:5px 10px; border-radius:8px; border:1px solid rgba(255,255,255,0.1); height:38px; flex-shrink:0; gap:8px;">
+      <div style="display:flex; align-items:center; gap:8px; min-width:0;">
+        <div id="mc-header-title" style="font-size:11px; font-weight:800; padding:3px 8px; border-radius:5px; background:var(--sf-vermilion); color:#fff; white-space:nowrap;">P1</div>
+        <div style="display:flex; gap:5px;">
+          <button onclick="window.setMobilePaint('#d90429')" style="width:18px;height:18px;border-radius:50%;background:#d90429;border:1.5px solid rgba(255,255,255,0.7);cursor:pointer;"></button>
+          <button onclick="window.setMobilePaint('#2563eb')" style="width:18px;height:18px;border-radius:50%;background:#2563eb;border:1.5px solid rgba(255,255,255,0.7);cursor:pointer;"></button>
+          <button onclick="window.setMobilePaint('#e04f33')" style="width:18px;height:18px;border-radius:50%;background:#e04f33;border:1.5px solid rgba(255,255,255,0.7);cursor:pointer;"></button>
+          <button onclick="window.setMobilePaint('#eab308')" style="width:18px;height:18px;border-radius:50%;background:#eab308;border:1.5px solid rgba(255,255,255,0.7);cursor:pointer;"></button>
+          <button onclick="window.setMobilePaint('#10b981')" style="width:18px;height:18px;border-radius:50%;background:#10b981;border:1.5px solid rgba(255,255,255,0.7);cursor:pointer;"></button>
         </div>
       </div>
-      <div style="display:flex; align-items:center; gap:8px;">
-        <button class="vc-btn" onclick="window.sendMobileAction('reset')">Reset Car</button>
-        <button class="vc-btn" onclick="window.sendMobileAction('1p_roam')">1P Solo</button>
-        <button class="vc-btn active-pink" onclick="window.sendMobileAction('start_race')">2P Race</button>
-        <div id="mc-ws-status" class="route-pill" style="color:#34d399; border-color:rgba(16,185,129,0.4);">Connected</div>
+      <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+        <button class="vc-btn" style="padding:4px 9px;" onclick="window.sendMobileAction('reset')">Reset</button>
+        <button class="vc-btn active-pink" style="padding:4px 9px;" onclick="window.sendMobileAction('start_race')">Start Race</button>
+        <div id="mc-ws-status" class="route-pill" style="padding:4px 8px; font-size:10px; color:#34d399; border-color:rgba(16,185,129,0.4);">Online</div>
       </div>
     </div>
 
@@ -960,27 +948,27 @@
       <div class="steer-cluster" id="mc-steer-zone">
         <div class="touch-btn" id="btn-mc-left">
           <span>◀ LEFT</span>
-          <span style="font-size:11px; color:#9ca3af; font-weight:600;">STEER LEFT</span>
+          <span style="font-size:10px; color:#9ca3af; font-weight:600;">STEER</span>
         </div>
         <div class="touch-btn" id="btn-mc-right">
           <span>RIGHT ▶</span>
-          <span style="font-size:11px; color:#9ca3af; font-weight:600;">STEER RIGHT</span>
+          <span style="font-size:10px; color:#9ca3af; font-weight:600;">STEER</span>
         </div>
       </div>
 
       <!-- Right Half: Brake, Boost & Gas Pedals -->
       <div class="pedal-cluster">
-        <div class="touch-btn" id="btn-mc-brake" style="grid-column:1; grid-row:1 / span 2; border-color:rgba(239,68,68,0.4); background:#191519;">
+        <div class="touch-btn" id="btn-mc-brake" style="grid-column:1; grid-row:1 / span 2; border-color:rgba(239,68,68,0.45); background:#191519;">
           <span style="color:#f87171;">BRAKE</span>
-          <span style="font-size:11px; color:#9ca3af; font-weight:600;">REVERSE</span>
+          <span style="font-size:10px; color:#9ca3af; font-weight:600;">REVERSE</span>
         </div>
         <div class="touch-btn" id="btn-mc-nitro" style="grid-column:2; grid-row:1; border-color:rgba(245,158,11,0.45); background:#1c1914;">
-          <span style="font-size:17px; color:#fbbf24;">BOOST</span>
-          <span style="font-size:11px; color:#9ca3af; font-weight:600;">HOLD + GAS</span>
+          <span style="font-size:15px; color:#fbbf24;">BOOST</span>
+          <span style="font-size:10px; color:#9ca3af; font-weight:600;">HOLD + GAS</span>
         </div>
-        <div class="touch-btn" id="btn-mc-gas" style="grid-column:2; grid-row:2; border-color:rgba(16,185,129,0.5); background:#111f1b;">
-          <span style="font-size:26px; color:#34d399;">GAS</span>
-          <span style="font-size:11px; color:#9ca3af; font-weight:600;">ACCELERATE</span>
+        <div class="touch-btn" id="btn-mc-gas" style="grid-column:2; grid-row:2; border-color:rgba(16,185,129,0.55); background:#111f1b;">
+          <span style="font-size:22px; color:#34d399;">GAS</span>
+          <span style="font-size:10px; color:#9ca3af; font-weight:600;">ACCELERATE</span>
         </div>
       </div>
     </div>
@@ -1066,8 +1054,38 @@
       const mcRoot = document.getElementById('mobile-controller-root');
       mcRoot.style.display = 'flex';
       const titleEl = document.getElementById('mc-header-title');
-      titleEl.textContent = `PLAYER ${playerNum}`;
+      titleEl.textContent = `P${playerNum}`;
       titleEl.style.background = playerNum === 1 ? '#e04f33' : '#3b82f6';
+
+      function fitControllerViewport() {
+        const vv = window.visualViewport;
+        const vw = Math.floor(vv ? vv.width : window.innerWidth);
+        const vh = Math.floor(vv ? vv.height : window.innerHeight);
+        const ox = Math.floor(vv ? vv.offsetLeft : 0);
+        const oy = Math.floor(vv ? vv.offsetTop : 0);
+        if (vh > vw) {
+          mcRoot.style.top = oy + 'px';
+          mcRoot.style.left = (ox + vw) + 'px';
+          mcRoot.style.width = vh + 'px';
+          mcRoot.style.height = vw + 'px';
+          mcRoot.style.transformOrigin = '0 0';
+          mcRoot.style.transform = 'rotate(90deg)';
+        } else {
+          mcRoot.style.top = oy + 'px';
+          mcRoot.style.left = ox + 'px';
+          mcRoot.style.width = vw + 'px';
+          mcRoot.style.height = vh + 'px';
+          mcRoot.style.transformOrigin = '0 0';
+          mcRoot.style.transform = 'none';
+        }
+      }
+      fitControllerViewport();
+      window.addEventListener('resize', fitControllerViewport);
+      window.addEventListener('orientationchange', () => setTimeout(fitControllerViewport, 80));
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', fitControllerViewport);
+        window.visualViewport.addEventListener('scroll', fitControllerViewport);
+      }
 
       const mobileState = {
         player: playerNum,
@@ -2636,8 +2654,11 @@
           countdownInterval = null;
         }
         document.getElementById('countdown-overlay').style.display = 'none';
-        document.getElementById('btn-mode-1p-roam').className = 'vc-btn active-cyan';
-        document.getElementById('btn-mode-2p-race').className = 'vc-btn';
+        const toggleBtn = document.getElementById('btn-mode-toggle');
+        if (toggleBtn) {
+          toggleBtn.textContent = 'Mode: 1P Solo';
+          toggleBtn.className = 'vc-btn active-cyan';
+        }
         window.setViewMode('1p_p1');
         carP2.group.visible = false;
         window.startRaceFromMap(true);
@@ -2648,11 +2669,22 @@
           clearInterval(countdownInterval);
           countdownInterval = null;
         }
-        document.getElementById('btn-mode-1p-roam').className = 'vc-btn';
-        document.getElementById('btn-mode-2p-race').className = 'vc-btn active-pink';
+        const toggleBtn = document.getElementById('btn-mode-toggle');
+        if (toggleBtn) {
+          toggleBtn.textContent = 'Mode: 2P Split';
+          toggleBtn.className = 'vc-btn active-pink';
+        }
         window.setViewMode('2p_split');
         carP2.group.visible = true;
         window.startRaceFromMap(false);
+      };
+
+      window.toggleRaceMode = function () {
+        if (viewMode === '2p_split') {
+          window.launchOnePlayerRoam();
+        } else {
+          window.launchTwoPlayerRace();
+        }
       };
 
       window.startRaceFromMap = function (freeRoam = false) {

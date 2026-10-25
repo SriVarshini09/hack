@@ -327,7 +327,7 @@ function renderMobileControllerHtml(playerStr) {
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Player ${playerNum} Controller — ArgonDrive SF</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
@@ -335,77 +335,68 @@ function renderMobileControllerHtml(playerStr) {
       width: 100%; height: 100%; overflow: hidden;
       background: #0b0d12; color: #f3f4f6;
       font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      touch-action: none;
+      touch-action: none; position: fixed; inset: 0;
     }
     #mc-root {
+      position: fixed; top: 0; left: 0;
       display: flex; flex-direction: column; justify-content: space-between;
-      width: 100vw; height: 100vh; padding: 10px 14px; gap: 10px;
-      background: #0b0d12;
-    }
-    /* Force horizontal landscape layout even if phone is held vertically with rotation lock */
-    @media (orientation: portrait) {
-      #mc-root {
-        position: fixed;
-        top: 0;
-        left: 100vw;
-        width: 100vh;
-        height: 100vw;
-        transform-origin: top left;
-        transform: rotate(90deg);
-      }
+      width: 100%; height: 100%;
+      padding: 14px 32px; gap: 10px;
+      background: #0b0d12; overflow: hidden;
     }
     .hdr {
       display: flex; justify-content: space-between; align-items: center;
-      background: #131720; padding: 8px 14px; border-radius: 10px;
-      border: 1px solid rgba(255,255,255,0.1); gap: 10px; height: 48px; flex-shrink: 0;
+      background: #131720; padding: 5px 10px; border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.1); gap: 8px; height: 38px; flex-shrink: 0;
     }
-    .hdr-left { display: flex; align-items: center; gap: 14px; }
+    .hdr-left { display: flex; align-items: center; gap: 8px; min-width: 0; }
     .p-badge {
-      font-size: 13px; font-weight: 800; letter-spacing: 0.04em;
-      padding: 4px 10px; border-radius: 6px;
-      background: ${accent}; color: #fff;
+      font-size: 11px; font-weight: 800; letter-spacing: 0.04em;
+      padding: 3px 8px; border-radius: 5px;
+      background: ${accent}; color: #fff; white-space: nowrap;
     }
-    .swatches { display: flex; align-items: center; gap: 7px; }
+    .swatches { display: flex; align-items: center; gap: 5px; }
     .swatch {
-      width: 22px; height: 22px; border-radius: 50%;
-      border: 2px solid rgba(255,255,255,0.65); cursor: pointer;
+      width: 18px; height: 18px; border-radius: 50%;
+      border: 1.5px solid rgba(255,255,255,0.7); cursor: pointer; flex-shrink: 0;
     }
-    .hdr-right { display: flex; align-items: center; gap: 8px; }
+    .hdr-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
     .act-btn {
-      padding: 6px 12px; border-radius: 7px;
+      padding: 4px 9px; border-radius: 6px;
       border: 1px solid rgba(255,255,255,0.14);
       background: #1c2230; color: #e5e7eb;
-      font-size: 11px; font-weight: 700; cursor: pointer;
+      font-size: 10.5px; font-weight: 700; cursor: pointer; white-space: nowrap;
     }
     .act-primary { background: #e04f33; border-color: #f06449; color: #fff; }
     .status-pill {
-      padding: 5px 10px; border-radius: 6px;
+      padding: 4px 8px; border-radius: 5px;
       background: rgba(16,185,129,0.14); border: 1px solid rgba(16,185,129,0.4);
-      color: #34d399; font-size: 11px; font-weight: 700;
+      color: #34d399; font-size: 10px; font-weight: 700; white-space: nowrap;
     }
     .mc-pad-area {
-      flex: 1; display: grid; grid-template-columns: 1.15fr 1fr; gap: 16px; min-height: 0;
+      flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+      min-height: 0; min-width: 0;
     }
     .steer-cluster {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px; min-height: 0;
     }
     .pedal-cluster {
-      display: grid; grid-template-columns: 0.85fr 1.15fr; grid-template-rows: 0.7fr 1.3fr; gap: 12px;
+      display: grid; grid-template-columns: 0.85fr 1.15fr; grid-template-rows: 0.72fr 1.28fr; gap: 8px; min-height: 0;
     }
     .touch-btn {
-      border-radius: 14px; border: 1.5px solid rgba(255,255,255,0.14);
+      border-radius: 12px; border: 1.5px solid rgba(255,255,255,0.15);
       background: #151922; color: #f3f4f6;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      gap: 4px; touch-action: none; transition: background 0.05s, transform 0.05s;
+      gap: 2px; touch-action: none; min-height: 0; min-width: 0; overflow: hidden;
     }
-    .touch-btn .main-lbl { font-size: 22px; font-weight: 800; letter-spacing: 0.03em; }
-    .touch-btn .sub-lbl { font-size: 11px; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.06em; }
-    #btn-mc-brake { grid-column: 1; grid-row: 1 / span 2; border-color: rgba(239,68,68,0.4); background: #191519; }
+    .touch-btn .main-lbl { font-size: clamp(15px, 3.8vmin, 22px); font-weight: 800; letter-spacing: 0.02em; }
+    .touch-btn .sub-lbl { font-size: clamp(9px, 2vmin, 11px); font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.04em; }
+    #btn-mc-brake { grid-column: 1; grid-row: 1 / span 2; border-color: rgba(239,68,68,0.45); background: #191519; }
     #btn-mc-brake .main-lbl { color: #f87171; }
     #btn-mc-nitro { grid-column: 2; grid-row: 1; border-color: rgba(245,158,11,0.45); background: #1c1914; }
-    #btn-mc-nitro .main-lbl { font-size: 17px; color: #fbbf24; }
-    #btn-mc-gas { grid-column: 2; grid-row: 2; border-color: rgba(16,185,129,0.5); background: #111f1b; }
-    #btn-mc-gas .main-lbl { font-size: 26px; color: #34d399; }
+    #btn-mc-nitro .main-lbl { font-size: clamp(13px, 3.2vmin, 17px); color: #fbbf24; }
+    #btn-mc-gas { grid-column: 2; grid-row: 2; border-color: rgba(16,185,129,0.55); background: #111f1b; }
+    #btn-mc-gas .main-lbl { font-size: clamp(18px, 4.4vmin, 26px); color: #34d399; }
     .touch-btn.pressed {
       background: ${accent} !important;
       border-color: #ffffff !important;
@@ -418,7 +409,7 @@ function renderMobileControllerHtml(playerStr) {
   <div id="mc-root">
     <div class="hdr">
       <div class="hdr-left">
-        <div class="p-badge">PLAYER ${playerNum}</div>
+        <div class="p-badge">P${playerNum}</div>
         <div class="swatches">
           <button class="swatch" style="background:#d90429;" onclick="window.setMobilePaint('#d90429')"></button>
           <button class="swatch" style="background:#2563eb;" onclick="window.setMobilePaint('#2563eb')"></button>
@@ -428,10 +419,9 @@ function renderMobileControllerHtml(playerStr) {
         </div>
       </div>
       <div class="hdr-right">
-        <button class="act-btn" onclick="window.sendMobileAction('reset')">Reset Car</button>
-        <button class="act-btn" onclick="window.sendMobileAction('1p_roam')">1P Solo</button>
-        <button class="act-btn act-primary" onclick="window.sendMobileAction('start_race')">2P Race</button>
-        <div id="mc-ws-status" class="status-pill">Connecting...</div>
+        <button class="act-btn" onclick="window.sendMobileAction('reset')">Reset</button>
+        <button class="act-btn act-primary" onclick="window.sendMobileAction('start_race')">Start Race</button>
+        <div id="mc-ws-status" class="status-pill">Online</div>
       </div>
     </div>
 
@@ -439,11 +429,11 @@ function renderMobileControllerHtml(playerStr) {
       <div class="steer-cluster">
         <div class="touch-btn" id="btn-mc-left">
           <span class="main-lbl">◀ LEFT</span>
-          <span class="sub-lbl">Steer Left</span>
+          <span class="sub-lbl">Steer</span>
         </div>
         <div class="touch-btn" id="btn-mc-right">
           <span class="main-lbl">RIGHT ▶</span>
-          <span class="sub-lbl">Steer Right</span>
+          <span class="sub-lbl">Steer</span>
         </div>
       </div>
       <div class="pedal-cluster">
@@ -464,6 +454,41 @@ function renderMobileControllerHtml(playerStr) {
   </div>
 
   <script>
+    // Dynamically fit horizontal controller inside the exact visible mobile screen (excluding browser URL/bottom toolbars!)
+    function fitControllerViewport() {
+      const root = document.getElementById('mc-root');
+      if (!root) return;
+      const vv = window.visualViewport;
+      const vw = Math.floor(vv ? vv.width : window.innerWidth);
+      const vh = Math.floor(vv ? vv.height : window.innerHeight);
+      const ox = Math.floor(vv ? vv.offsetLeft : 0);
+      const oy = Math.floor(vv ? vv.offsetTop : 0);
+
+      if (vh > vw) {
+        // Portrait phone -> rotate 90deg into horizontal landscape inside the exact visible area
+        root.style.top = oy + 'px';
+        root.style.left = (ox + vw) + 'px';
+        root.style.width = vh + 'px';
+        root.style.height = vw + 'px';
+        root.style.transformOrigin = '0 0';
+        root.style.transform = 'rotate(90deg)';
+      } else {
+        // Landscape phone -> fill exact visible area
+        root.style.top = oy + 'px';
+        root.style.left = ox + 'px';
+        root.style.width = vw + 'px';
+        root.style.height = vh + 'px';
+        root.style.transformOrigin = '0 0';
+        root.style.transform = 'none';
+      }
+    }
+    fitControllerViewport();
+    window.addEventListener('resize', fitControllerViewport);
+    window.addEventListener('orientationchange', () => setTimeout(fitControllerViewport, 80));
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', fitControllerViewport);
+      window.visualViewport.addEventListener('scroll', fitControllerViewport);
+    }
     const playerNum = ${playerNum};
     const mobileState = {
       player: playerNum,
