@@ -1,0 +1,284 @@
+{
+  "source": "sf.thijs.gg-apple-r3d-photogrammetry",
+  "anchorThijs": {
+    "x": 2118.7,
+    "y": -39.4,
+    "z": 3535.4,
+    "theta": -2.191
+  },
+  "tiles": [
+    {
+      "key": "z17-20971-50650-h0",
+      "zoom": 17,
+      "uri": "/apple-r3d-city-z17/content/z17-20971-50650-h0-yup-uvflip-v3-world.glb",
+      "localUrl": "/sf_tiles/z17-20971-50650-h0-yup-uvflip-v3-world.glb",
+      "file": "z17-20971-50650-h0-yup-uvflip-v3-world.glb",
+      "offset": [
+        2635.5938,
+        -1.2688,
+        3038.7767
+      ],
+      "tris": 14683
+    },
+    {
+      "key": "z17-20971-50651-h0",
+      "zoom": 17,
+      "uri": "/apple-r3d-city-z17/content/z17-20971-50651-h0-yup-uvflip-v3-world.glb",
+      "localUrl": "/sf_tiles/z17-20971-50651-h0-yup-uvflip-v3-world.glb",
+      "file": "z17-20971-50651-h0-yup-uvflip-v3-world.glb",
+      "offset": [
+        2394.7112,
+        -1.1736,
+        3038.8656
+      ],
+      "tris": 22309
+    },
+    {
+      "key": "z17-20971-50652-h0",
+      "zoom": 17,
+      "uri": "/apple-r3d-city-z17/content/z17-20971-50652-h0-yup-uvflip-v3-world.glb",
+      "localUrl": "/sf_tiles/z17-20971-50652-h0-yup-uvflip-v3-world.glb",
+      "file": "z17-20971-50652-h0-yup-uvflip-v3-world.glb",
+      "offset": [
+        2153.8217,
+        -1.0875,
+        3038.9545
+      ],
+      "tris": 22293
+    },
+    {
+      "key": "z17-20971-50653-h0",
+      "zoom": 17,
+      "uri": "/apple-r3d-city-z17/content/z17-20971-50653-h0-yup-uvflip-v3-world.glb",
+      "localUrl": "/sf_tiles/z17-20971-50653-h0-yup-uvflip-v3-world.glb",
+      "file": "z17-20971-50653-h0-yup-uvflip-v3-world.glb",
+      "offset": [
+        1912.9251,
+        -1.0105,
+        3039.0434
+      ],
+      "tris": 18171
+    },
+    {
+      "key": "z17-20971-50654-h0",
+      "zoom": 17,
+      "uri": "/apple-r3d-city-z17/content/z17-20971-50654-h0-yup-uvflip-v3-world.glb",
+      "localUrl": "/sf_tiles/z17-20971-50654-h0-yup-uvflip-v3-world.glb",
+      "file": "z17-20971-50654-h0-yup-uvflip-v3-world.glb",
+      "offset": [
+        1672.0215,
+        -0.9427,
+        3039.1323
+      ],
+      "tris": 19349
+    },
+    {
+      "key": "z17-20972-50650-h0",
+      "zoom": 17,
+      "uri": "/apple-r3d-city-z17/content/z17-20972-50650-h0-yup-uvflip-v3-world.glb",
+      "localUrl": "/sf_tiles/z17-20972-50650-h0-yup-uvflip-v3-world.glb",
+      "file": "z17-20972-50650-h0-yup-uvflip-v3-world.glb",
+      "offset": [
+        2635.6866,
+        -1.3885,
+        3280.6694
+      ],
+      "tris": 5711
+    },
+    {
+      "key": "z17-20972-50651-h0",
+      "zoom": 17,
+      "uri": "/apple-r3d-city-z17/content/z17-20972-50651-h0-yup-uvflip-v3-world.glb",
+      "localUrl": "/sf_tiles/z17-20972-50651-h0-yup-uvflip-v3-world.glb",
+      "file": "z17-20972-50651-h0-yup-uvflip-v3-world.glb",
+      "offset": [
+        2394.804,
+        -1.2933,
+        3280.7653
+      ],
+      "tris": 17179
+    },
+    {
+      "key": "z17-20973-50650-h0",
+      "zoom": 17,
+      "uri": "/apple-r3d-city-z17/content/z17-20973-50650-h0-yup-uvflip-v3-world.glb",
+      "localUrl": "/sf_tiles/z17-20973-50650-h0-yup-uvflip-v3-world.glb",
+      "file": "z17-20973-50650-h0-yup-uvflip-v3-world.glb",
+      "offset": [
+        2635.7865,
+        -1.5174,
+        3522.562
+      ],
+      "tris": 1993
+    },
+    {
+      "key": "z17-20973-50651-h0",
+      "zoom": 17,
+      "uri": "/apple-r3d-city-z17/content/z17-20973-50651-h0-yup-uvflip-v3-world.glb",
+      "localUrl": "/sf_tiles/z17-20973-50651-h0-yup-uvflip-v3-world.glb",
+      "file": "z17-20973-50651-h0-yup-uvflip-v3-world.glb",
+      "offset": [
+        2394.9039,
+        -1.4222,
+        3522.665
+      ],
+      "tris": 7738
+    },
+    {
+      "key": "z17-20974-50651-h0",
+      "zoom": 17,
+      "uri": "/apple-r3d-city-z17/content/z17-20974-50651-h0-yup-uvflip-v3-world.glb",
+      "localUrl": "/sf_tiles/z17-20974-50651-h0-yup-uvflip-v3-world.glb",
+      "file": "z17-20974-50651-h0-yup-uvflip-v3-world.glb",
+      "offset": [
+        2395.0109,
+        -1.5602,
+        3764.5647
+      ],
+      "tris": 705
+    },
+    {
+      "key": "z17-20972-50652-h0",
+      "zoom": 17,
+      "uri": "/apple-r3d-city-z17/content/z17-20972-50652-h0-yup-uvflip-v3-world.glb",
+      "localUrl": "/sf_tiles/z17-20972-50652-h0-yup-uvflip-v3-world.glb",
+      "file": "z17-20972-50652-h0-yup-uvflip-v3-world.glb",
+      "offset": [
+        2153.9145,
+        -1.2072,
+        3280.8613
+      ],
+      "tris": 15845
+    },
+    {
+      "key": "z17-20972-50653-h0",
+      "zoom": 17,
+      "uri": "/apple-r3d-city-z17/content/z17-20972-50653-h0-yup-uvflip-v3-world.glb",
+      "localUrl": "/sf_tiles/z17-20972-50653-h0-yup-uvflip-v3-world.glb",
+      "file": "z17-20972-50653-h0-yup-uvflip-v3-world.glb",
+      "offset": [
+        1913.0179,
+        -1.1302,
+        3280.9573
+      ],
+      "tris": 17072
+    },
+    {
+      "key": "z17-20973-50652-h0",
+      "zoom": 17,
+      "uri": "/apple-r3d-city-z17/content/z17-20973-50652-h0-yup-uvflip-v3-world.glb",
+      "localUrl": "/sf_tiles/z17-20973-50652-h0-yup-uvflip-v3-world.glb",
+      "file": "z17-20973-50652-h0-yup-uvflip-v3-world.glb",
+      "offset": [
+        2154.0143,
+        -1.3361,
+        3522.7681
+      ],
+      "tris": 8289
+    },
+    {
+      "key": "z17-20973-50653-h0",
+      "zoom": 17,
+      "uri": "/apple-r3d-city-z17/content/z17-20973-50653-h0-yup-uvflip-v3-world.glb",
+      "localUrl": "/sf_tiles/z17-20973-50653-h0-yup-uvflip-v3-world.glb",
+      "file": "z17-20973-50653-h0-yup-uvflip-v3-world.glb",
+      "offset": [
+        1913.1178,
+        -1.2591,
+        3522.8712
+      ],
+      "tris": 13849
+    },
+    {
+      "key": "z17-20972-50654-h0",
+      "zoom": 17,
+      "uri": "/apple-r3d-city-z17/content/z17-20972-50654-h0-yup-uvflip-v3-world.glb",
+      "localUrl": "/sf_tiles/z17-20972-50654-h0-yup-uvflip-v3-world.glb",
+      "file": "z17-20972-50654-h0-yup-uvflip-v3-world.glb",
+      "offset": [
+        1672.1143,
+        -1.0624,
+        3281.0533
+      ],
+      "tris": 17100
+    },
+    {
+      "key": "z17-20973-50654-h0",
+      "zoom": 17,
+      "uri": "/apple-r3d-city-z17/content/z17-20973-50654-h0-yup-uvflip-v3-world.glb",
+      "localUrl": "/sf_tiles/z17-20973-50654-h0-yup-uvflip-v3-world.glb",
+      "file": "z17-20973-50654-h0-yup-uvflip-v3-world.glb",
+      "offset": [
+        1672.2142,
+        -1.1913,
+        3522.9742
+      ],
+      "tris": 17105
+    },
+    {
+      "key": "z17-20974-50652-h0",
+      "zoom": 17,
+      "uri": "/apple-r3d-city-z17/content/z17-20974-50652-h0-yup-uvflip-v3-world.glb",
+      "localUrl": "/sf_tiles/z17-20974-50652-h0-yup-uvflip-v3-world.glb",
+      "file": "z17-20974-50652-h0-yup-uvflip-v3-world.glb",
+      "offset": [
+        2154.1213,
+        -1.4741,
+        3764.6749
+      ],
+      "tris": 5284
+    },
+    {
+      "key": "z17-20974-50653-h0",
+      "zoom": 17,
+      "uri": "/apple-r3d-city-z17/content/z17-20974-50653-h0-yup-uvflip-v3-world.glb",
+      "localUrl": "/sf_tiles/z17-20974-50653-h0-yup-uvflip-v3-world.glb",
+      "file": "z17-20974-50653-h0-yup-uvflip-v3-world.glb",
+      "offset": [
+        1913.2248,
+        -1.3972,
+        3764.785
+      ],
+      "tris": 9084
+    },
+    {
+      "key": "z17-20974-50654-h0",
+      "zoom": 17,
+      "uri": "/apple-r3d-city-z17/content/z17-20974-50654-h0-yup-uvflip-v3-world.glb",
+      "localUrl": "/sf_tiles/z17-20974-50654-h0-yup-uvflip-v3-world.glb",
+      "file": "z17-20974-50654-h0-yup-uvflip-v3-world.glb",
+      "offset": [
+        1672.3212,
+        -1.3293,
+        3764.8952
+      ],
+      "tris": 20829
+    },
+    {
+      "key": "z20-167790-405220-h1",
+      "zoom": 20,
+      "uri": "/apple-r3d-city-z20/content/z20-167790-405220-h1-yup-uvflip-v3-world.glb",
+      "localUrl": "/sf_tiles/z20-167790-405220-h1-yup-uvflip-v3-world.glb",
+      "file": "z20-167790-405220-h1-yup-uvflip-v3-world.glb",
+      "offset": [
+        2128,
+        -1.37,
+        3608
+      ],
+      "tris": 6000
+    },
+    {
+      "key": "z20-167790-405221-h1",
+      "zoom": 20,
+      "uri": "/apple-r3d-city-z20/content/z20-167790-405221-h1-yup-uvflip-v3-world.glb",
+      "localUrl": "/sf_tiles/z20-167790-405221-h1-yup-uvflip-v3-world.glb",
+      "file": "z20-167790-405221-h1-yup-uvflip-v3-world.glb",
+      "offset": [
+        2128,
+        -1.37,
+        3608
+      ],
+      "tris": 6000
+    }
+  ]
+}

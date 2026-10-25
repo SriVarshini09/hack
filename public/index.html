@@ -3,19 +3,33 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>ArgonDrive SF — Self-Healing Real2Sim City Architect & Multiplayer Race</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <title>ArgonDrive SF — Photogrammetry Real2Sim City Architect & Multiplayer Race</title>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/",
+        "three/examples/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/",
+        "3d-tiles-renderer": "https://cdn.jsdelivr.net/npm/3d-tiles-renderer@0.4.27/build/index.js",
+        "3d-tiles-renderer/core/plugins": "https://cdn.jsdelivr.net/npm/3d-tiles-renderer@0.4.27/build/index.core-plugins.js",
+        "3d-tiles-renderer/three/plugins": "https://cdn.jsdelivr.net/npm/3d-tiles-renderer@0.4.27/build/index.three-plugins.js"
+      }
+    }
+  </script>
+
   <style>
     :root {
-      --bg-dark: #050811;
-      --panel-bg: rgba(8, 14, 28, 0.88);
-      --border-cyan: rgba(0, 229, 255, 0.45);
-      --neon-cyan: #00e5ff;
+      --ui-vibrancy: saturate(1.38) contrast(1.06) brightness(1.02);
+      --world-vibrancy: saturate(1.42) contrast(1.07) brightness(1.03);
+      --glass-bg: rgba(9, 15, 19, 0.78);
+      --glass-border: rgba(255, 255, 255, 0.28);
+      --neon-cyan: #38bdf8;
       --neon-red: #ff2a54;
-      --neon-green: #00ff88;
-      --neon-gold: #ffcc33;
-      --text-main: #f0f6ff;
-      --text-dim: #8ba3c7;
+      --neon-green: #38d67a;
+      --neon-gold: #f5c451;
+      --text-main: #f8fafc;
+      --text-dim: rgba(255, 255, 255, 0.72);
     }
 
     * {
@@ -30,45 +44,48 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: var(--bg-dark);
+      background: #78b6da;
       color: var(--text-main);
-      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, sans-serif;
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
     }
 
-    /* ================= MAIN BROADCAST MODE ================= */
+    /* ================= MAIN BROADCAST MODE (sf.thijs.gg Aesthetic) ================= */
     #broadcast-root {
-      position: relative;
-      width: 100vw;
-      height: 100vh;
+      position: fixed;
+      inset: 0;
       overflow: hidden;
+      background: linear-gradient(#4f9fd0, #c8e5f2 72%, #71866f);
     }
 
     #webgl-canvas {
       position: absolute;
-      top: 0;
-      left: 0;
+      inset: 0;
       width: 100vw;
       height: 100vh;
       display: block;
       z-index: 1;
+      filter: var(--world-vibrancy);
     }
 
-    /* Top HUD Bar */
+    /* Top Glassmorphic Broadcast HUD */
     #top-hud {
       position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 62px;
-      background: linear-gradient(180deg, rgba(4, 9, 20, 0.96) 0%, rgba(7, 14, 29, 0.85) 100%);
-      border-bottom: 1px solid var(--border-cyan);
-      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.7);
+      top: 12px;
+      left: 14px;
+      right: 14px;
+      height: 58px;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 14px;
+      box-shadow: 0 14px 38px rgba(5, 11, 12, 0.28);
+      backdrop-filter: blur(14px);
       display: flex;
       align-items: center;
       justify-content: space-between;
       padding: 0 16px;
       z-index: 20;
       gap: 10px;
+      filter: var(--ui-vibrancy);
     }
 
     .brand-cluster {
@@ -84,30 +101,31 @@
 
     .brand-title {
       font-size: 16px;
-      font-weight: 900;
-      letter-spacing: 1.2px;
-      text-transform: uppercase;
-      background: linear-gradient(90deg, #ffffff, #00e5ff, #00ff88);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .brand-sub {
       font-size: 10px;
-      color: var(--text-dim);
-      letter-spacing: 0.8px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
       text-transform: uppercase;
+      color: var(--text-dim);
     }
 
     .argon-pill {
-      padding: 4px 10px;
+      padding: 5px 11px;
       border-radius: 999px;
       font-size: 11px;
-      font-weight: 700;
-      background: rgba(0, 255, 136, 0.14);
-      border: 1px solid rgba(0, 255, 136, 0.55);
-      color: var(--neon-green);
-      letter-spacing: 0.5px;
+      font-weight: 800;
+      background: rgba(56, 214, 122, 0.18);
+      border: 1px solid rgba(56, 214, 122, 0.65);
+      color: #6bf5a6;
+      letter-spacing: 0.06em;
       white-space: nowrap;
     }
 
@@ -115,21 +133,22 @@
       display: flex;
       align-items: center;
       gap: 6px;
-      background: rgba(15, 25, 48, 0.85);
-      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.22);
       padding: 5px 10px;
-      border-radius: 8px;
+      border-radius: 10px;
       font-size: 11px;
+      font-weight: 700;
     }
 
     .route-selector select {
-      background: #091326;
+      background: rgba(9, 15, 19, 0.9);
       color: #fff;
-      border: 1px solid rgba(0, 229, 255, 0.35);
-      border-radius: 4px;
-      padding: 3px 6px;
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      border-radius: 6px;
+      padding: 3px 7px;
       font-size: 11px;
-      font-weight: 600;
+      font-weight: 700;
       cursor: pointer;
     }
 
@@ -141,55 +160,49 @@
 
     .stage-btn {
       padding: 8px 13px;
-      border-radius: 7px;
-      border: 1px solid rgba(255, 255, 255, 0.22);
-      background: rgba(16, 27, 50, 0.9);
-      color: var(--text-main);
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.26);
+      background: rgba(15, 23, 30, 0.82);
+      color: #ffffff;
       font-size: 12px;
       font-weight: 800;
-      letter-spacing: 0.4px;
+      letter-spacing: 0.03em;
       cursor: pointer;
-      transition: all 0.18s ease;
-      display: flex;
-      align-items: center;
-      gap: 6px;
+      transition: all 0.16s ease;
       white-space: nowrap;
     }
 
     .stage-btn:hover {
       transform: translateY(-1px);
-      border-color: var(--neon-cyan);
-      box-shadow: 0 0 14px rgba(0, 229, 255, 0.35);
+      background: rgba(28, 42, 54, 0.92);
+      border-color: #ffffff;
     }
 
     .stage-btn.active-stage-1 {
-      background: linear-gradient(135deg, rgba(255, 42, 84, 0.28), rgba(40, 12, 24, 0.92));
-      border-color: var(--neon-red);
-      color: #ff9eb2;
-      box-shadow: 0 0 16px rgba(255, 42, 84, 0.45);
+      background: linear-gradient(135deg, rgba(235, 38, 76, 0.88), rgba(120, 14, 38, 0.92));
+      border-color: #ff8da3;
+      box-shadow: 0 6px 20px rgba(255, 42, 84, 0.45);
     }
 
     .stage-btn.active-stage-2 {
-      background: linear-gradient(135deg, rgba(255, 204, 51, 0.28), rgba(45, 32, 8, 0.92));
-      border-color: var(--neon-gold);
-      color: #ffe380;
-      box-shadow: 0 0 16px rgba(255, 204, 51, 0.45);
+      background: linear-gradient(135deg, rgba(235, 172, 28, 0.9), rgba(120, 78, 10, 0.92));
+      border-color: #ffe494;
+      box-shadow: 0 6px 20px rgba(245, 196, 81, 0.45);
     }
 
     .stage-btn.active-stage-3 {
-      background: linear-gradient(135deg, rgba(0, 255, 136, 0.28), rgba(8, 42, 28, 0.92));
-      border-color: var(--neon-green);
-      color: #80ffbe;
-      box-shadow: 0 0 16px rgba(0, 255, 136, 0.45);
+      background: linear-gradient(135deg, rgba(26, 188, 96, 0.9), rgba(12, 92, 48, 0.92));
+      border-color: #98ffbe;
+      box-shadow: 0 6px 20px rgba(56, 214, 122, 0.45);
     }
 
     /* 3-Viewport Split Dividers & Headers */
     .viewport-divider {
       position: absolute;
-      top: 62px;
+      top: 0;
       bottom: 0;
       width: 2px;
-      background: linear-gradient(180deg, rgba(0, 229, 255, 0.7), rgba(0, 255, 136, 0.25), rgba(0, 229, 255, 0.7));
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.55));
       z-index: 10;
       pointer-events: none;
     }
@@ -199,28 +212,30 @@
 
     .vp-panel {
       position: absolute;
-      top: 72px;
+      top: 80px;
       z-index: 12;
       pointer-events: none;
       display: flex;
       flex-direction: column;
       gap: 6px;
+      filter: var(--ui-vibrancy);
     }
 
-    #vp-left-hud { left: 14px; width: calc(33% - 28px); }
-    #vp-center-hud { left: calc(33% + 14px); width: calc(34% - 28px); align-items: center; }
-    #vp-right-hud { left: calc(67% + 14px); width: calc(33% - 28px); align-items: flex-end; }
+    #vp-left-hud { left: 16px; width: calc(33% - 32px); }
+    #vp-center-hud { left: calc(33% + 16px); width: calc(34% - 32px); align-items: center; }
+    #vp-right-hud { left: calc(67% + 16px); width: calc(33% - 32px); align-items: flex-end; }
 
     .vp-badge {
       padding: 6px 12px;
-      border-radius: 6px;
-      background: rgba(6, 12, 26, 0.84);
-      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 10px;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
       font-size: 11px;
       font-weight: 800;
-      letter-spacing: 0.9px;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
-      backdrop-filter: blur(6px);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 8px 24px rgba(5, 11, 12, 0.22);
       display: inline-flex;
       align-items: center;
       gap: 8px;
@@ -233,27 +248,28 @@
       display: inline-block;
     }
 
-    .dot-red { background: var(--neon-red); box-shadow: 0 0 8px var(--neon-red); }
-    .dot-blue { background: var(--neon-cyan); box-shadow: 0 0 8px var(--neon-cyan); }
-    .dot-green { background: var(--neon-green); box-shadow: 0 0 8px var(--neon-green); }
+    .dot-red { background: #ff2a54; box-shadow: 0 0 8px #ff2a54; }
+    .dot-blue { background: #00d4ff; box-shadow: 0 0 8px #00d4ff; }
+    .dot-green { background: #38d67a; box-shadow: 0 0 8px #38d67a; }
 
     /* Telemetry Speedometer Cards (Bottom Left & Bottom Right) */
     .telemetry-card {
       position: absolute;
       bottom: 16px;
       z-index: 12;
-      background: rgba(6, 11, 24, 0.86);
-      border: 1px solid rgba(255, 255, 255, 0.16);
-      border-radius: 10px;
-      padding: 10px 16px;
-      min-width: 225px;
-      backdrop-filter: blur(8px);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 14px;
+      padding: 12px 18px;
+      min-width: 240px;
+      backdrop-filter: blur(14px);
+      box-shadow: 0 14px 38px rgba(5, 11, 12, 0.28);
       pointer-events: none;
+      filter: var(--ui-vibrancy);
     }
 
-    #p1-telemetry { left: 16px; border-left: 4px solid var(--neon-red); }
-    #p2-telemetry { right: 16px; border-right: 4px solid var(--neon-cyan); text-align: right; }
+    #p1-telemetry { left: 16px; border-left: 5px solid #ff2a54; }
+    #p2-telemetry { right: 16px; border-right: 5px solid #00d4ff; text-align: right; }
 
     .speed-row {
       display: flex;
@@ -266,7 +282,7 @@
     }
 
     .speed-val {
-      font-size: 34px;
+      font-size: 36px;
       font-weight: 900;
       font-variant-numeric: tabular-nums;
       line-height: 1;
@@ -274,15 +290,15 @@
 
     .speed-unit {
       font-size: 12px;
-      font-weight: 700;
+      font-weight: 800;
       color: var(--text-dim);
     }
 
     .dist-row {
       margin-top: 5px;
       font-size: 12px;
-      color: #b7d0f7;
-      font-weight: 600;
+      color: #93e2ff;
+      font-weight: 700;
       font-variant-numeric: tabular-nums;
     }
 
@@ -291,32 +307,34 @@
       font-size: 10px;
       color: var(--text-dim);
       text-transform: uppercase;
-      letter-spacing: 0.6px;
+      letter-spacing: 0.08em;
     }
 
     /* Center Viewport Floating QR Lobby & Tactical Status */
     #center-bottom-dock {
       position: absolute;
       bottom: 14px;
-      left: 33.5%;
-      width: 33%;
+      left: 33.6%;
+      width: 32.8%;
       z-index: 15;
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 8px;
+      filter: var(--ui-vibrancy);
     }
 
     #critique-banner {
       width: 100%;
-      background: rgba(8, 16, 34, 0.92);
-      border: 1px solid var(--border-cyan);
-      border-radius: 8px;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
       padding: 8px 12px;
       font-size: 11.5px;
       line-height: 1.35;
-      color: #d9ecff;
-      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.65);
+      color: #f0f9ff;
+      backdrop-filter: blur(14px);
+      box-shadow: 0 10px 28px rgba(5, 11, 12, 0.25);
     }
 
     #critique-banner strong {
@@ -325,12 +343,12 @@
 
     #qr-lobby-card {
       width: 100%;
-      background: rgba(6, 12, 26, 0.92);
-      border: 1px solid rgba(0, 229, 255, 0.38);
-      border-radius: 10px;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 14px;
       padding: 10px 12px;
-      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.75);
-      backdrop-filter: blur(8px);
+      box-shadow: 0 14px 38px rgba(5, 11, 12, 0.32);
+      backdrop-filter: blur(14px);
     }
 
     .qr-header {
@@ -341,18 +359,18 @@
       font-size: 11px;
       font-weight: 800;
       text-transform: uppercase;
-      letter-spacing: 0.7px;
-      color: var(--neon-cyan);
+      letter-spacing: 0.08em;
+      color: #ffffff;
     }
 
     .qr-toggle-btn {
-      background: rgba(0, 229, 255, 0.15);
-      border: 1px solid rgba(0, 229, 255, 0.45);
+      background: rgba(255, 255, 255, 0.14);
+      border: 1px solid rgba(255, 255, 255, 0.34);
       color: #fff;
       font-size: 10px;
-      font-weight: 700;
-      padding: 3px 8px;
-      border-radius: 4px;
+      font-weight: 800;
+      padding: 4px 9px;
+      border-radius: 7px;
       cursor: pointer;
     }
 
@@ -366,16 +384,16 @@
       display: flex;
       align-items: center;
       gap: 8px;
-      background: rgba(15, 25, 48, 0.75);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 10px;
       padding: 6px;
     }
 
     .qr-slot img {
-      width: 68px;
-      height: 68px;
-      border-radius: 6px;
+      width: 64px;
+      height: 64px;
+      border-radius: 8px;
       background: #fff;
       padding: 3px;
       flex-shrink: 0;
@@ -395,23 +413,23 @@
 
     .qr-status {
       font-size: 10px;
-      font-weight: 700;
+      font-weight: 800;
       padding: 2px 6px;
-      border-radius: 4px;
+      border-radius: 5px;
       display: inline-block;
       width: fit-content;
     }
 
     .status-waiting {
-      background: rgba(255, 204, 51, 0.16);
-      color: var(--neon-gold);
-      border: 1px solid rgba(255, 204, 51, 0.4);
+      background: rgba(245, 196, 81, 0.22);
+      color: #ffe082;
+      border: 1px solid rgba(245, 196, 81, 0.5);
     }
 
     .status-connected {
-      background: rgba(0, 255, 136, 0.18);
-      color: var(--neon-green);
-      border: 1px solid rgba(0, 255, 136, 0.5);
+      background: rgba(56, 214, 122, 0.25);
+      color: #72f6a8;
+      border: 1px solid rgba(56, 214, 122, 0.6);
     }
 
     .qr-url {
@@ -422,19 +440,64 @@
       text-overflow: ellipsis;
     }
 
+    /* Stage 3 Ready-to-Start Banner (Prevents AI Ghost from winning before player presses a key) */
+    #race-ready-banner {
+      position: absolute;
+      top: 155px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 26;
+      background: rgba(9, 15, 19, 0.9);
+      border: 2px solid #38d67a;
+      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55), 0 0 30px rgba(56, 214, 122, 0.4);
+      border-radius: 16px;
+      padding: 18px 28px;
+      text-align: center;
+      backdrop-filter: blur(16px);
+      display: none;
+      max-width: 660px;
+    }
+
+    #race-ready-banner h2 {
+      font-size: 21px;
+      font-weight: 900;
+      color: #ffffff;
+      margin-bottom: 6px;
+    }
+
+    #race-ready-banner p {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.85);
+      margin-bottom: 14px;
+    }
+
+    .start-race-cta {
+      background: linear-gradient(90deg, #38d67a, #00d4ff);
+      color: #04131a;
+      border: none;
+      font-weight: 900;
+      font-size: 14px;
+      padding: 11px 26px;
+      border-radius: 10px;
+      cursor: pointer;
+      letter-spacing: 0.05em;
+      box-shadow: 0 8px 25px rgba(56, 214, 122, 0.55);
+    }
+
     /* Stage 1 Crash Telemetry Alert Banner */
     #crash-alert-banner {
       position: absolute;
-      top: 120px;
+      top: 150px;
       left: 50%;
       transform: translateX(-50%);
       z-index: 25;
-      background: linear-gradient(135deg, rgba(165, 10, 38, 0.95), rgba(60, 6, 18, 0.96));
-      border: 2px solid var(--neon-red);
-      box-shadow: 0 0 36px rgba(255, 42, 84, 0.75);
-      border-radius: 12px;
-      padding: 14px 24px;
+      background: rgba(88, 10, 26, 0.92);
+      border: 2px solid #ff4d6d;
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6), 0 0 36px rgba(255, 42, 84, 0.65);
+      border-radius: 16px;
+      padding: 16px 26px;
       text-align: center;
+      backdrop-filter: blur(14px);
       display: none;
       max-width: 680px;
     }
@@ -442,53 +505,52 @@
     #crash-alert-banner h2 {
       font-size: 20px;
       font-weight: 900;
-      letter-spacing: 1px;
       color: #fff;
-      margin-bottom: 4px;
+      margin-bottom: 5px;
     }
 
     #crash-alert-banner p {
       font-size: 13px;
-      color: #ffd0da;
-      margin-bottom: 10px;
+      color: #ffd6de;
+      margin-bottom: 12px;
     }
 
     .pulse-action-btn {
       background: var(--neon-gold);
-      color: #050811;
+      color: #091015;
       border: none;
       font-weight: 900;
       font-size: 12px;
-      padding: 8px 16px;
-      border-radius: 6px;
+      padding: 9px 18px;
+      border-radius: 8px;
       cursor: pointer;
       text-transform: uppercase;
-      letter-spacing: 0.7px;
-      box-shadow: 0 0 16px rgba(255, 204, 51, 0.7);
+      letter-spacing: 0.06em;
+      box-shadow: 0 0 18px rgba(245, 196, 81, 0.7);
     }
 
     /* Stage 2: Argon Video Audit Overlay Modal */
     #argon-audit-modal {
       position: absolute;
-      top: 76px;
+      top: 84px;
       left: 50%;
       transform: translateX(-50%);
       width: min(980px, 94vw);
-      background: rgba(6, 12, 26, 0.95);
+      background: rgba(9, 15, 19, 0.94);
       border: 1.5px solid var(--neon-gold);
-      border-radius: 14px;
-      box-shadow: 0 16px 60px rgba(0, 0, 0, 0.88), 0 0 30px rgba(255, 204, 51, 0.25);
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.75);
       padding: 18px 22px;
       z-index: 30;
       display: none;
-      backdrop-filter: blur(12px);
+      backdrop-filter: blur(16px);
     }
 
     .audit-modal-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.16);
       padding-bottom: 10px;
       margin-bottom: 14px;
     }
@@ -497,7 +559,6 @@
       font-size: 17px;
       font-weight: 900;
       color: var(--neon-gold);
-      letter-spacing: 0.8px;
       display: flex;
       align-items: center;
       gap: 10px;
@@ -512,15 +573,15 @@
 
     .video-box {
       background: #02050b;
-      border: 1px solid rgba(255, 42, 84, 0.6);
-      border-radius: 10px;
+      border: 1px solid rgba(255, 42, 84, 0.65);
+      border-radius: 12px;
       overflow: hidden;
       position: relative;
     }
 
     .video-box video {
       width: 100%;
-      height: 230px;
+      height: 235px;
       object-fit: cover;
       display: block;
       background: #000;
@@ -530,13 +591,12 @@
       position: absolute;
       top: 8px;
       left: 8px;
-      background: rgba(255, 42, 84, 0.9);
+      background: rgba(255, 42, 84, 0.92);
       color: #fff;
       font-size: 10px;
       font-weight: 900;
       padding: 3px 8px;
-      border-radius: 4px;
-      letter-spacing: 0.6px;
+      border-radius: 5px;
     }
 
     .reasoning-box {
@@ -546,36 +606,36 @@
     }
 
     .log-entry {
-      background: rgba(14, 24, 46, 0.9);
+      background: rgba(255, 255, 255, 0.07);
       border-left: 3px solid var(--neon-cyan);
       padding: 8px 12px;
-      border-radius: 6px;
+      border-radius: 8px;
       font-size: 12px;
       line-height: 1.45;
     }
 
     .log-entry.critical {
       border-left-color: var(--neon-red);
-      background: rgba(50, 12, 24, 0.75);
+      background: rgba(120, 18, 38, 0.45);
     }
 
     .log-entry.patched {
       border-left-color: var(--neon-green);
-      background: rgba(10, 42, 28, 0.75);
+      background: rgba(16, 90, 52, 0.45);
     }
 
     .diff-box {
-      font-family: Consolas, 'Courier New', monospace;
+      font-family: Consolas, "Courier New", monospace;
       font-size: 11px;
-      background: #040812;
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      border-radius: 6px;
+      background: rgba(0, 0, 0, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 8px;
       padding: 8px 10px;
       line-height: 1.45;
     }
 
-    .diff-del { color: #ff6b8b; }
-    .diff-add { color: #4dffaa; }
+    .diff-del { color: #ff859d; }
+    .diff-add { color: #6bf5a6; }
 
     .audit-actions {
       display: flex;
@@ -583,32 +643,31 @@
       align-items: center;
       margin-top: 14px;
       padding-top: 12px;
-      border-top: 1px solid rgba(255, 255, 255, 0.12);
+      border-top: 1px solid rgba(255, 255, 255, 0.14);
       gap: 10px;
     }
 
     .btn-wireframe {
-      background: rgba(255, 42, 84, 0.2);
-      border: 1px solid var(--neon-red);
-      color: #ff9eb2;
+      background: rgba(255, 42, 84, 0.24);
+      border: 1px solid #ff6b8b;
+      color: #ffd0da;
       padding: 9px 14px;
-      border-radius: 7px;
+      border-radius: 9px;
       font-size: 12px;
       font-weight: 800;
       cursor: pointer;
     }
 
     .btn-apply-patch {
-      background: linear-gradient(90deg, #00ff88, #00e5ff);
+      background: linear-gradient(90deg, #38d67a, #00d4ff);
       border: none;
       color: #031018;
       padding: 10px 20px;
-      border-radius: 7px;
+      border-radius: 9px;
       font-size: 13px;
       font-weight: 900;
-      letter-spacing: 0.5px;
       cursor: pointer;
-      box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+      box-shadow: 0 6px 22px rgba(56, 214, 122, 0.45);
     }
 
     /* Countdown & Winner Overlays */
@@ -618,41 +677,41 @@
       left: 50%;
       transform: translate(-50%, -50%);
       z-index: 28;
-      font-size: 110px;
+      font-size: 118px;
       font-weight: 900;
       color: #fff;
-      text-shadow: 0 0 40px var(--neon-cyan), 0 0 80px var(--neon-green);
+      text-shadow: 0 8px 36px rgba(0, 0, 0, 0.65), 0 0 50px #38d67a;
       pointer-events: none;
       display: none;
     }
 
     #winner-banner {
       position: absolute;
-      top: 135px;
+      top: 145px;
       left: 50%;
       transform: translateX(-50%);
       z-index: 29;
-      background: linear-gradient(135deg, rgba(6, 38, 28, 0.96), rgba(8, 18, 38, 0.96));
-      border: 2px solid var(--neon-green);
-      box-shadow: 0 0 45px rgba(0, 255, 136, 0.65);
-      border-radius: 14px;
-      padding: 18px 32px;
+      background: rgba(9, 24, 18, 0.94);
+      border: 2px solid #38d67a;
+      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.65), 0 0 40px rgba(56, 214, 122, 0.55);
+      border-radius: 16px;
+      padding: 20px 34px;
       text-align: center;
+      backdrop-filter: blur(16px);
       display: none;
     }
 
     #winner-banner h1 {
       font-size: 28px;
       font-weight: 900;
-      color: var(--neon-green);
-      letter-spacing: 1.4px;
+      color: #6bf5a6;
       margin-bottom: 6px;
     }
 
     #winner-banner p {
       font-size: 14px;
-      color: #e2f3ff;
-      margin-bottom: 12px;
+      color: #f0fdf4;
+      margin-bottom: 14px;
     }
 
     /* ================= MOBILE TOUCH CONTROLLER MODE ================= */
@@ -660,7 +719,7 @@
       display: none;
       width: 100vw;
       height: 100vh;
-      background: radial-gradient(circle at 50% 20%, #102042 0%, #050914 80%);
+      background: linear-gradient(160deg, #1b3b5c 0%, #09131c 85%);
       flex-direction: column;
       justify-content: space-between;
       padding: 14px;
@@ -670,8 +729,8 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: rgba(8, 16, 34, 0.9);
-      border: 1px solid var(--border-cyan);
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
       border-radius: 12px;
       padding: 10px 14px;
     }
@@ -679,7 +738,6 @@
     .mc-player-title {
       font-size: 18px;
       font-weight: 900;
-      letter-spacing: 1px;
     }
 
     .mc-config-row {
@@ -690,8 +748,8 @@
     }
 
     .mc-card {
-      background: rgba(10, 19, 38, 0.85);
-      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
       border-radius: 10px;
       padding: 10px;
     }
@@ -719,7 +777,6 @@
       font-weight: 800;
       color: #fff;
       cursor: pointer;
-      text-align: center;
     }
 
     .spec-btn.active {
@@ -731,9 +788,9 @@
       width: 100%;
       padding: 8px;
       border-radius: 7px;
-      background: #061022;
+      background: #09131c;
       color: #fff;
-      border: 1px solid var(--border-cyan);
+      border: 1px solid var(--glass-border);
       font-size: 12px;
       font-weight: 700;
     }
@@ -754,8 +811,8 @@
     }
 
     .touch-btn {
-      background: linear-gradient(180deg, rgba(20, 36, 70, 0.92), rgba(10, 18, 38, 0.96));
-      border: 2px solid rgba(0, 229, 255, 0.45);
+      background: rgba(15, 26, 38, 0.9);
+      border: 2px solid rgba(255, 255, 255, 0.35);
       border-radius: 18px;
       color: #fff;
       font-size: 24px;
@@ -765,38 +822,24 @@
       align-items: center;
       justify-content: center;
       gap: 6px;
-      box-shadow: inset 0 0 24px rgba(0, 229, 255, 0.12), 0 8px 20px rgba(0, 0, 0, 0.6);
       touch-action: none;
     }
 
     .touch-btn span {
       font-size: 12px;
-      letter-spacing: 1px;
       color: var(--text-dim);
     }
 
     .touch-btn.pressed {
       transform: scale(0.97);
-      background: linear-gradient(180deg, rgba(0, 229, 255, 0.45), rgba(0, 110, 180, 0.65));
+      background: rgba(56, 189, 248, 0.45);
       border-color: #fff;
-      box-shadow: 0 0 28px rgba(0, 229, 255, 0.8);
     }
 
-    .touch-btn.gas-btn {
-      border-color: rgba(0, 255, 136, 0.6);
-    }
-    .touch-btn.gas-btn.pressed {
-      background: linear-gradient(180deg, rgba(0, 255, 136, 0.5), rgba(0, 140, 80, 0.7));
-      box-shadow: 0 0 28px rgba(0, 255, 136, 0.85);
-    }
-
-    .touch-btn.brake-btn {
-      border-color: rgba(255, 42, 84, 0.6);
-    }
-    .touch-btn.brake-btn.pressed {
-      background: linear-gradient(180deg, rgba(255, 42, 84, 0.5), rgba(140, 12, 40, 0.7));
-      box-shadow: 0 0 28px rgba(255, 42, 84, 0.85);
-    }
+    .touch-btn.gas-btn { border-color: rgba(56, 214, 122, 0.7); }
+    .touch-btn.gas-btn.pressed { background: rgba(56, 214, 122, 0.55); }
+    .touch-btn.brake-btn { border-color: rgba(255, 42, 84, 0.7); }
+    .touch-btn.brake-btn.pressed { background: rgba(255, 42, 84, 0.55); }
   </style>
 </head>
 <body>
@@ -805,26 +848,29 @@
   <div id="broadcast-root">
     <canvas id="webgl-canvas"></canvas>
 
-    <!-- Top Broadcast Navigation & Stage Selector HUD -->
+    <!-- Top Glassmorphic Broadcast Navigation HUD -->
     <header id="top-hud">
       <div class="brand-cluster">
         <div class="brand-logo">
-          <div class="brand-title">ArgonDrive SF // Real2Sim Architect</div>
-          <div class="brand-sub">Single Pass is a First Draft • Embarcadero -> Shack15 Ferry Bldg</div>
+          <div class="brand-title">
+            <span>SAN FRANCISCO</span>
+            <span style="font-size:11px; color:#6bf5a6; font-weight:800;">// ARGONDRIVE REAL2SIM</span>
+          </div>
+          <div class="brand-sub">Apple R3D SF Photogrammetry • Ferrari 458 Italia • Gemini 4 Argon</div>
         </div>
-        <div class="argon-pill" id="hud-iter-pill">ITERATION 1 • RAW OSM DRAFT</div>
+        <div class="argon-pill" id="hud-iter-pill">PASS 1 • FIRST DRAFT</div>
       </div>
 
       <div class="route-selector">
         <span>START:</span>
         <select id="start-landmark-select">
-          <option value="Coit Tower / North Beach">Coit Tower / Embarcadero North</option>
+          <option value="Coit Tower / Embarcadero North">Pier 23 / Coit Tower Vista</option>
           <option value="Pier 39 Waterfront">Pier 39 Waterfront</option>
-          <option value="Bay Bridge West Span">Bay Bridge West Approach</option>
+          <option value="Bay Bridge West Span">Bay Bridge Approach</option>
         </select>
         <span>→ FINISH:</span>
         <select id="end-landmark-select">
-          <option value="Shack15 Ferry Building">Shack15 Ferry Building</option>
+          <option value="Shack15 Ferry Building">Shack15 Ferry Building (650m)</option>
           <option value="Embarcadero Plaza">Embarcadero Center Plaza</option>
           <option value="Ferry Clocktower Arch">Ferry Clocktower Arch</option>
         </select>
@@ -832,13 +878,13 @@
 
       <div class="stage-buttons">
         <button class="stage-btn active-stage-1" id="btn-stage-1" onclick="window.selectDemoStage(1)">
-          <span>1. Draft World (Iter 1 - Crash)</span>
+          1. Draft World (Iter 1 - Crash)
         </button>
         <button class="stage-btn" id="btn-stage-2" onclick="window.selectDemoStage(2)">
-          <span>2. Argon Video Audit</span>
+          2. Argon Video Audit
         </button>
         <button class="stage-btn" id="btn-stage-3" onclick="window.selectDemoStage(3)">
-          <span>3. Verified Race (Iter 2 - Playable)</span>
+          3. Verified Race (Iter 2 - Playable)
         </button>
       </div>
     </header>
@@ -851,25 +897,25 @@
     <div class="vp-panel" id="vp-left-hud">
       <div class="vp-badge">
         <span class="dot dot-red"></span>
-        <span id="p1-vp-title">VIEWPORT 1 • P1 CHASE CAM (APEX GT RED)</span>
+        <span>P1 • FERRARI 458 ROSSO CORSA</span>
       </div>
     </div>
 
     <div class="vp-panel" id="vp-center-hud">
       <div class="vp-badge">
         <span class="dot dot-green"></span>
-        <span id="center-vp-title">ORTHOGRAPHIC 3D SF TACTICAL RADAR • + ARGON AI GHOST</span>
+        <span id="tile-stream-badge">SF PHOTOGRAMMETRY STREAMING • RADAR + ARGON GHOST</span>
       </div>
-      <div class="vp-badge" style="font-size: 10px; color: #ffdf7e;">
+      <div class="vp-badge" style="font-size: 10px; color: #ffe082;">
         <span id="sim-clock-display">SIM TIME: 00:00.0s</span>
-        <span>|</span>
+        <span>•</span>
         <span id="active-wp-display">TARGET: WP#1 (-12, 35)</span>
       </div>
     </div>
 
     <div class="vp-panel" id="vp-right-hud">
       <div class="vp-badge">
-        <span id="p2-vp-title">VIEWPORT 2 • P2 CHASE CAM (CYBER DRIFT BLUE)</span>
+        <span>P2 • FERRARI 458 MIAMI BLUE</span>
         <span class="dot dot-blue"></span>
       </div>
     </div>
@@ -880,8 +926,8 @@
         <span class="speed-val" id="p1-speed">0</span>
         <span class="speed-unit">MPH</span>
       </div>
-      <div class="dist-row" id="p1-dist">SHACK15 FINISH: 154m</div>
-      <div class="ctrl-hint" id="p1-ctrl-status">CONTROLS: WASD KEYS OR PHONE 1 QR</div>
+      <div class="dist-row" id="p1-dist">SHACK15 FINISH: 650m</div>
+      <div class="ctrl-hint">WASD KEYS OR PHONE 1 QR CONTROLLER</div>
     </div>
 
     <!-- Right P2 Speedometer & Telemetry -->
@@ -890,14 +936,14 @@
         <span class="speed-val" id="p2-speed">0</span>
         <span class="speed-unit">MPH</span>
       </div>
-      <div class="dist-row" id="p2-dist">SHACK15 FINISH: 154m</div>
-      <div class="ctrl-hint" id="p2-ctrl-status">CONTROLS: ARROW KEYS OR PHONE 2 QR</div>
+      <div class="dist-row" id="p2-dist">SHACK15 FINISH: 650m</div>
+      <div class="ctrl-hint">ARROW KEYS OR PHONE 2 QR CONTROLLER</div>
     </div>
 
     <!-- Center Viewport Bottom: Argon Critique Log + Live QR Code Lobby -->
     <div id="center-bottom-dock">
       <div id="critique-banner">
-        <strong>GEMINI 4 ARGON LOG:</strong>
+        <strong>GEMINI 4 ARGON:</strong>
         <span id="critique-text">Pass 1 First Draft: Generated from raw SF Embarcadero OSM corridor.</span>
       </div>
 
@@ -905,15 +951,15 @@
         <div class="qr-header">
           <span>📱 SCAN QR FOR 60HZ MOBILE CONTROLLERS</span>
           <div style="display:flex; gap:6px;">
-            <button class="qr-toggle-btn" id="btn-autopilot-assist" onclick="window.toggleHumanAutopilot()">P1/P2 AI DEMO ASSIST: OFF</button>
-            <button class="qr-toggle-btn" onclick="window.toggleQrBody()">HIDE / SHOW QR</button>
+            <button class="qr-toggle-btn" id="btn-autopilot-assist" onclick="window.toggleHumanAutopilot()">AI DEMO ASSIST: OFF</button>
+            <button class="qr-toggle-btn" onclick="window.toggleQrBody()">MINIMIZE QR</button>
           </div>
         </div>
         <div class="qr-grid" id="qr-grid-body">
           <div class="qr-slot">
             <img id="qr-img-p1" alt="Player 1 QR" src="" />
             <div class="qr-meta">
-              <div class="qr-role" style="color: var(--neon-red);">PLAYER 1 (RED)</div>
+              <div class="qr-role" style="color: #ff4d6d;">PLAYER 1 (RED FERRARI)</div>
               <div class="qr-status status-waiting" id="p1-lobby-pill">WASD / SCAN QR</div>
               <div class="qr-url" id="p1-url-label">http://localhost:3000/?player=1</div>
             </div>
@@ -921,7 +967,7 @@
           <div class="qr-slot">
             <img id="qr-img-p2" alt="Player 2 QR" src="" />
             <div class="qr-meta">
-              <div class="qr-role" style="color: var(--neon-cyan);">PLAYER 2 (BLUE)</div>
+              <div class="qr-role" style="color: #38bdf8;">PLAYER 2 (BLUE FERRARI)</div>
               <div class="qr-status status-waiting" id="p2-lobby-pill">ARROWS / SCAN QR</div>
               <div class="qr-url" id="p2-url-label">http://localhost:3000/?player=2</div>
             </div>
@@ -930,12 +976,24 @@
       </div>
     </div>
 
+    <!-- Stage 3 Ready on Starting Grid Overlay (Waits for player input or button click!) -->
+    <div id="race-ready-banner">
+      <h2>🏎️ VERIFIED 650M EMBARCADERO SPRINT READY AT STARTING GRID</h2>
+      <p>
+        Press <strong>[W]</strong> (Player 1), <strong>[UP ARROW]</strong> (Player 2), <strong>Phone Throttle</strong>,
+        or click below so Humans &amp; the <strong>Argon AI Ghost Ferrari</strong> launch together!
+      </p>
+      <button class="start-race-cta" onclick="window.triggerVerifiedRaceCountdown()">
+        🚦 START 3 - 2 - 1 RACE COUNTDOWN
+      </button>
+    </div>
+
     <!-- Stage 1 Crash Alert Overlay -->
     <div id="crash-alert-banner">
-      <h2>💥 COLLISION DETECTED @ 00:03.2s — FERRY PLAZA EAST COLONNADE</h2>
-      <p>Test Vehicle clipped unmodeled architectural pillar at <strong>(-12, 35)</strong> in Pass 1 First Draft (`level_iter1.json`).</p>
+      <h2>💥 COLLISION @ 00:03.2s — FERRY PLAZA EAST COLONNADE (-12, 35)</h2>
+      <p>Ferrari test car clipped unmodeled colonnade pillar in Pass 1 First Draft (`level_iter1.json`).</p>
       <button class="pulse-action-btn" onclick="window.selectDemoStage(2)">
-        ▶ OPEN STAGE 2: GEMINI 4 ARGON VIDEO AUDIT & SELF-HEAL
+        ▶ OPEN STAGE 2: GEMINI 4 ARGON VIDEO AUDIT &amp; SELF-HEAL
       </button>
     </div>
 
@@ -946,7 +1004,7 @@
           <span>👁️ GEMINI 4 ARGON (`gemini-4-argon`) MULTIMODAL VIDEO CRITIQUE</span>
         </div>
         <button class="qr-toggle-btn" onclick="document.getElementById('argon-audit-modal').style.display='none'">
-          MINIMIZE TO INSPECT 3D MAP
+          MINIMIZE TO INSPECT 3D SF WORLD
         </button>
       </div>
 
@@ -958,25 +1016,25 @@
           </div>
           <div style="margin-top: 8px; font-size: 11px; color: var(--text-dim); display:flex; justify-content:space-between;">
             <span>Bot Endpoint: <code>http://localhost:3000/?bot=1</code></span>
-            <span style="color: var(--neon-red); font-weight:700;">Impact Frame: t = 00:03.2s</span>
+            <span style="color: #ff6b8b; font-weight:800;">Impact Frame: t = 00:03.2s</span>
           </div>
         </div>
 
         <div class="reasoning-box">
           <div class="log-entry">
-            <strong>[00:00.0s → 00:02.9s]</strong> Autonomous test car accelerates southbound down The Embarcadero from spawn <code>(-35, 120)</code> tracking Waypoint #1 <code>(-12, 35)</code>.
+            <strong>[00:00.0s → 00:02.9s]</strong> Autonomous Ferrari 458 test car accelerates southbound down The Embarcadero toward Waypoint #1 <code>(-12, 35)</code>.
           </div>
           <div class="log-entry critical">
-            <strong>[00:03.2s SPATIAL FAILURE DETECTED]</strong> Vehicle chassis clips the unmarked <strong>Ferry Plaza East Colonnade Pillar</strong> at coordinates <code>(x: -12, y: 0, z: 35)</code>. Single-pass OSM centerline lacked column collision geometry.
+            <strong>[00:03.2s SPATIAL FAILURE DETECTED]</strong> Vehicle clips the unmarked <strong>Ferry Plaza East Colonnade Pillar</strong> at coordinates <code>(x: -12, y: 0, z: 35)</code>.
           </div>
           <div class="log-entry patched">
-            <strong>[ARGON SELF-HEALING PATCH]</strong> Injected explicit 3D collision proxy <code>ferry_pillar_east (w:6, h:12, d:6)</code> and shifted Waypoint #1 <strong>-14m West</strong> to <code>(-26, 35)</code> for verified apex entry into <strong>SHACK15 FINISH LINE</strong>.
+            <strong>[ARGON SELF-HEALING PATCH]</strong> Injected explicit 3D collision proxy <code>ferry_pillar_east (w:6, h:12, d:6)</code> and shifted Waypoint #1 <strong>-14m West</strong> to <code>(-26, 35)</code> for a clean 650m sprint to <strong>SHACK15 FINISH LINE</strong>.
           </div>
 
           <div class="diff-box">
             <div class="diff-del">- "checkpoints": [{ "id": 1, "x": -12, "y": 0, "z": 35, "radius": 8 }, ...]</div>
             <div class="diff-add">+ "colliders": [..., { "id": "ferry_pillar_east", "x": -12, "y": 6, "z": 35, "w": 6, "h": 12, "d": 6 }]</div>
-            <div class="diff-add">+ "checkpoints": [{ "id": 1, "x": -26, "y": 0, "z": 35, "radius": 8 }, ...]</div>
+            <div class="diff-add">+ "checkpoints": [{ "id": 1, "x": -26, "y": 0, "z": 35, "radius": 14 }, ...]</div>
           </div>
         </div>
       </div>
@@ -985,11 +1043,9 @@
         <button class="btn-wireframe" id="btn-wireframe-toggle" onclick="window.toggleCollisionWireframes()">
           🔲 Collision Wireframe Proxies: ON (Red Boxes)
         </button>
-        <div style="display:flex; gap:10px;">
-          <button class="btn-apply-patch" id="btn-run-live-patch" onclick="window.runLiveArgonPatch()">
-            ⚡ RUN LIVE GEMINI 4 ARGON PATCH → LAUNCH VERIFIED RACE
-          </button>
-        </div>
+        <button class="btn-apply-patch" id="btn-run-live-patch" onclick="window.runLiveArgonPatch()">
+          ⚡ APPLY GEMINI 4 ARGON PATCH → GO TO VERIFIED RACE
+        </button>
       </div>
     </div>
 
@@ -997,10 +1053,10 @@
     <div id="countdown-overlay">3</div>
 
     <div id="winner-banner">
-      <h1 id="winner-title">🏆 APEX GT RED WINS AT SHACK15!</h1>
-      <p id="winner-subtitle">Verified Iteration 2 Route Completed in 05.4s — Zero Collisions!</p>
+      <h1 id="winner-title">🏆 FERRARI ROSSO CORSA WINS AT SHACK15!</h1>
+      <p id="winner-subtitle">Verified 650m Embarcadero Sprint Completed in 21.8s — Zero Collisions!</p>
       <button class="btn-apply-patch" onclick="window.selectDemoStage(3)">
-        🏁 RESTART VERIFIED MULTIPLAYER RACE
+        🏁 RACE AGAIN ON EMBARCADERO
       </button>
     </div>
   </div>
@@ -1011,25 +1067,25 @@
       <div class="mc-top-bar">
         <div>
           <div class="mc-player-title" id="mc-header-title">PLAYER 1 CONTROLLER</div>
-          <div style="font-size:11px; color:var(--text-dim);">ArgonDrive SF • 60Hz Low-Latency WebSocket</div>
+          <div style="font-size:11px; color:var(--text-dim);">ArgonDrive SF • Ferrari 458 60Hz Telemetry</div>
         </div>
         <div class="argon-pill" id="mc-ws-status">CONNECTING...</div>
       </div>
 
       <div class="mc-config-row">
         <div class="mc-card">
-          <label>Select Vehicle Spec</label>
+          <label>Select Ferrari 458 Paint Spec</label>
           <div class="car-spec-btns">
-            <button class="spec-btn active" style="background:#d91b42;" onclick="window.setMobileCarSpec('Apex GT Red', '#ff2a54', this)">Apex Red</button>
-            <button class="spec-btn" style="background:#0095b6;" onclick="window.setMobileCarSpec('Cyber Drift Blue', '#00e5ff', this)">Cyber Blue</button>
-            <button class="spec-btn" style="background:#d96b00;" onclick="window.setMobileCarSpec('SF Muscle Orange', '#ff8c00', this)">SF Orange</button>
+            <button class="spec-btn active" style="background:#d90429;" onclick="window.setMobileCarSpec('Ferrari 458 Rosso Corsa', '#d90429', this)">Rosso Corsa</button>
+            <button class="spec-btn" style="background:#0096c7;" onclick="window.setMobileCarSpec('Ferrari 458 Miami Blue', '#00b4d8', this)">Miami Blue</button>
+            <button class="spec-btn" style="background:#f77f00;" onclick="window.setMobileCarSpec('Ferrari 458 Giallo Modena', '#ff9f1c', this)">Giallo Gold</button>
           </div>
         </div>
 
         <div class="mc-card">
-          <label>SF Target Landmark</label>
+          <label>SF Embarcadero Route</label>
           <select class="mc-select" id="mc-route-select" onchange="window.sendMobileState()">
-            <option value="Coit Tower|Shack15 Ferry Building">Coit Tower → Shack15 Ferry Bldg</option>
+            <option value="Coit Tower|Shack15 Ferry Building">Pier 23 / Coit Tower → Shack15</option>
             <option value="Pier 39 Waterfront|Embarcadero Plaza">Pier 39 → Embarcadero Plaza</option>
             <option value="Bay Bridge West Span|Ferry Clocktower Arch">Bay Bridge → Ferry Clocktower</option>
           </select>
@@ -1039,131 +1095,126 @@
 
     <div class="mc-pad-area">
       <div class="steer-cluster">
-        <div class="touch-btn" id="btn-mc-left">
-          ◀
-          <span>STEER LEFT</span>
-        </div>
-        <div class="touch-btn" id="btn-mc-right">
-          ▶
-          <span>STEER RIGHT</span>
-        </div>
+        <div class="touch-btn" id="btn-mc-left">◀<span>STEER LEFT</span></div>
+        <div class="touch-btn" id="btn-mc-right">▶<span>STEER RIGHT</span></div>
       </div>
 
       <div class="pedal-cluster">
-        <div class="touch-btn brake-btn" id="btn-mc-brake">
-          ▼
-          <span>BRAKE / REV</span>
-        </div>
-        <div class="touch-btn gas-btn" id="btn-mc-gas">
-          ▲
-          <span>FULL THROTTLE</span>
-        </div>
+        <div class="touch-btn brake-btn" id="btn-mc-brake">▼<span>BRAKE / REV</span></div>
+        <div class="touch-btn gas-btn" id="btn-mc-gas">▲<span>FULL THROTTLE</span></div>
       </div>
     </div>
   </div>
 
-  <script>
-    (function () {
-      const urlParams = new URLSearchParams(window.location.search);
-      const playerParam = urlParams.get('player');
-      const isBotMode = urlParams.get('bot') === '1';
+  <script type="module">
+    import * as THREE from 'three';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+    import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+    import { Sky } from 'three/addons/objects/Sky.js';
+    import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
-      // =========================================================================
-      // MODE A: MOBILE TOUCH CONTROLLER (?player=1 or ?player=2)
-      // =========================================================================
-      if (playerParam === '1' || playerParam === '2') {
-        const playerNum = Number(playerParam);
-        document.getElementById('broadcast-root').style.display = 'none';
-        const mcRoot = document.getElementById('mobile-controller-root');
-        mcRoot.style.display = 'flex';
+    const urlParams = new URLSearchParams(window.location.search);
+    const playerParam = urlParams.get('player');
+    const isBotMode = urlParams.get('bot') === '1';
 
-        const headerTitle = document.getElementById('mc-header-title');
-        headerTitle.textContent = `PLAYER ${playerNum} CONTROLLER`;
-        headerTitle.style.color = playerNum === 1 ? '#ff2a54' : '#00e5ff';
+    // =========================================================================
+    // MODE A: MOBILE TOUCH CONTROLLER (?player=1 or ?player=2)
+    // =========================================================================
+    if (playerParam === '1' || playerParam === '2') {
+      const playerNum = Number(playerParam);
+      document.getElementById('broadcast-root').style.display = 'none';
+      const mcRoot = document.getElementById('mobile-controller-root');
+      mcRoot.style.display = 'flex';
 
-        const mobileState = {
-          player: playerNum,
-          left: false,
-          right: false,
-          gas: false,
-          brake: false,
-          carName: playerNum === 1 ? 'Apex GT Red' : 'Cyber Drift Blue',
-          color: playerNum === 1 ? '#ff2a54' : '#00e5ff',
-          startLoc: 'Coit Tower',
-          endLoc: 'Shack15 Ferry Building'
+      const headerTitle = document.getElementById('mc-header-title');
+      headerTitle.textContent = `PLAYER ${playerNum} FERRARI CONTROLLER`;
+      headerTitle.style.color = playerNum === 1 ? '#ff4d6d' : '#38bdf8';
+
+      const mobileState = {
+        player: playerNum,
+        left: false,
+        right: false,
+        gas: false,
+        brake: false,
+        carName: playerNum === 1 ? 'Ferrari 458 Rosso Corsa' : 'Ferrari 458 Miami Blue',
+        color: playerNum === 1 ? '#d90429' : '#00b4d8',
+        startLoc: 'Coit Tower',
+        endLoc: 'Shack15 Ferry Building'
+      };
+
+      let ws = null;
+      function connectControllerWs() {
+        const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        ws = new WebSocket(`${proto}//${window.location.host}`);
+        const statusEl = document.getElementById('mc-ws-status');
+
+        ws.onopen = () => {
+          statusEl.textContent = 'ONLINE • 60HZ';
+          ws.send(JSON.stringify({ type: 'register_controller', ...mobileState }));
         };
 
-        let ws = null;
-        function connectControllerWs() {
-          const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-          ws = new WebSocket(`${proto}//${window.location.host}`);
-          const statusEl = document.getElementById('mc-ws-status');
+        ws.onclose = () => {
+          statusEl.textContent = 'RECONNECTING...';
+          setTimeout(connectControllerWs, 1000);
+        };
+      }
+      connectControllerWs();
 
-          ws.onopen = () => {
-            statusEl.textContent = 'ONLINE • 60HZ';
-            ws.send(JSON.stringify({ type: 'register_controller', ...mobileState }));
-          };
-
-          ws.onclose = () => {
-            statusEl.textContent = 'RECONNECTING...';
-            setTimeout(connectControllerWs, 1000);
-          };
+      window.sendMobileState = function () {
+        const routeVal = document.getElementById('mc-route-select').value.split('|');
+        mobileState.startLoc = routeVal[0];
+        mobileState.endLoc = routeVal[1];
+        if (ws && ws.readyState === 1) {
+          ws.send(JSON.stringify(mobileState));
         }
-        connectControllerWs();
+      };
 
-        window.sendMobileState = function () {
-          const routeVal = document.getElementById('mc-route-select').value.split('|');
-          mobileState.startLoc = routeVal[0];
-          mobileState.endLoc = routeVal[1];
-          if (ws && ws.readyState === 1) {
-            ws.send(JSON.stringify(mobileState));
-          }
-        };
+      window.setMobileCarSpec = function (name, color, btnEl) {
+        mobileState.carName = name;
+        mobileState.color = color;
+        document.querySelectorAll('.spec-btn').forEach(b => b.classList.remove('active'));
+        btnEl.classList.add('active');
+        window.sendMobileState();
+      };
 
-        window.setMobileCarSpec = function (name, color, btnEl) {
-          mobileState.carName = name;
-          mobileState.color = color;
-          document.querySelectorAll('.spec-btn').forEach(b => b.classList.remove('active'));
-          btnEl.classList.add('active');
+      function bindTouchButton(elId, keyName) {
+        const el = document.getElementById(elId);
+        const activate = (e) => {
+          e.preventDefault();
+          mobileState[keyName] = true;
+          el.classList.add('pressed');
           window.sendMobileState();
         };
-
-        function bindTouchButton(elId, keyName) {
-          const el = document.getElementById(elId);
-          const activate = (e) => {
-            e.preventDefault();
-            mobileState[keyName] = true;
-            el.classList.add('pressed');
-            window.sendMobileState();
-          };
-          const deactivate = (e) => {
-            e.preventDefault();
-            mobileState[keyName] = false;
-            el.classList.remove('pressed');
-            window.sendMobileState();
-          };
-          el.addEventListener('touchstart', activate, { passive: false });
-          el.addEventListener('touchend', deactivate, { passive: false });
-          el.addEventListener('touchcancel', deactivate, { passive: false });
-          el.addEventListener('pointerdown', activate);
-          el.addEventListener('pointerup', deactivate);
-          el.addEventListener('pointerleave', deactivate);
-        }
-
-        bindTouchButton('btn-mc-left', 'left');
-        bindTouchButton('btn-mc-right', 'right');
-        bindTouchButton('btn-mc-gas', 'gas');
-        bindTouchButton('btn-mc-brake', 'brake');
-
-        setInterval(() => window.sendMobileState(), 50);
-        return;
+        const deactivate = (e) => {
+          e.preventDefault();
+          mobileState[keyName] = false;
+          el.classList.remove('pressed');
+          window.sendMobileState();
+        };
+        el.addEventListener('touchstart', activate, { passive: false });
+        el.addEventListener('touchend', deactivate, { passive: false });
+        el.addEventListener('touchcancel', deactivate, { passive: false });
+        el.addEventListener('pointerdown', activate);
+        el.addEventListener('pointerup', deactivate);
+        el.addEventListener('pointerleave', deactivate);
       }
 
+      bindTouchButton('btn-mc-left', 'left');
+      bindTouchButton('btn-mc-right', 'right');
+      bindTouchButton('btn-mc-gas', 'gas');
+      bindTouchButton('btn-mc-brake', 'brake');
+
+      setInterval(() => window.sendMobileState(), 50);
+    } else {
       // =========================================================================
       // MODE B: 3-VIEWPORT SPLIT-SCREEN BROADCAST & HEADLESS BOT VERIFIER
       // =========================================================================
+      initBroadcastWorld();
+    }
+
+    function initBroadcastWorld() {
       if (isBotMode) {
-        // Clean HUD view for Playwright headless video capture
         document.getElementById('qr-lobby-card').style.display = 'none';
       }
 
@@ -1180,61 +1231,94 @@
           document.getElementById('qr-img-p2').src =
             `https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(p2Url)}`;
         })
-        .catch(() => {
-          const p1Url = `${window.location.origin}/?player=1`;
-          const p2Url = `${window.location.origin}/?player=2`;
-          document.getElementById('qr-img-p1').src =
-            `https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(p1Url)}`;
-          document.getElementById('qr-img-p2').src =
-            `https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(p2Url)}`;
-        });
+        .catch(() => {});
 
       window.toggleQrBody = function () {
         const body = document.getElementById('qr-grid-body');
         body.style.display = body.style.display === 'none' ? 'grid' : 'none';
       };
 
-      // Three.js Single-Canvas 3-Viewport Setup
+      // =======================================================================
+      // 1. RENDERER, CALIFORNIA DAYLIGHT SKY (`sf.thijs.gg`) & ENVIRONMENT MAP
+      // =======================================================================
       const canvas = document.getElementById('webgl-canvas');
-      const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      const renderer = new THREE.WebGLRenderer({
+        canvas,
+        antialias: true,
+        powerPreference: 'high-performance'
+      });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.65));
       renderer.setSize(window.innerWidth, window.innerHeight);
       renderer.setScissorTest(true);
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.04;
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
       const scene = new THREE.Scene();
-      scene.background = new THREE.Color(0x040814);
-      scene.fog = new THREE.FogExp2(0x040814, 0.0028);
+      // Exact sf.thijs.gg California sky & coastal fog palette
+      scene.background = new THREE.Color(0x83bddc);
+      scene.fog = new THREE.FogExp2(0xc2dce8, 0.00055);
 
-      // Lighting
-      const ambientLight = new THREE.AmbientLight(0x8ab4ff, 0.75);
-      scene.add(ambientLight);
+      // PMREM Environment for photorealistic Ferrari clearcoat & skyscraper reflections
+      const pmremGenerator = new THREE.PMREMGenerator(renderer);
+      scene.environment = pmremGenerator.fromScene(new RoomEnvironment(), 0.04).texture;
+      scene.environmentIntensity = 0.85;
 
-      const dirLight = new THREE.DirectionalLight(0xfff0dd, 1.15);
-      dirLight.position.set(60, 140, 80);
-      scene.add(dirLight);
+      // Physically-based California Golden-Hour / Daylight Sky Shader
+      const sky = new Sky();
+      sky.scale.setScalar(12000);
+      scene.add(sky);
+      const sunVec = new THREE.Vector3();
+      const skyUniforms = sky.material.uniforms;
+      skyUniforms['turbidity'].value = 3.5;
+      skyUniforms['rayleigh'].value = 1.45;
+      skyUniforms['mieCoefficient'].value = 0.004;
+      skyUniforms['mieDirectionalG'].value = 0.8;
+      const phi = THREE.MathUtils.degToRad(90 - 34);
+      const theta = THREE.MathUtils.degToRad(135);
+      sunVec.setFromSphericalCoords(1, phi, theta);
+      skyUniforms['sunPosition'].value.copy(sunVec);
 
-      const bayFillLight = new THREE.DirectionalLight(0x00e5ff, 0.45);
-      bayFillLight.position.set(-80, 60, -60);
-      scene.add(bayFillLight);
+      // Exact sf.thijs.gg restrained daylight hemisphere + sun lighting so R3D photogrammetry textures pop
+      const hemiLight = new THREE.HemisphereLight(0xeaf6ff, 0x3d4939, 1.32);
+      scene.add(hemiLight);
 
-      // Cameras: Left (P1 Chase), Center (Top-Down Orthographic SF Radar), Right (P2 Chase)
-      const camP1 = new THREE.PerspectiveCamera(58, 1, 0.5, 600);
-      const camP2 = new THREE.PerspectiveCamera(58, 1, 0.5, 600);
-      const orthoSize = 115;
-      const camTop = new THREE.OrthographicCamera(-orthoSize, orthoSize, orthoSize, -orthoSize, 1, 500);
-      camTop.position.set(-15, 220, 42);
-      camTop.up.set(0, 0, -1); // North/Shack15 at top of radar view!
-      camTop.lookAt(-15, 0, 42);
+      const sunLight = new THREE.DirectionalLight(0xfff1d0, 1.45);
+      sunLight.position.set(-90, 160, 85);
+      sunLight.castShadow = true;
+      sunLight.shadow.mapSize.set(2048, 2048);
+      sunLight.shadow.camera.near = 10;
+      sunLight.shadow.camera.far = 650;
+      const dShadow = 240;
+      sunLight.shadow.camera.left = -dShadow;
+      sunLight.shadow.camera.right = dShadow;
+      sunLight.shadow.camera.top = dShadow;
+      sunLight.shadow.camera.bottom = -dShadow;
+      scene.add(sunLight);
 
-      // Groups for Dynamic Level Elements
+      // Cameras:
+      // Layer 0 = Photorealistic 3D scene (Chase cams + Radar)
+      // Layer 1 = Tactical Radar Callout Pins (Visible ONLY on Center Top-Down Radar Cam!)
+      const camP1 = new THREE.PerspectiveCamera(58, 1, 0.3, 4500);
+      const camP2 = new THREE.PerspectiveCamera(58, 1, 0.3, 4500);
+
+      const orthoSize = 185;
+      const camTop = new THREE.OrthographicCamera(-orthoSize, orthoSize, orthoSize, -orthoSize, 1, 2500);
+      camTop.position.set(-15, 420, 95);
+      camTop.up.set(0, 0, -1);
+      camTop.lookAt(-15, 0, 95);
+      camTop.layers.enable(1); // Enable radar-only layer on Center Viewport!
+
       const cityGroup = new THREE.Group();
+      const photogrammetryOuter = new THREE.Group();
+      const photogrammetryInner = new THREE.Group();
+      photogrammetryOuter.add(photogrammetryInner);
       const levelGroup = new THREE.Group();
       const wireframeGroup = new THREE.Group();
       const fxGroup = new THREE.Group();
-      scene.add(cityGroup);
-      scene.add(levelGroup);
-      scene.add(wireframeGroup);
-      scene.add(fxGroup);
+      scene.add(cityGroup, photogrammetryOuter, levelGroup, wireframeGroup, fxGroup);
 
       let showWireframes = true;
       window.toggleCollisionWireframes = function () {
@@ -1248,300 +1332,496 @@
         }
       };
 
-      // =========================================================================
-      // BUILD 3D SAN FRANCISCO EMBARCADERO, GOLDEN FERRY BUILDING & SHACK15 ARCH
-      // =========================================================================
+      // =======================================================================
+      // 2. STREAM REAL 3D SF PHOTOGRAMMETRY TILES FROM sf.thijs.gg (/sf_tiles/)
+      // =======================================================================
+      const dracoLoader = new DRACOLoader();
+      dracoLoader.setDecoderPath('/draco/');
+      const gltfLoader = new GLTFLoader();
+      gltfLoader.setDRACOLoader(dracoLoader);
+
+      // Align sf.thijs.gg's Apple R3D San Francisco photogrammetry coordinate frame
+      // with our Embarcadero boulevard so the real photogrammetry Ferry Building,
+      // Embarcadero Center towers, Coit Tower, and piers surround the track!
+      photogrammetryOuter.position.set(-18, -0.35, 0);
+      photogrammetryOuter.rotation.y = -2.1910;
+      photogrammetryInner.position.set(-2118.7, 31.55, -3535.4);
+
+      async function streamSFPhotogrammetryTiles() {
+        try {
+          await MeshoptDecoder.ready;
+          gltfLoader.setMeshoptDecoder(MeshoptDecoder);
+          const res = await fetch('/api/sf-photogrammetry-manifest');
+          const manifest = await res.json();
+          const tiles = manifest.tiles || [];
+          const badge = document.getElementById('tile-stream-badge');
+          let loadedCount = 0;
+
+          // Sort tiles so Ferry Building & Embarcadero centerpiece tiles load first
+          tiles.sort((a, b) => {
+            const da = Math.hypot((a.offset?.[0] || 0) - 2119, (a.offset?.[2] || 0) - 3550);
+            const db = Math.hypot((b.offset?.[0] || 0) - 2119, (b.offset?.[2] || 0) - 3550);
+            return da - db;
+          });
+
+          await Promise.all(
+            tiles.map(async (tileMeta) => {
+              try {
+                const gltf = await gltfLoader.loadAsync(tileMeta.localUrl);
+                const tileScene = gltf.scene;
+                tileScene.traverse((obj) => {
+                  if (obj.isMesh) {
+                    obj.receiveShadow = true;
+                    if (obj.material) {
+                      obj.material.side = THREE.DoubleSide;
+                    }
+                  }
+                });
+                photogrammetryInner.add(tileScene);
+                loadedCount++;
+                if (badge) {
+                  badge.textContent = `SF R3D PHOTOGRAMMETRY (${loadedCount}/${tiles.length} TILES) • RADAR`;
+                }
+              } catch (e) {
+                // Skip individual tile failure gracefully
+              }
+            })
+          );
+          if (badge) {
+            badge.textContent = `SF R3D PHOTOGRAMMETRY ONLINE (${loadedCount} TILES) • + ARGON GHOST`;
+          }
+        } catch (err) {
+          console.warn('Photogrammetry stream fallback note:', err);
+        }
+      }
+      streamSFPhotogrammetryTiles();
+
+      // =======================================================================
+      // 3. ESRI SATELLITE IMAGERY GROUND + PBR EMBARCADERO ROAD + FERRY BUILDING
+      // =======================================================================
+      function createAsphaltPBRTextures() {
+        const c = document.createElement('canvas');
+        c.width = 512;
+        c.height = 512;
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = '#2b3038';
+        ctx.fillRect(0, 0, 512, 512);
+
+        // Fine asphalt aggregate noise
+        for (let i = 0; i < 18000; i++) {
+          const v = 34 + Math.floor(Math.random() * 26);
+          ctx.fillStyle = `rgb(${v},${v + 2},${v + 5})`;
+          ctx.fillRect(Math.random() * 512, Math.random() * 512, 2, 2);
+        }
+
+        // Double yellow center line
+        ctx.fillStyle = '#eab308';
+        ctx.fillRect(249, 0, 5, 512);
+        ctx.fillRect(258, 0, 5, 512);
+
+        // Dashed white lane dividers (4-lane Embarcadero boulevard)
+        ctx.fillStyle = '#f1f5f9';
+        for (let y = 16; y < 512; y += 64) {
+          ctx.fillRect(128, y, 5, 34);
+          ctx.fillRect(380, y, 5, 34);
+        }
+
+        // White shoulder lines
+        ctx.fillStyle = '#cbd5e1';
+        ctx.fillRect(18, 0, 6, 512);
+        ctx.fillRect(488, 0, 6, 512);
+
+        const tex = new THREE.CanvasTexture(c);
+        tex.wrapS = THREE.RepeatWrapping;
+        tex.wrapT = THREE.RepeatWrapping;
+        tex.repeat.set(1, 24);
+        tex.colorSpace = THREE.SRGBColorSpace;
+        return tex;
+      }
+
+      function createSkyscraperFacadeTexture(style) {
+        const c = document.createElement('canvas');
+        c.width = 256;
+        c.height = 512;
+        const ctx = c.getContext('2d');
+
+        if (style === 'concrete') {
+          ctx.fillStyle = '#d6cfc2';
+          ctx.fillRect(0, 0, 256, 512);
+        } else if (style === 'glass_gold') {
+          ctx.fillStyle = '#3b5266';
+          ctx.fillRect(0, 0, 256, 512);
+        } else {
+          ctx.fillStyle = '#264663';
+          ctx.fillRect(0, 0, 256, 512);
+        }
+
+        const cols = 8;
+        const rows = 24;
+        const padX = 5;
+        const padY = 4;
+        const cellW = 256 / cols;
+        const cellH = 512 / rows;
+
+        for (let r = 0; r < rows; r++) {
+          for (let col = 0; col < cols; col++) {
+            const lit = Math.random() > 0.35;
+            if (style === 'concrete') {
+              ctx.fillStyle = lit ? '#4b6578' : '#2d3d4a';
+            } else if (style === 'glass_gold') {
+              ctx.fillStyle = lit ? '#8fbcd4' : '#4a6b82';
+            } else {
+              ctx.fillStyle = lit ? '#7ec4e8' : '#325a7a';
+            }
+            ctx.fillRect(col * cellW + padX, r * cellH + padY, cellW - padX * 2, cellH - padY * 2);
+          }
+        }
+
+        const tex = new THREE.CanvasTexture(c);
+        tex.wrapS = THREE.RepeatWrapping;
+        tex.wrapT = THREE.RepeatWrapping;
+        tex.colorSpace = THREE.SRGBColorSpace;
+        return tex;
+      }
+
       let ferryPillarMesh = null;
-      let shack15ArchGroup = null;
+      let waterMesh = null;
 
-      function buildBaseSanFranciscoWorld() {
-        // 1. Ground & SF Bay Water Plane
-        const landGeo = new THREE.PlaneGeometry(500, 500);
-        const landMat = new THREE.MeshStandardMaterial({ color: 0x070d1c, roughness: 0.9, metalness: 0.1 });
-        const landMesh = new THREE.Mesh(landGeo, landMat);
-        landMesh.rotation.x = -Math.PI / 2;
-        landMesh.position.y = -0.15;
-        cityGroup.add(landMesh);
+      function buildSanFranciscoCorridor() {
+        // 1. Drape real Esri World Imagery Satellite Tiles onto the SF Ground Plane
+        const texLoader = new THREE.TextureLoader();
+        texLoader.setCrossOrigin('anonymous');
+        const satGroup = new THREE.Group();
+        const centerTileX = 20973;
+        const centerTileY = 50652;
+        const tileSizeMeters = 242;
 
-        // Glowing Neon Cyan Grid
-        const gridHelper = new THREE.GridHelper(420, 84, 0x00e5ff, 0x102544);
-        gridHelper.position.y = -0.05;
-        cityGroup.add(gridHelper);
+        for (let dx = -2; dx <= 2; dx++) {
+          for (let dy = -3; dy <= 2; dy++) {
+            const tx = centerTileX + dx;
+            const ty = centerTileY + dy;
+            const tileUrl = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/17/${ty}/${tx}`;
+            const planeGeo = new THREE.PlaneGeometry(tileSizeMeters, tileSizeMeters);
+            const planeMat = new THREE.MeshStandardMaterial({
+              color: 0xd8e2dc,
+              roughness: 0.9,
+              metalness: 0.05
+            });
+            texLoader.load(
+              tileUrl,
+              (satTex) => {
+                satTex.colorSpace = THREE.SRGBColorSpace;
+                planeMat.map = satTex;
+                planeMat.color.setHex(0xffffff);
+                planeMat.needsUpdate = true;
+              },
+              undefined,
+              () => {}
+            );
+            const tileMesh = new THREE.Mesh(planeGeo, planeMat);
+            tileMesh.rotation.x = -Math.PI / 2;
+            tileMesh.position.set(dx * tileSizeMeters - 18, -0.32, -dy * tileSizeMeters + 80);
+            tileMesh.receiveShadow = true;
+            satGroup.add(tileMesh);
+          }
+        }
+        cityGroup.add(satGroup);
 
-        // San Francisco Bay Water (East of Embarcadero Seawall, x > 24)
-        const waterGeo = new THREE.PlaneGeometry(240, 460);
+        // 2. Shimmering San Francisco Bay Water (East of Embarcadero Seawall)
+        const waterGeo = new THREE.PlaneGeometry(900, 1600);
         const waterMat = new THREE.MeshStandardMaterial({
-          color: 0x031b33,
-          emissive: 0x002244,
-          emissiveIntensity: 0.4,
-          roughness: 0.25,
-          metalness: 0.75
+          color: 0x1b6ca8,
+          roughness: 0.16,
+          metalness: 0.65
         });
-        const waterMesh = new THREE.Mesh(waterGeo, waterMat);
+        waterMesh = new THREE.Mesh(waterGeo, waterMat);
         waterMesh.rotation.x = -Math.PI / 2;
-        waterMesh.position.set(142, -0.04, 30);
+        waterMesh.position.set(475, -0.18, 90);
         cityGroup.add(waterMesh);
 
-        // The Embarcadero Multi-Lane Asphalt Corridor
-        const roadGeo = new THREE.PlaneGeometry(54, 290);
+        // 3. The Embarcadero Multi-Lane PBR Asphalt Boulevard (960m long covering full 650m sprint)
+        const asphaltTex = createAsphaltPBRTextures();
+        const roadGeo = new THREE.PlaneGeometry(46, 980);
         const roadMat = new THREE.MeshStandardMaterial({
-          color: 0x101828,
-          roughness: 0.65,
-          metalness: 0.2
+          map: asphaltTex,
+          roughness: 0.72,
+          metalness: 0.12
         });
         const roadMesh = new THREE.Mesh(roadGeo, roadMat);
         roadMesh.rotation.x = -Math.PI / 2;
-        roadMesh.position.set(-16, 0.01, 45);
+        roadMesh.position.set(-20, 0.02, 95);
+        roadMesh.receiveShadow = true;
         cityGroup.add(roadMesh);
 
-        // Glowing Embarcadero Lane Dividers & Neon Curbs
-        const westCurb = new THREE.Mesh(
-          new THREE.BoxGeometry(0.9, 0.4, 280),
-          new THREE.MeshBasicMaterial({ color: 0x00e5ff })
-        );
-        westCurb.position.set(-43, 0.2, 45);
-        cityGroup.add(westCurb);
+        // Concrete Sidewalks & Waterfront Promenade Seawall
+        const sidewalkMat = new THREE.MeshStandardMaterial({ color: 0xcbd5e1, roughness: 0.8 });
+        const westWalk = new THREE.Mesh(new THREE.BoxGeometry(10, 0.28, 980), sidewalkMat);
+        westWalk.position.set(-48, 0.14, 95);
+        westWalk.receiveShadow = true;
+        const eastWalk = new THREE.Mesh(new THREE.BoxGeometry(14, 0.28, 980), sidewalkMat);
+        eastWalk.position.set(10, 0.14, 95);
+        eastWalk.receiveShadow = true;
+        cityGroup.add(westWalk, eastWalk);
 
-        const eastCurb = new THREE.Mesh(
-          new THREE.BoxGeometry(0.9, 0.4, 280),
-          new THREE.MeshBasicMaterial({ color: 0x00e5ff })
-        );
-        eastCurb.position.set(11, 0.2, 45);
-        cityGroup.add(eastCurb);
-
-        // Dashed Centerline Strips
-        for (let z = -65; z <= 160; z += 12) {
-          const dash = new THREE.Mesh(
-            new THREE.PlaneGeometry(0.55, 6),
-            new THREE.MeshBasicMaterial({ color: 0xffcc33 })
-          );
-          dash.rotation.x = -Math.PI / 2;
-          dash.position.set(-22, 0.04, z);
-          cityGroup.add(dash);
+        // Iconic Embarcadero Canary Island Date Palm Trees along both sides
+        const trunkMat = new THREE.MeshStandardMaterial({ color: 0x6b4f35, roughness: 0.9 });
+        const frondMat = new THREE.MeshStandardMaterial({ color: 0x2d6a4f, roughness: 0.6 });
+        for (let z = -260; z <= 460; z += 36) {
+          [-44.5, 4.5].forEach((xPos) => {
+            const palm = new THREE.Group();
+            palm.position.set(xPos, 0.25, z);
+            const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.48, 9.5, 8), trunkMat);
+            trunk.position.y = 4.75;
+            trunk.castShadow = true;
+            palm.add(trunk);
+            const crown = new THREE.Mesh(new THREE.DodecahedronGeometry(2.6, 1), frondMat);
+            crown.scale.set(1.3, 0.65, 1.3);
+            crown.position.y = 9.6;
+            crown.castShadow = true;
+            palm.add(crown);
+            cityGroup.add(palm);
+          });
         }
 
-        // Physical Ferry Plaza East Colonnade Pillar at (-12, 0, 35) - THE CRASH OBSTACLE IN ITER 1
+        // 4. Physical Ferry Plaza East Colonnade Pillar at (-12, 0, 35) — THE ITERATION 1 CRASH OBSTACLE
         const pillarGroup = new THREE.Group();
         pillarGroup.position.set(-12, 0, 35);
+        const pillarMat = new THREE.MeshStandardMaterial({
+          color: 0xe2cfb2,
+          roughness: 0.45,
+          metalness: 0.15
+        });
+        const pillarMesh = new THREE.Mesh(new THREE.BoxGeometry(6, 12, 6), pillarMat);
+        pillarMesh.position.y = 6;
+        pillarMesh.castShadow = true;
+        pillarMesh.receiveShadow = true;
+        pillarGroup.add(pillarMesh);
 
-        const pillarBase = new THREE.Mesh(
-          new THREE.BoxGeometry(6, 12, 6),
-          new THREE.MeshStandardMaterial({
-            color: 0xd9b36c,
-            emissive: 0x442800,
-            roughness: 0.4,
-            metalness: 0.35
-          })
-        );
-        pillarBase.position.y = 6;
-        pillarGroup.add(pillarBase);
-
-        // Warning stripe ring around pillar base
-        const pillarRing = new THREE.Mesh(
-          new THREE.BoxGeometry(6.3, 1.4, 6.3),
+        const hazardBand = new THREE.Mesh(
+          new THREE.BoxGeometry(6.25, 1.3, 6.25),
           new THREE.MeshBasicMaterial({ color: 0xff2a54 })
         );
-        pillarRing.position.y = 1.2;
-        pillarGroup.add(pillarRing);
-
-        ferryPillarMesh = pillarBase;
+        hazardBand.position.y = 1.1;
+        pillarGroup.add(hazardBand);
+        ferryPillarMesh = pillarMesh;
         cityGroup.add(pillarGroup);
 
-        // Landmark: GOLDEN SAN FRANCISCO FERRY BUILDING & CLOCK TOWER (Behind Finish Line at z = -48)
+        // 5. Landmark: Detailed Beaux-Arts San Francisco Ferry Building & 245-ft Clock Tower
         const ferryGroup = new THREE.Group();
-        ferryGroup.position.set(5, 0, -48);
+        ferryGroup.position.set(28, 0, -210);
 
-        const naveMesh = new THREE.Mesh(
-          new THREE.BoxGeometry(56, 16, 18),
-          new THREE.MeshStandardMaterial({
-            color: 0xf5c542,
-            emissive: 0x5c3d00,
-            emissiveIntensity: 0.55,
-            roughness: 0.3,
-            metalness: 0.65
-          })
-        );
-        naveMesh.position.y = 8;
-        ferryGroup.add(naveMesh);
+        const sandstoneMat = new THREE.MeshStandardMaterial({
+          color: 0xead8b8,
+          roughness: 0.42,
+          metalness: 0.18
+        });
+        const roofMat = new THREE.MeshStandardMaterial({
+          color: 0x4a5d6e,
+          roughness: 0.35,
+          metalness: 0.5
+        });
 
-        // Ferry Building Iconic Clock Tower
-        const towerMesh = new THREE.Mesh(
-          new THREE.BoxGeometry(10, 56, 10),
-          new THREE.MeshStandardMaterial({
-            color: 0xffd75e,
-            emissive: 0x6b4700,
-            emissiveIntensity: 0.6,
-            roughness: 0.25,
-            metalness: 0.7
-          })
-        );
-        towerMesh.position.y = 28;
-        ferryGroup.add(towerMesh);
+        // Grand Nave Hall
+        const nave = new THREE.Mesh(new THREE.BoxGeometry(22, 18, 155), sandstoneMat);
+        nave.position.y = 9;
+        nave.castShadow = true;
+        nave.receiveShadow = true;
+        ferryGroup.add(nave);
 
-        // Glowing Clock Dial
-        const clockFace = new THREE.Mesh(
-          new THREE.CircleGeometry(3.2, 24),
-          new THREE.MeshBasicMaterial({ color: 0x00ff88 })
-        );
-        clockFace.position.set(0, 42, 5.2);
-        ferryGroup.add(clockFace);
+        const skylightRoof = new THREE.Mesh(new THREE.BoxGeometry(18, 4, 150), roofMat);
+        skylightRoof.position.y = 20;
+        ferryGroup.add(skylightRoof);
+
+        // Iconic Ferry Building Clock Tower
+        const towerBase = new THREE.Mesh(new THREE.BoxGeometry(12, 58, 12), sandstoneMat);
+        towerBase.position.set(-2, 29, 0);
+        towerBase.castShadow = true;
+        ferryGroup.add(towerBase);
+
+        const belfry = new THREE.Mesh(new THREE.BoxGeometry(9.2, 14, 9.2), sandstoneMat);
+        belfry.position.set(-2, 65, 0);
+        ferryGroup.add(belfry);
+
+        const spire = new THREE.Mesh(new THREE.ConeGeometry(6.2, 11, 4), roofMat);
+        spire.rotation.y = Math.PI / 4;
+        spire.position.set(-2, 77.5, 0);
+        ferryGroup.add(spire);
+
+        // 4 Illuminated Clock Faces
+        const clockMat = new THREE.MeshBasicMaterial({ color: 0xfffbeb });
+        [
+          [-8.1, 48, 0, -Math.PI / 2],
+          [4.1, 48, 0, Math.PI / 2],
+          [-2, 48, 6.1, 0],
+          [-2, 48, -6.1, Math.PI]
+        ].forEach(([cx, cy, cz, ry]) => {
+          const dial = new THREE.Mesh(new THREE.CircleGeometry(3.4, 24), clockMat);
+          dial.position.set(cx, cy, cz);
+          dial.rotation.y = ry;
+          ferryGroup.add(dial);
+        });
 
         cityGroup.add(ferryGroup);
 
-        // Landmark: GLOWING NEON GREEN "SHACK15 FINISH LINE" ARCH AT (5, 0, -30)
-        shack15ArchGroup = new THREE.Group();
-        shack15ArchGroup.position.set(5, 0, -30);
+        // 6. Glowing Neon Green "SHACK15 FINISH LINE" Gantry Arch across the Embarcadero at (x: -18, z: -230)
+        const archGroup = new THREE.Group();
+        archGroup.position.set(-18, 0, -230);
 
-        const archMat = new THREE.MeshBasicMaterial({ color: 0x00ff88 });
-        const leftPost = new THREE.Mesh(new THREE.BoxGeometry(1.8, 16, 1.8), archMat);
-        leftPost.position.set(-11, 8, 0);
-        const rightPost = new THREE.Mesh(new THREE.BoxGeometry(1.8, 16, 1.8), archMat);
-        rightPost.position.set(11, 8, 0);
-        const topBeam = new THREE.Mesh(new THREE.BoxGeometry(24, 3.2, 2.2), archMat);
-        topBeam.position.set(0, 15.5, 0);
+        const postMat = new THREE.MeshStandardMaterial({
+          color: 0x10b981,
+          emissive: 0x059669,
+          emissiveIntensity: 0.65,
+          metalness: 0.6,
+          roughness: 0.2
+        });
+        const leftCol = new THREE.Mesh(new THREE.BoxGeometry(2.2, 17, 2.2), postMat);
+        leftCol.position.set(-19, 8.5, 0);
+        const rightCol = new THREE.Mesh(new THREE.BoxGeometry(2.2, 17, 2.2), postMat);
+        rightCol.position.set(19, 8.5, 0);
+        const topGantry = new THREE.Mesh(new THREE.BoxGeometry(41, 3.6, 2.6), postMat);
+        topGantry.position.set(0, 16.5, 0);
+        archGroup.add(leftCol, rightCol, topGantry);
 
-        shack15ArchGroup.add(leftPost, rightPost, topBeam);
-
-        // 3D Canvas Texture Sign on Top Beam: "SHACK15 FINISH LINE"
         const signCanvas = document.createElement('canvas');
-        signCanvas.width = 512;
-        signCanvas.height = 96;
+        signCanvas.width = 1024;
+        signCanvas.height = 128;
         const sctx = signCanvas.getContext('2d');
-        sctx.fillStyle = '#031c12';
-        sctx.fillRect(0, 0, 512, 96);
-        sctx.strokeStyle = '#00ff88';
-        sctx.lineWidth = 6;
-        sctx.strokeRect(4, 4, 504, 88);
-        sctx.fillStyle = '#00ff88';
-        sctx.font = '900 36px Segoe UI, sans-serif';
+        sctx.fillStyle = '#041f14';
+        sctx.fillRect(0, 0, 1024, 128);
+        sctx.strokeStyle = '#38d67a';
+        sctx.lineWidth = 8;
+        sctx.strokeRect(6, 6, 1012, 116);
+        sctx.fillStyle = '#6bf5a6';
+        sctx.font = '900 54px Inter, Segoe UI, sans-serif';
         sctx.textAlign = 'center';
         sctx.textBaseline = 'middle';
-        sctx.fillText('🏁 SHACK15 FINISH LINE 🏁', 256, 48);
+        sctx.fillText('🏁 SHACK15 • FERRY BUILDING FINISH 🏁', 512, 64);
 
         const signTex = new THREE.CanvasTexture(signCanvas);
-        const signPlane = new THREE.Mesh(
-          new THREE.PlaneGeometry(23, 3.0),
+        signTex.colorSpace = THREE.SRGBColorSpace;
+        const bannerMesh = new THREE.Mesh(
+          new THREE.PlaneGeometry(39, 3.3),
           new THREE.MeshBasicMaterial({ map: signTex, side: THREE.DoubleSide })
         );
-        signPlane.position.set(0, 15.5, 1.2);
-        shack15ArchGroup.add(signPlane);
+        bannerMesh.position.set(0, 16.5, 1.4);
+        archGroup.add(bannerMesh);
 
-        // Checkerboard Finish Strip on Road
-        const finishGround = new THREE.Mesh(
-          new THREE.PlaneGeometry(22, 4),
-          new THREE.MeshBasicMaterial({ color: 0x00ff88, side: THREE.DoubleSide })
+        // Checkerboard Finish Line on Asphalt
+        const checkerCanvas = document.createElement('canvas');
+        checkerCanvas.width = 256;
+        checkerCanvas.height = 64;
+        const cctx = checkerCanvas.getContext('2d');
+        for (let r = 0; r < 4; r++) {
+          for (let c = 0; c < 16; c++) {
+            cctx.fillStyle = (r + c) % 2 === 0 ? '#ffffff' : '#0f172a';
+            cctx.fillRect(c * 16, r * 16, 16, 16);
+          }
+        }
+        const checkerTex = new THREE.CanvasTexture(checkerCanvas);
+        const finishStrip = new THREE.Mesh(
+          new THREE.PlaneGeometry(38, 6),
+          new THREE.MeshBasicMaterial({ map: checkerTex, side: THREE.DoubleSide })
         );
-        finishGround.rotation.x = -Math.PI / 2;
-        finishGround.position.set(0, 0.06, 0);
-        shack15ArchGroup.add(finishGround);
+        finishStrip.rotation.x = -Math.PI / 2;
+        finishStrip.position.set(0, 0.07, 0);
+        archGroup.add(finishStrip);
 
-        cityGroup.add(shack15ArchGroup);
+        cityGroup.add(archGroup);
       }
 
-      buildBaseSanFranciscoWorld();
+      buildSanFranciscoCorridor();
 
-      // Load Real2Sim SF Buildings from /api/sf-map
+      // Load Textured PBR Skyscrapers along the 650m Embarcadero Corridor
+      const texGlassBlue = createSkyscraperFacadeTexture('glass_blue');
+      const texGlassGold = createSkyscraperFacadeTexture('glass_gold');
+      const texConcrete = createSkyscraperFacadeTexture('concrete');
+
       fetch('/api/sf-map')
         .then(r => r.json())
         .then(mapData => {
-          const bList = Array.isArray(mapData.buildings) ? mapData.buildings : [];
-          bList.forEach((b, idx) => {
+          (mapData.buildings || []).forEach((b) => {
             const isPier = b.style === 'pier';
-            const bMat = new THREE.MeshStandardMaterial({
-              color: isPier ? 0x16324f : (idx % 2 === 0 ? 0x122240 : 0x1b2e54),
-              emissive: isPier ? 0x051525 : 0x08152c,
-              roughness: 0.45,
-              metalness: 0.5
-            });
-            const mesh = new THREE.Mesh(new THREE.BoxGeometry(b.w, b.h, b.d), bMat);
-            mesh.position.set(b.x, b.h / 2, b.z);
-            cityGroup.add(mesh);
+            const facadeTex = b.style === 'concrete'
+              ? texConcrete
+              : (b.style === 'glass_gold' ? texGlassGold : texGlassBlue);
 
-            // Neon Cyan Roofline Edge Trim for Broadcast Pop
-            const edges = new THREE.EdgesGeometry(new THREE.BoxGeometry(b.w, b.h, b.d));
-            const line = new THREE.LineSegments(
-              edges,
-              new THREE.LineBasicMaterial({ color: isPier ? 0x00e5ff : 0x2962ff, transparent: true, opacity: 0.5 })
-            );
-            line.position.copy(mesh.position);
-            cityGroup.add(line);
+            const mat = isPier
+              ? new THREE.MeshStandardMaterial({ color: 0xcbd5e1, roughness: 0.55, metalness: 0.25 })
+              : new THREE.MeshStandardMaterial({
+                  map: facadeTex,
+                  roughness: b.style === 'concrete' ? 0.65 : 0.2,
+                  metalness: b.style === 'concrete' ? 0.15 : 0.78
+                });
+
+            const mesh = new THREE.Mesh(new THREE.BoxGeometry(b.w, b.h, b.d), mat);
+            mesh.position.set(b.x, b.h / 2, b.z);
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+            cityGroup.add(mesh);
           });
         })
-        .catch(err => console.warn('SF Map load warning:', err));
+        .catch(() => {});
 
-      // =========================================================================
-      // CREATE THE 3 CARS: P1 (RED), P2 (BLUE), ARGON AI GHOST (NEON GREEN)
-      // =========================================================================
-      function createArcadeCar(hexColor, labelText, isGhost) {
-        const group = new THREE.Group();
+      // =======================================================================
+      // 4. REAL 3D FERRARI 458 ITALIA .GLB SUPERCARS + SPINNING WHEELS
+      // =======================================================================
+      const aoShadowTex = new THREE.TextureLoader().load('/models/ferrari_ao.png');
 
-        // Main Chassis
-        const bodyMat = new THREE.MeshStandardMaterial({
-          color: hexColor,
-          emissive: hexColor,
-          emissiveIntensity: isGhost ? 0.55 : 0.25,
-          roughness: 0.25,
-          metalness: 0.7,
-          transparent: isGhost,
-          opacity: isGhost ? 0.85 : 1.0
-        });
-        const chassis = new THREE.Mesh(new THREE.BoxGeometry(3.4, 1.2, 6.2), bodyMat);
-        chassis.position.y = 0.8;
-        group.add(chassis);
+      function createFerrariInstance(hexColor, labelText, isGhost) {
+        const wrapper = new THREE.Group();
+        const modelHolder = new THREE.Group();
+        wrapper.add(modelHolder);
 
-        // Cabin Canopy
-        const cabinMat = new THREE.MeshStandardMaterial({
-          color: 0x091326,
-          emissive: isGhost ? 0x00ff88 : 0x002244,
-          emissiveIntensity: 0.35,
-          roughness: 0.1,
-          metalness: 0.9
-        });
-        const cabin = new THREE.Mesh(new THREE.BoxGeometry(2.7, 0.95, 3.1), cabinMat);
-        cabin.position.set(0, 1.75, -0.3);
-        group.add(cabin);
+        const bodyMat = isGhost
+          ? new THREE.MeshPhysicalMaterial({
+              color: 0x00ff88,
+              emissive: 0x00a855,
+              emissiveIntensity: 0.5,
+              metalness: 0.2,
+              roughness: 0.1,
+              transmission: 0.65,
+              transparent: true,
+              opacity: 0.78,
+              clearcoat: 1.0
+            })
+          : new THREE.MeshPhysicalMaterial({
+              color: hexColor,
+              metalness: 0.9,
+              roughness: 0.18,
+              clearcoat: 1.0,
+              clearcoatRoughness: 0.03
+            });
 
-        // Rear GT Wing
-        const wing = new THREE.Mesh(new THREE.BoxGeometry(3.5, 0.2, 0.8), bodyMat);
-        wing.position.set(0, 1.85, 2.7);
-        group.add(wing);
+        // Fallback sleek sports car silhouette while GLB finishes loading (<150ms)
+        const fallbackMesh = new THREE.Mesh(new THREE.BoxGeometry(2.0, 1.1, 4.5), bodyMat);
+        fallbackMesh.position.y = 0.6;
+        modelHolder.add(fallbackMesh);
 
-        // Twin Headlight Cones (Pointing -Z forward in local car space)
-        const beamGeo = new THREE.ConeGeometry(1.8, 14, 12, 1, true);
-        const beamMat = new THREE.MeshBasicMaterial({
-          color: isGhost ? 0x00ff88 : 0xdff8ff,
-          transparent: true,
-          opacity: 0.16,
-          side: THREE.DoubleSide,
-          depthWrite: false
-        });
-        const leftBeam = new THREE.Mesh(beamGeo, beamMat);
-        leftBeam.rotation.x = Math.PI / 2;
-        leftBeam.position.set(-1.1, 0.7, -10);
-        const rightBeam = new THREE.Mesh(beamGeo, beamMat);
-        rightBeam.rotation.x = Math.PI / 2;
-        rightBeam.position.set(1.1, 0.7, -10);
-        group.add(leftBeam, rightBeam);
-
-        // Giant Top-Down Radar Marker Ring (So cars pop clearly on Center Tactical Map)
-        const radarRing = new THREE.Mesh(
-          new THREE.RingGeometry(4.2, 5.8, 24),
+        // Tactical marker visible ONLY in Center Top-Down Orthographic Radar Camera (Layer 1)
+        // so Chase Cameras have ZERO ground rings!
+        const radarPin = new THREE.Mesh(
+          new THREE.RingGeometry(4.5, 6.8, 24),
           new THREE.MeshBasicMaterial({ color: hexColor, side: THREE.DoubleSide })
         );
-        radarRing.rotation.x = -Math.PI / 2;
-        radarRing.position.y = 0.25;
-        group.add(radarRing);
+        radarPin.rotation.x = -Math.PI / 2;
+        radarPin.position.y = 1.5;
+        radarPin.layers.set(1);
+        wrapper.add(radarPin);
 
-        scene.add(group);
+        scene.add(wrapper);
 
         return {
-          group,
-          chassis,
+          group: wrapper,
+          modelHolder,
+          fallbackMesh,
           bodyMat,
-          x: -35,
+          wheels: [],
+          steerWheels: [],
+          x: -26,
           y: 0,
-          z: 120,
-          rotationY: 2.9,
+          z: 420,
+          rotationY: Math.PI,
+          steerAngle: 0,
           speed: 0,
           wpIndex: 0,
           crashed: false,
@@ -1552,16 +1832,87 @@
         };
       }
 
-      const carP1 = createArcadeCar(0xff2a54, 'APEX GT RED (P1)', false);
-      const carP2 = createArcadeCar(0x00e5ff, 'CYBER DRIFT BLUE (P2)', false);
-      const carGhost = createArcadeCar(0x00ff88, 'ARGON AI GHOST', true);
+      const carP1 = createFerrariInstance(0xd90429, 'FERRARI 458 ROSSO CORSA (P1)', false);
+      const carP2 = createFerrariInstance(0x00b4d8, 'FERRARI 458 MIAMI BLUE (P2)', false);
+      const carGhost = createFerrariInstance(0x00ff88, 'ARGON AI GHOST FERRARI', true);
 
-      // Drift / Exhaust Neon Trail Particles + Collision Sparks
+      // Load Three.js Official Ferrari 458 Italia .glb locally from /models/ferrari.glb
+      gltfLoader.load('/models/ferrari.glb', (gltf) => {
+        const template = gltf.scene.children[0];
+
+        [carP1, carP2, carGhost].forEach((carObj) => {
+          carObj.modelHolder.remove(carObj.fallbackMesh);
+          const clone = template.clone(true);
+          // Scale Ferrari 1.35x for commanding street broadcast presence
+          clone.scale.setScalar(1.35);
+
+          const detailsMat = new THREE.MeshStandardMaterial({
+            color: 0xffffff,
+            metalness: 0.95,
+            roughness: 0.25
+          });
+          const glassMat = new THREE.MeshPhysicalMaterial({
+            color: 0xffffff,
+            metalness: 0.25,
+            roughness: 0,
+            transmission: 0.9,
+            transparent: true
+          });
+
+          clone.traverse((node) => {
+            if (node.isMesh) {
+              node.castShadow = !carObj.isGhost;
+              node.receiveShadow = true;
+              if (carObj.isGhost) {
+                node.material = carObj.bodyMat;
+              }
+            }
+          });
+
+          if (!carObj.isGhost) {
+            const bodyNode = clone.getObjectByName('body');
+            if (bodyNode) bodyNode.material = carObj.bodyMat;
+            ['rim_fl', 'rim_fr', 'rim_rr', 'rim_rl', 'trim'].forEach((n) => {
+              const part = clone.getObjectByName(n);
+              if (part) part.material = detailsMat;
+            });
+            const glassNode = clone.getObjectByName('glass');
+            if (glassNode) glassNode.material = glassMat;
+          }
+
+          // Contact AO Shadow Plane (Replaces flat red/blue donuts!)
+          const shadowPlane = new THREE.Mesh(
+            new THREE.PlaneGeometry(0.655 * 4, 1.3 * 4),
+            new THREE.MeshBasicMaterial({
+              map: aoShadowTex,
+              blending: THREE.MultiplyBlending,
+              toneMapped: false,
+              transparent: true,
+              premultipliedAlpha: true
+            })
+          );
+          shadowPlane.rotation.x = -Math.PI / 2;
+          shadowPlane.position.y = 0.02;
+          shadowPlane.renderOrder = 2;
+          clone.add(shadowPlane);
+
+          const wFL = clone.getObjectByName('wheel_fl');
+          const wFR = clone.getObjectByName('wheel_fr');
+          const wRL = clone.getObjectByName('wheel_rl');
+          const wRR = clone.getObjectByName('wheel_rr');
+          carObj.wheels = [wFL, wFR, wRL, wRR].filter(Boolean);
+          carObj.steerWheels = [wFL, wFR].filter(Boolean);
+
+          carObj.modelHolder.add(clone);
+        });
+      });
+
+      // Realistic Tire Smoke & Collision Sparks Particle System
       const particles = [];
       function spawnParticle(x, y, z, colorHex, size, vx, vy, vz, life) {
         const mesh = new THREE.Mesh(
-          new THREE.BoxGeometry(size, size, size),
-          new THREE.MeshBasicMaterial({ color: colorHex, transparent: true, opacity: 0.9 })
+          new THREE.DodecahedronGeometry(size, 0),
+          new THREE.MeshBasicMaterial({ color: colorHex, transparent: true, opacity: 0.65 })
         );
         mesh.position.set(x, y, z);
         fxGroup.add(mesh);
@@ -1569,15 +1920,15 @@
       }
 
       function spawnCrashExplosion(x, z) {
-        for (let i = 0; i < 42; i++) {
+        for (let i = 0; i < 45; i++) {
           const angle = Math.random() * Math.PI * 2;
-          const spd = 4 + Math.random() * 18;
+          const spd = 5 + Math.random() * 18;
           spawnParticle(
             x,
-            1.5 + Math.random() * 3,
+            1.2 + Math.random() * 2.5,
             z,
             i % 2 === 0 ? 0xff2a54 : 0xffcc33,
-            0.65,
+            0.45,
             Math.cos(angle) * spd,
             4 + Math.random() * 12,
             Math.sin(angle) * spd,
@@ -1586,24 +1937,25 @@
         }
       }
 
-      // =========================================================================
-      // LEVEL LOADING, TRAJECTORY SPLINES & WIREFRAME COLLISION PROXIES
-      // =========================================================================
-      let currentStage = 1; // 1 = Draft Crash, 2 = Argon Video Audit, 3 = Verified Race
+      // =======================================================================
+      // 5. LEVEL LOADING, 650M SPRINT FLOW & FAIR COUNTDOWN TRIGGER
+      // =======================================================================
+      let currentStage = 1;
       let activeLevel = null;
       let simTime = 0;
+      let waitingForHumanTrigger = false;
+      let countdownActive = false;
       let raceStarted = false;
       let raceOver = false;
       let cameraShakeTime = 0;
       let humanAutopilotAssist = false;
+      let countdownTimer = null;
 
       window.toggleHumanAutopilot = function () {
         humanAutopilotAssist = !humanAutopilotAssist;
         const btn = document.getElementById('btn-autopilot-assist');
         if (btn) {
-          btn.textContent = humanAutopilotAssist
-            ? 'P1/P2 AI DEMO ASSIST: ON'
-            : 'P1/P2 AI DEMO ASSIST: OFF';
+          btn.textContent = humanAutopilotAssist ? 'AI DEMO ASSIST: ON' : 'AI DEMO ASSIST: OFF';
         }
       };
 
@@ -1617,76 +1969,44 @@
         clearGroup(levelGroup);
         clearGroup(wireframeGroup);
 
-        // 1. Render Checkpoints (Glowing Rings on Road)
         (levelData.checkpoints || []).forEach((cp) => {
-          const ringColor = cp.isFinish ? 0x00ff88 : (levelData.iteration === 1 && cp.id === 1 ? 0xff2a54 : 0x00e5ff);
+          const ringColor = cp.isFinish ? 0x38d67a : (levelData.iteration === 1 && cp.id === 1 ? 0xff2a54 : 0x38bdf8);
           const ringMesh = new THREE.Mesh(
-            new THREE.RingGeometry(cp.radius - 1.0, cp.radius, 32),
+            new THREE.RingGeometry(cp.radius - 1.2, cp.radius, 36),
             new THREE.MeshBasicMaterial({ color: ringColor, side: THREE.DoubleSide })
           );
           ringMesh.rotation.x = -Math.PI / 2;
-          ringMesh.position.set(cp.x, 0.12, cp.z);
+          ringMesh.position.set(cp.x, 0.14, cp.z);
           levelGroup.add(ringMesh);
-
-          // Vertical Light Beacon Cylinder
-          const beacon = new THREE.Mesh(
-            new THREE.CylinderGeometry(cp.radius * 0.7, cp.radius * 0.7, 9, 20, 1, true),
-            new THREE.MeshBasicMaterial({
-              color: ringColor,
-              transparent: true,
-              opacity: 0.16,
-              side: THREE.DoubleSide,
-              depthWrite: false
-            })
-          );
-          beacon.position.set(cp.x, 4.5, cp.z);
-          levelGroup.add(beacon);
         });
 
-        // 2. Render Trajectory Line on Road & Radar
-        const pts = [new THREE.Vector3(levelData.spawn.x, 0.35, levelData.spawn.z)];
-        (levelData.checkpoints || []).forEach(cp => {
-          pts.push(new THREE.Vector3(cp.x, 0.35, cp.z));
+        // Racing Line Spline
+        const pts = [new THREE.Vector3(levelData.spawn.x, 0.28, levelData.spawn.z)];
+        (levelData.checkpoints || []).forEach((cp) => {
+          pts.push(new THREE.Vector3(cp.x, 0.28, cp.z));
         });
         const lineGeo = new THREE.BufferGeometry().setFromPoints(pts);
         const lineMat = new THREE.LineBasicMaterial({
-          color: levelData.iteration === 1 ? 0xff2a54 : 0x00ff88,
-          linewidth: 3
+          color: levelData.iteration === 1 ? 0xff2a54 : 0x38d67a
         });
         levelGroup.add(new THREE.Line(lineGeo, lineMat));
 
-        // If Iteration 2, also show ghosted red dotted line of Iteration 1's failed path for visual comparison!
-        if (levelData.iteration === 2) {
-          const oldPts = [
-            new THREE.Vector3(-35, 0.3, 120),
-            new THREE.Vector3(-12, 0.3, 35)
-          ];
-          const oldGeo = new THREE.BufferGeometry().setFromPoints(oldPts);
-          const oldMat = new THREE.LineBasicMaterial({ color: 0xff2a54, transparent: true, opacity: 0.55 });
-          wireframeGroup.add(new THREE.Line(oldGeo, oldMat));
-        }
-
-        // 3. Render Red Wireframe Collision Proxies
+        // Red Wireframe Collision Proxies
         (levelData.colliders || []).forEach((col) => {
+          const isPillarProxy = col.id === 'ferry_pillar_east';
           const boxGeo = new THREE.BoxGeometry(col.w, col.h, col.d);
           const edges = new THREE.EdgesGeometry(boxGeo);
-          const isPillarProxy = col.id === 'ferry_pillar_east';
-          const wfMat = new THREE.LineBasicMaterial({
-            color: isPillarProxy ? 0xff2a54 : 0xff8800
-          });
-          const wfBox = new THREE.LineSegments(edges, wfMat);
+          const wfBox = new THREE.LineSegments(
+            edges,
+            new THREE.LineBasicMaterial({ color: isPillarProxy ? 0xff2a54 : 0xf59e0b })
+          );
           wfBox.position.set(col.x, col.y, col.z);
           wireframeGroup.add(wfBox);
 
           if (isPillarProxy) {
             const proxyFill = new THREE.Mesh(
-              new THREE.BoxGeometry(col.w + 0.4, col.h + 0.4, col.d + 0.4),
-              new THREE.MeshBasicMaterial({
-                color: 0xff2a54,
-                transparent: true,
-                opacity: 0.28,
-                wireframe: false
-              })
+              new THREE.BoxGeometry(col.w + 0.3, col.h + 0.3, col.d + 0.3),
+              new THREE.MeshBasicMaterial({ color: 0xff2a54, transparent: true, opacity: 0.28 })
             );
             proxyFill.position.set(col.x, col.y, col.z);
             wireframeGroup.add(proxyFill);
@@ -1700,9 +2020,8 @@
         document.getElementById('crash-alert-banner').style.display = 'none';
         document.getElementById('winner-banner').style.display = 'none';
 
-        const sp = levelData.spawn || { x: -35, y: 0, z: 120, rotationY: 2.9 };
+        const sp = levelData.spawn || { x: -26, y: 0, z: 420, rotationY: Math.PI };
 
-        // Position P1, P2, and Argon AI Ghost on the starting grid
         carP1.x = sp.x;
         carP1.z = sp.z;
         carP1.rotationY = sp.rotationY;
@@ -1711,16 +2030,16 @@
         carP1.crashed = false;
         carP1.finished = false;
 
-        carP2.x = sp.x + 6.5;
-        carP2.z = sp.z + 2.5;
+        carP2.x = sp.x + 5.2;
+        carP2.z = sp.z + 1.5;
         carP2.rotationY = sp.rotationY;
         carP2.speed = 0;
         carP2.wpIndex = 0;
         carP2.crashed = false;
         carP2.finished = false;
 
-        carGhost.x = sp.x - 6.5;
-        carGhost.z = sp.z + 2.5;
+        carGhost.x = sp.x - 5.2;
+        carGhost.z = sp.z + 1.5;
         carGhost.rotationY = sp.rotationY;
         carGhost.speed = 0;
         carGhost.wpIndex = 0;
@@ -1728,8 +2047,17 @@
         carGhost.finished = false;
         carGhost.group.visible = stageNum === 3;
 
+        // Adjust Top-Down Radar Camera to frame the active corridor
+        if (stageNum === 1) {
+          camTop.position.set(-18, 380, 45);
+          camTop.lookAt(-18, 0, 45);
+        } else {
+          camTop.position.set(-18, 460, 95);
+          camTop.lookAt(-18, 0, 95);
+        }
+
         if (ferryPillarMesh) {
-          ferryPillarMesh.material.emissive.setHex(0x442800);
+          ferryPillarMesh.material.emissive.setHex(0x000000);
         }
       }
 
@@ -1740,39 +2068,62 @@
         document.getElementById('critique-text').textContent = data.argon_critique;
         const pill = document.getElementById('hud-iter-pill');
         if (data.iteration === 1) {
-          pill.textContent = 'ITERATION 1 • FIRST DRAFT (UNVERIFIED)';
-          pill.style.color = '#ff9eb2';
+          pill.textContent = 'ITERATION 1 • FIRST DRAFT (CRASH)';
+          pill.style.color = '#ff8da3';
           pill.style.borderColor = '#ff2a54';
-          pill.style.background = 'rgba(255, 42, 84, 0.16)';
+          pill.style.background = 'rgba(255, 42, 84, 0.2)';
         } else {
-          pill.textContent = 'ITERATION 2 • ARGON VERIFIED ROUTE';
-          pill.style.color = '#00ff88';
-          pill.style.borderColor = '#00ff88';
-          pill.style.background = 'rgba(0, 255, 136, 0.16)';
+          pill.textContent = 'ITERATION 2 • ARGON VERIFIED 650M SPRINT';
+          pill.style.color = '#6bf5a6';
+          pill.style.borderColor = '#38d67a';
+          pill.style.background = 'rgba(56, 214, 122, 0.2)';
         }
         rebuildLevelVisuals(data);
         return data;
       }
 
-      // =========================================================================
-      // 3 DEMO STAGE CONTROLLERS
-      // =========================================================================
-      let countdownTimer = null;
+      // Trigger the 3-2-1 Countdown ONLY when Player presses throttle or clicks Start!
+      window.triggerVerifiedRaceCountdown = function () {
+        if (countdownActive || raceStarted || currentStage !== 3) return;
+        waitingForHumanTrigger = false;
+        countdownActive = true;
+        document.getElementById('race-ready-banner').style.display = 'none';
+
+        const cdEl = document.getElementById('countdown-overlay');
+        let count = 3;
+        cdEl.textContent = '3';
+        cdEl.style.display = 'block';
+        countdownTimer = setInterval(() => {
+          count--;
+          if (count > 0) {
+            cdEl.textContent = String(count);
+          } else if (count === 0) {
+            cdEl.textContent = 'GO!';
+            countdownActive = false;
+            raceStarted = true;
+          } else {
+            cdEl.style.display = 'none';
+            clearInterval(countdownTimer);
+            countdownTimer = null;
+          }
+        }, 700);
+      };
 
       window.selectDemoStage = async function (stageNum) {
         currentStage = stageNum;
+        waitingForHumanTrigger = false;
+        countdownActive = false;
+        raceStarted = false;
         if (countdownTimer) {
           clearInterval(countdownTimer);
           countdownTimer = null;
         }
         document.getElementById('countdown-overlay').style.display = 'none';
+        document.getElementById('race-ready-banner').style.display = 'none';
 
-        const b1 = document.getElementById('btn-stage-1');
-        const b2 = document.getElementById('btn-stage-2');
-        const b3 = document.getElementById('btn-stage-3');
-        b1.className = 'stage-btn' + (stageNum === 1 ? ' active-stage-1' : '');
-        b2.className = 'stage-btn' + (stageNum === 2 ? ' active-stage-2' : '');
-        b3.className = 'stage-btn' + (stageNum === 3 ? ' active-stage-3' : '');
+        document.getElementById('btn-stage-1').className = 'stage-btn' + (stageNum === 1 ? ' active-stage-1' : '');
+        document.getElementById('btn-stage-2').className = 'stage-btn' + (stageNum === 2 ? ' active-stage-2' : '');
+        document.getElementById('btn-stage-3').className = 'stage-btn' + (stageNum === 3 ? ' active-stage-3' : '');
 
         const auditModal = document.getElementById('argon-audit-modal');
 
@@ -1791,31 +2142,13 @@
             vid.currentTime = 0;
             vid.play().catch(() => {});
           }
-          raceStarted = false;
         } else if (stageNum === 3) {
           auditModal.style.display = 'none';
           const lvl2 = await loadLevelConfig('level_iter2.json');
           resetCarsForStage(lvl2, 3);
-          raceStarted = false;
-
-          // Run 3 - 2 - 1 - GO! Countdown
-          const cdEl = document.getElementById('countdown-overlay');
-          let count = 3;
-          cdEl.textContent = '3';
-          cdEl.style.display = 'block';
-          countdownTimer = setInterval(() => {
-            count--;
-            if (count > 0) {
-              cdEl.textContent = String(count);
-            } else if (count === 0) {
-              cdEl.textContent = 'GO!';
-              raceStarted = true;
-            } else {
-              cdEl.style.display = 'none';
-              clearInterval(countdownTimer);
-              countdownTimer = null;
-            }
-          }, 700);
+          // Wait for human player to press throttle or click START RACE so Ghost never wins unfairly!
+          waitingForHumanTrigger = true;
+          document.getElementById('race-ready-banner').style.display = 'block';
         }
       };
 
@@ -1829,19 +2162,28 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ quick: true })
           });
-        } catch (e) {
-          // Safe fallback
-        }
+        } catch (e) {}
         btn.textContent = origText;
         window.selectDemoStage(3);
       };
 
-      // =========================================================================
-      // KEYBOARD + WEBSOCKET MOBILE INPUT HANDLING
-      // =========================================================================
+      // =======================================================================
+      // 6. KEYBOARD + WEBSOCKET MOBILE INPUT + FERRARI PHYSICS
+      // =======================================================================
       const keys = {};
-      window.addEventListener('keydown', (e) => { keys[e.code] = true; });
-      window.addEventListener('keyup', (e) => { keys[e.code] = false; });
+      window.addEventListener('keydown', (e) => {
+        keys[e.code] = true;
+        if (
+          waitingForHumanTrigger &&
+          currentStage === 3 &&
+          ['KeyW', 'ArrowUp', 'Space'].includes(e.code)
+        ) {
+          window.triggerVerifiedRaceCountdown();
+        }
+      });
+      window.addEventListener('keyup', (e) => {
+        keys[e.code] = false;
+      });
 
       const wsInputs = {
         1: { left: false, right: false, gas: false, brake: false },
@@ -1857,28 +2199,13 @@
             if (msg.type === 'lobby') {
               const p1Pill = document.getElementById('p1-lobby-pill');
               const p2Pill = document.getElementById('p2-lobby-pill');
-              if (msg.p1Connected) {
-                p1Pill.textContent = '📱 P1 CONNECTED';
-                p1Pill.className = 'qr-status status-connected';
-              } else {
-                p1Pill.textContent = 'WASD / SCAN QR';
-                p1Pill.className = 'qr-status status-waiting';
-              }
-              if (msg.p2Connected) {
-                p2Pill.textContent = '📱 P2 CONNECTED';
-                p2Pill.className = 'qr-status status-connected';
-              } else {
-                p2Pill.textContent = 'ARROWS / SCAN QR';
-                p2Pill.className = 'qr-status status-waiting';
-              }
-              if (msg.p1Spec && msg.p1Spec.color) {
-                carP1.bodyMat.color.set(msg.p1Spec.color);
-                carP1.bodyMat.emissive.set(msg.p1Spec.color);
-              }
-              if (msg.p2Spec && msg.p2Spec.color) {
-                carP2.bodyMat.color.set(msg.p2Spec.color);
-                carP2.bodyMat.emissive.set(msg.p2Spec.color);
-              }
+              p1Pill.textContent = msg.p1Connected ? '📱 P1 CONNECTED' : 'WASD / SCAN QR';
+              p1Pill.className = 'qr-status ' + (msg.p1Connected ? 'status-connected' : 'status-waiting');
+              p2Pill.textContent = msg.p2Connected ? '📱 P2 CONNECTED' : 'ARROWS / SCAN QR';
+              p2Pill.className = 'qr-status ' + (msg.p2Connected ? 'status-connected' : 'status-waiting');
+
+              if (msg.p1Spec?.color) carP1.bodyMat.color.set(msg.p1Spec.color);
+              if (msg.p2Spec?.color) carP2.bodyMat.color.set(msg.p2Spec.color);
             } else if (msg.type === 'control' && (msg.player === 1 || msg.player === 2)) {
               wsInputs[msg.player] = {
                 left: Boolean(msg.left),
@@ -1886,6 +2213,9 @@
                 gas: Boolean(msg.gas),
                 brake: Boolean(msg.brake)
               };
+              if (waitingForHumanTrigger && currentStage === 3 && msg.gas) {
+                window.triggerVerifiedRaceCountdown();
+              }
             }
           } catch (e) {}
         };
@@ -1893,9 +2223,6 @@
       }
       connectBroadcastWs();
 
-      // =========================================================================
-      // AUTONOMOUS BOT & MULTIPLAYER ARCADE PHYSICS ENGINE
-      // =========================================================================
       function steerCarTowardTarget(car, tx, tz, maxSpd, accel, turnSpd, dtScale) {
         const dx = tx - car.x;
         const dz = tz - car.z;
@@ -1904,7 +2231,9 @@
         while (diff > Math.PI) diff -= Math.PI * 2;
         while (diff < -Math.PI) diff += Math.PI * 2;
 
-        car.rotationY += Math.sign(diff) * Math.min(Math.abs(diff), turnSpd * 1.45 * dtScale);
+        const turnStep = Math.sign(diff) * Math.min(Math.abs(diff), turnSpd * 1.45 * dtScale);
+        car.rotationY += turnStep;
+        car.steerAngle = THREE.MathUtils.lerp(car.steerAngle, THREE.MathUtils.clamp(diff * 0.9, -0.42, 0.42), 0.25);
         car.speed = Math.min(maxSpd, car.speed + accel * dtScale);
       }
 
@@ -1912,29 +2241,47 @@
         if (!activeLevel || car.crashed || car.finished) return;
 
         const dtScale = dt * 60;
-        const stats = activeLevel.carStats || { maxSpeed: 0.9, acceleration: 0.03, turnSpeed: 0.045 };
-        const maxSpd = car.isGhost ? stats.maxSpeed * 0.97 : stats.maxSpeed;
+        const stats = activeLevel.carStats || { maxSpeed: 0.49, acceleration: 0.011, turnSpeed: 0.038 };
+        // Give human drivers a 6% top-speed edge over the Argon AI Ghost so humans can beat the Ghost fairly!
+        const maxSpd = car.isGhost ? stats.maxSpeed * 0.94 : stats.maxSpeed * 1.02;
         const cps = activeLevel.checkpoints || [];
         const targetCp = cps[Math.min(car.wpIndex, cps.length - 1)];
 
         if (isAutonomous && targetCp) {
-          // Calibrated velocity so Stage 1 bot reaches (-12, 35) from (-35, 120) at exactly t = 00:03.2s
-          const stage1CalibratedMax = currentStage === 1 ? 0.505 : maxSpd;
-          steerCarTowardTarget(car, targetCp.x, targetCp.z, stage1CalibratedMax, stats.acceleration * 1.35, stats.turnSpeed, dtScale);
+          // Stage 1 is calibrated so the bot covers (-35, 120) -> (-12, 35) in exactly 3.2s
+          const stageMax = currentStage === 1 ? 0.505 : maxSpd;
+          const stageAccel = currentStage === 1 ? 0.038 : stats.acceleration;
+          steerCarTowardTarget(car, targetCp.x, targetCp.z, stageMax, stageAccel, stats.turnSpeed, dtScale);
         } else if (controls) {
           if (controls.gas) {
-            car.speed = Math.min(maxSpd, car.speed + stats.acceleration * dtScale);
+            car.speed = Math.min(maxSpd, car.speed + stats.acceleration * 1.15 * dtScale);
           } else if (controls.brake) {
-            car.speed = Math.max(-maxSpd * 0.45, car.speed - stats.acceleration * 1.4 * dtScale);
+            car.speed = Math.max(-maxSpd * 0.45, car.speed - stats.acceleration * 1.6 * dtScale);
           } else {
-            car.speed *= Math.pow(0.96, dtScale);
+            car.speed *= Math.pow(0.97, dtScale);
           }
 
-          if (Math.abs(car.speed) > 0.02) {
+          let steerInput = 0;
+          if (Math.abs(car.speed) > 0.01) {
             const dir = car.speed >= 0 ? 1 : -1;
-            if (controls.left) car.rotationY += stats.turnSpeed * dir * dtScale;
-            if (controls.right) car.rotationY -= stats.turnSpeed * dir * dtScale;
+            if (controls.left) {
+              car.rotationY += stats.turnSpeed * dir * dtScale;
+              steerInput = 0.38;
+            } else if (controls.right) {
+              car.rotationY -= stats.turnSpeed * dir * dtScale;
+              steerInput = -0.38;
+            } else if (controls.gas && targetCp) {
+              // Subtle Embarcadero lane-assist when holding gas straight so keyboard driving feels silky smooth
+              const dx = targetCp.x - car.x;
+              const dz = targetCp.z - car.z;
+              const desiredYaw = Math.atan2(-dx, -dz);
+              let diff = desiredYaw - car.rotationY;
+              while (diff > Math.PI) diff -= Math.PI * 2;
+              while (diff < -Math.PI) diff += Math.PI * 2;
+              car.rotationY += diff * 0.035 * dtScale;
+            }
           }
+          car.steerAngle = THREE.MathUtils.lerp(car.steerAngle, steerInput, 0.25);
         }
 
         const vx = -Math.sin(car.rotationY) * car.speed * dtScale;
@@ -1942,19 +2289,26 @@
         car.x += vx;
         car.z += vz;
 
-        // Emit Neon Drift / Exhaust Trail Particles
-        if (Math.abs(car.speed) > 0.25 && Math.random() < 0.45) {
-          const trailColor = car.isGhost ? 0x00ff88 : (car === carP1 ? 0xff2a54 : 0x00e5ff);
+        // Spin Ferrari Wheels & Turn Front Steer Wheels!
+        car.wheels.forEach((w) => {
+          w.rotation.x -= car.speed * dtScale * 0.55;
+        });
+        car.steerWheels.forEach((w) => {
+          w.rotation.y = car.steerAngle;
+        });
+
+        // Soft White/Gray Tire Smoke Particles when Drifting or Launching
+        if (Math.abs(car.speed) > 0.22 && (Math.abs(car.steerAngle) > 0.18 || Math.random() < 0.25)) {
           spawnParticle(
-            car.x + (Math.random() - 0.5) * 1.5,
-            0.25,
-            car.z + (Math.random() - 0.5) * 1.5,
-            trailColor,
-            0.35,
+            car.x + (Math.random() - 0.5) * 1.4,
+            0.18,
+            car.z + (Math.random() - 0.5) * 1.4,
+            car.isGhost ? 0x6bf5a6 : 0xe2e8f0,
+            0.28,
             0,
-            0.4,
+            0.45,
             0,
-            0.45
+            0.42
           );
         }
 
@@ -1973,7 +2327,6 @@
             ferryPillarMesh.material.emissive.setHex(0xff0033);
           }
 
-          // Highlight the crashed pillar with a bright red wireframe box
           const crashEdges = new THREE.EdgesGeometry(new THREE.BoxGeometry(6.6, 12.6, 6.6));
           const crashWf = new THREE.LineSegments(crashEdges, new THREE.LineBasicMaterial({ color: 0xff2a54 }));
           crashWf.position.set(-12, 6, 35);
@@ -1984,23 +2337,25 @@
           return;
         }
 
-        // STAGE 3 COLLIDER PROXY DEFLECTION (Smooth arcade slide off colliders)
+        // STAGE 3 COLLIDER PROXY DEFLECTION (Keep cars inside Embarcadero corridor)
         if (currentStage === 3) {
+          car.x = THREE.MathUtils.clamp(car.x, -42, 4);
           (activeLevel.colliders || []).forEach((col) => {
-            const halfW = col.w / 2 + 1.8;
-            const halfD = col.d / 2 + 2.2;
-            if (Math.abs(car.x - col.x) < halfW && Math.abs(car.z - col.z) < halfD) {
-              if (car.x < col.x) car.x = col.x - halfW;
-              else car.x = col.x + halfW;
-              car.speed *= 0.72;
+            if (col.id === 'ferry_pillar_east') {
+              const halfW = col.w / 2 + 1.8;
+              const halfD = col.d / 2 + 2.2;
+              if (Math.abs(car.x - col.x) < halfW && Math.abs(car.z - col.z) < halfD) {
+                car.x = col.x - halfW;
+                car.speed *= 0.8;
+              }
             }
           });
         }
 
-        // CHECKPOINT PROGRESSION & FINISH LINE DETECTION
+        // CHECKPOINT PROGRESSION & SHACK15 FINISH LINE DETECTION
         if (targetCp) {
           const distToCp = Math.hypot(car.x - targetCp.x, car.z - targetCp.z);
-          if (distToCp <= targetCp.radius + 2.5) {
+          if (distToCp <= targetCp.radius + 3.5) {
             if (targetCp.isFinish) {
               car.finished = true;
               car.finishTime = simTime;
@@ -2010,7 +2365,7 @@
                 const winBanner = document.getElementById('winner-banner');
                 document.getElementById('winner-title').textContent = `🏆 ${car.label} WINS AT SHACK15!`;
                 document.getElementById('winner-subtitle').textContent =
-                  `Argon Verified Iteration 2 Route Completed in 0${simTime.toFixed(1)}s — 0 Collisions!`;
+                  `Verified 650m Embarcadero Sprint Completed in ${simTime.toFixed(1)}s — 0 Collisions!`;
                 winBanner.style.display = 'block';
               }
             } else {
@@ -2025,28 +2380,28 @@
         car.group.rotation.y = car.rotationY;
 
         if (!cam) return;
-        const behindDist = 18;
-        const camHeight = 7.5;
+        const behindDist = 11.5;
+        const camHeight = 4.2;
         const targetCamX = car.x + Math.sin(car.rotationY) * behindDist;
         const targetCamZ = car.z + Math.cos(car.rotationY) * behindDist;
 
-        cam.position.x += (targetCamX - cam.position.x) * 0.18;
-        cam.position.y += (camHeight - cam.position.y) * 0.18;
-        cam.position.z += (targetCamZ - cam.position.z) * 0.18;
+        cam.position.x += (targetCamX - cam.position.x) * 0.22;
+        cam.position.y += (camHeight - cam.position.y) * 0.22;
+        cam.position.z += (targetCamZ - cam.position.z) * 0.22;
 
         if (cameraShakeTime > 0) {
-          cam.position.x += (Math.random() - 0.5) * 1.4;
-          cam.position.y += (Math.random() - 0.5) * 1.4;
+          cam.position.x += (Math.random() - 0.5) * 1.2;
+          cam.position.y += (Math.random() - 0.5) * 1.2;
         }
 
-        const lookAheadX = car.x - Math.sin(car.rotationY) * 14;
-        const lookAheadZ = car.z - Math.cos(car.rotationY) * 14;
-        cam.lookAt(lookAheadX, 2.2, lookAheadZ);
+        const lookAheadX = car.x - Math.sin(car.rotationY) * 16;
+        const lookAheadZ = car.z - Math.cos(car.rotationY) * 16;
+        cam.lookAt(lookAheadX, 1.6, lookAheadZ);
       }
 
-      // =========================================================================
-      // MAIN 60FPS ANIMATION & 3-VIEWPORT SCISSOR RENDER LOOP
-      // =========================================================================
+      // =======================================================================
+      // 7. MAIN 60FPS ANIMATION & 3-VIEWPORT SCISSOR RENDER LOOP
+      // =======================================================================
       let lastFrameTime = performance.now();
 
       function animate(now) {
@@ -2058,7 +2413,6 @@
           cameraShakeTime = Math.max(0, cameraShakeTime - dt);
         }
 
-        // Update Particles
         for (let i = particles.length - 1; i >= 0; i--) {
           const p = particles[i];
           p.life -= dt;
@@ -2069,7 +2423,7 @@
             p.mesh.position.x += p.vx * dt;
             p.mesh.position.y += p.vy * dt;
             p.mesh.position.z += p.vz * dt;
-            p.mesh.material.opacity = p.life / p.maxLife;
+            p.mesh.material.opacity = (p.life / p.maxLife) * 0.65;
           }
         }
 
@@ -2078,7 +2432,6 @@
             if (!carP1.crashed) {
               simTime = Math.min(3.2, simTime + dt);
             }
-            // In Stage 1 (Draft Crash), both P1 and P2 run the autonomous test trajectory
             stepCarPhysics(carP1, null, true, dt);
             stepCarPhysics(carP2, null, true, dt);
           } else if (currentStage === 3) {
@@ -2103,7 +2456,6 @@
 
             stepCarPhysics(carP1, p1Ctrl, humanAutopilotAssist && !p1HasHumanInput, dt);
             stepCarPhysics(carP2, p2Ctrl, humanAutopilotAssist && !p2HasHumanInput, dt);
-            // 3rd Car: Neon Green Argon AI Ghost always drives the verified Iteration 2 line!
             stepCarPhysics(carGhost, null, true, dt);
           }
         }
@@ -2112,43 +2464,36 @@
         updateCarTransformAndCamera(carP2, camP2);
         updateCarTransformAndCamera(carGhost, null);
 
-        // Update HUD Telemetry
-        document.getElementById('sim-clock-display').textContent = `SIM TIME: 00:0${simTime.toFixed(1)}s`;
-        if (activeLevel && activeLevel.checkpoints) {
-          const wp = activeLevel.checkpoints[Math.min(carP1.wpIndex, activeLevel.checkpoints.length - 1)];
-          if (wp && !carP1.crashed) {
-            document.getElementById('active-wp-display').textContent =
-              `TARGET: WP#${wp.id} (${wp.x}, ${wp.z})`;
-          }
-        }
+        // Update Telemetry HUD
+        const timeStr = simTime < 10 ? `00:0${simTime.toFixed(1)}s` : `00:${simTime.toFixed(1)}s`;
+        document.getElementById('sim-clock-display').textContent = `SIM TIME: ${timeStr}`;
 
-        const p1Mph = Math.round(Math.abs(carP1.speed) * 135);
-        const p2Mph = Math.round(Math.abs(carP2.speed) * 135);
-        const p1Dist = Math.max(0, Math.round(Math.hypot(carP1.x - 5, carP1.z - (-30))));
-        const p2Dist = Math.max(0, Math.round(Math.hypot(carP2.x - 5, carP2.z - (-30))));
+        const finishZ = currentStage === 1 ? -30 : -230;
+        const p1Mph = Math.round(Math.abs(carP1.speed) * 285);
+        const p2Mph = Math.round(Math.abs(carP2.speed) * 285);
+        const p1Dist = Math.max(0, Math.round(Math.hypot(carP1.x - (-8), carP1.z - finishZ)));
+        const p2Dist = Math.max(0, Math.round(Math.hypot(carP2.x - (-8), carP2.z - finishZ)));
 
         document.getElementById('p1-speed').textContent = String(p1Mph);
         document.getElementById('p2-speed').textContent = String(p2Mph);
         document.getElementById('p1-dist').textContent = `SHACK15 FINISH: ${p1Dist}m`;
         document.getElementById('p2-dist').textContent = `SHACK15 FINISH: ${p2Dist}m`;
 
-        // =====================================================================
-        // SINGLE-CANVAS 3-VIEWPORT SCISSOR RENDERING
-        // =====================================================================
+        // Single-Canvas 3-Viewport Scissor Render
         const W = window.innerWidth;
         const H = window.innerHeight;
         const wLeft = Math.floor(W * 0.33);
         const wCenter = Math.floor(W * 0.34);
         const wRight = W - wLeft - wCenter;
 
-        // 1. Left Viewport (33%): Player 1 3rd-Person Chase Camera
+        // 1. Left Viewport (33%): Player 1 Ferrari Chase Cam
         camP1.aspect = wLeft / H;
         camP1.updateProjectionMatrix();
         renderer.setViewport(0, 0, wLeft, H);
         renderer.setScissor(0, 0, wLeft, H);
         renderer.render(scene, camP1);
 
-        // 2. Center Viewport (34%): Top-Down Orthographic 3D SF Tactical Map
+        // 2. Center Viewport (34%): Top-Down Orthographic SF Photogrammetry Radar
         const centerAspect = wCenter / H;
         camTop.left = -orthoSize * centerAspect;
         camTop.right = orthoSize * centerAspect;
@@ -2159,7 +2504,7 @@
         renderer.setScissor(wLeft, 0, wCenter, H);
         renderer.render(scene, camTop);
 
-        // 3. Right Viewport (33%): Player 2 3rd-Person Chase Camera
+        // 3. Right Viewport (33%): Player 2 Ferrari Chase Cam
         camP2.aspect = wRight / H;
         camP2.updateProjectionMatrix();
         renderer.setViewport(wLeft + wCenter, 0, wRight, H);
@@ -2171,10 +2516,9 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
       });
 
-      // Boot into Stage 1 (First Draft Crash) automatically
       window.selectDemoStage(1);
       requestAnimationFrame(animate);
-    })();
+    }
   </script>
 </body>
 </html>
