@@ -3,33 +3,26 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>ArgonDrive SF — Photogrammetry Real2Sim City Architect & Multiplayer Race</title>
+  <title>Vice City: San Francisco — Open-World 3D Photogrammetry Street Racing</title>
 
   <script type="importmap">
     {
       "imports": {
         "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
-        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/",
-        "three/examples/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/",
-        "3d-tiles-renderer": "https://cdn.jsdelivr.net/npm/3d-tiles-renderer@0.4.27/build/index.js",
-        "3d-tiles-renderer/core/plugins": "https://cdn.jsdelivr.net/npm/3d-tiles-renderer@0.4.27/build/index.core-plugins.js",
-        "3d-tiles-renderer/three/plugins": "https://cdn.jsdelivr.net/npm/3d-tiles-renderer@0.4.27/build/index.three-plugins.js"
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
       }
     }
   </script>
 
   <style>
     :root {
-      --ui-vibrancy: saturate(1.38) contrast(1.06) brightness(1.02);
+      --vc-pink: #ff2a85;
+      --vc-cyan: #00f0ff;
+      --vc-gold: #ffd166;
+      --vc-green: #06d6a0;
+      --vc-dark: rgba(8, 12, 22, 0.86);
+      --vc-border: rgba(255, 255, 255, 0.22);
       --world-vibrancy: saturate(1.42) contrast(1.07) brightness(1.03);
-      --glass-bg: rgba(9, 15, 19, 0.78);
-      --glass-border: rgba(255, 255, 255, 0.28);
-      --neon-cyan: #38bdf8;
-      --neon-red: #ff2a54;
-      --neon-green: #38d67a;
-      --neon-gold: #f5c451;
-      --text-main: #f8fafc;
-      --text-dim: rgba(255, 255, 255, 0.72);
     }
 
     * {
@@ -44,12 +37,11 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: #78b6da;
-      color: var(--text-main);
-      font-family: Inter, -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+      background: #4f9fd0;
+      color: #f8fafc;
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
 
-    /* ================= MAIN BROADCAST MODE (sf.thijs.gg Aesthetic) ================= */
     #broadcast-root {
       position: fixed;
       inset: 0;
@@ -67,17 +59,17 @@
       filter: var(--world-vibrancy);
     }
 
-    /* Top Glassmorphic Broadcast HUD */
+    /* ================= SLEEK TOP VICE CITY: SF BAR ================= */
     #top-hud {
       position: absolute;
       top: 12px;
       left: 14px;
       right: 14px;
-      height: 58px;
-      background: var(--glass-bg);
-      border: 1px solid var(--glass-border);
+      height: 54px;
+      background: var(--vc-dark);
+      border: 1.5px solid rgba(255, 42, 133, 0.55);
       border-radius: 14px;
-      box-shadow: 0 14px 38px rgba(5, 11, 12, 0.28);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45), 0 0 20px rgba(255, 42, 133, 0.2);
       backdrop-filter: blur(14px);
       display: flex;
       align-items: center;
@@ -85,7 +77,6 @@
       padding: 0 16px;
       z-index: 20;
       gap: 10px;
-      filter: var(--ui-vibrancy);
     }
 
     .brand-cluster {
@@ -94,705 +85,531 @@
       gap: 12px;
     }
 
-    .brand-logo {
-      display: flex;
-      flex-direction: column;
+    .vc-logo {
+      font-family: "Arial Black", Impact, sans-serif;
+      font-size: 18px;
+      font-style: italic;
+      letter-spacing: 0.04em;
+      background: linear-gradient(90deg, #ff2a85, #ff9e00, #00f0ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 2px 10px rgba(255, 42, 133, 0.35);
+      white-space: nowrap;
     }
 
-    .brand-title {
-      font-size: 16px;
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      color: #ffffff;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .brand-sub {
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: var(--text-dim);
-    }
-
-    .argon-pill {
+    .route-pill {
       padding: 5px 11px;
       border-radius: 999px;
       font-size: 11px;
       font-weight: 800;
-      background: rgba(56, 214, 122, 0.18);
-      border: 1px solid rgba(56, 214, 122, 0.65);
-      color: #6bf5a6;
-      letter-spacing: 0.06em;
+      background: rgba(0, 240, 255, 0.14);
+      border: 1px solid rgba(0, 240, 255, 0.5);
+      color: #80f8ff;
+      letter-spacing: 0.04em;
       white-space: nowrap;
     }
 
-    .route-selector {
+    .hud-btn-group {
       display: flex;
       align-items: center;
-      gap: 6px;
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.22);
-      padding: 5px 10px;
-      border-radius: 10px;
-      font-size: 11px;
-      font-weight: 700;
+      gap: 7px;
+      flex-wrap: nowrap;
     }
 
-    .route-selector select {
-      background: rgba(9, 15, 19, 0.9);
+    .vc-btn {
+      padding: 7px 12px;
+      border-radius: 9px;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      background: rgba(18, 25, 42, 0.85);
       color: #fff;
-      border: 1px solid rgba(255, 255, 255, 0.28);
-      border-radius: 6px;
-      padding: 3px 7px;
-      font-size: 11px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    .stage-buttons {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .stage-btn {
-      padding: 8px 13px;
-      border-radius: 10px;
-      border: 1px solid rgba(255, 255, 255, 0.26);
-      background: rgba(15, 23, 30, 0.82);
-      color: #ffffff;
-      font-size: 12px;
+      font-size: 11.5px;
       font-weight: 800;
-      letter-spacing: 0.03em;
+      letter-spacing: 0.04em;
       cursor: pointer;
-      transition: all 0.16s ease;
+      transition: all 0.15s ease;
       white-space: nowrap;
     }
 
-    .stage-btn:hover {
+    .vc-btn:hover {
+      border-color: var(--vc-cyan);
       transform: translateY(-1px);
-      background: rgba(28, 42, 54, 0.92);
-      border-color: #ffffff;
     }
 
-    .stage-btn.active-stage-1 {
-      background: linear-gradient(135deg, rgba(235, 38, 76, 0.88), rgba(120, 14, 38, 0.92));
-      border-color: #ff8da3;
-      box-shadow: 0 6px 20px rgba(255, 42, 84, 0.45);
+    .vc-btn.active-pink {
+      background: linear-gradient(135deg, #ff2a85, #b5179e);
+      border-color: #ff9ebb;
+      box-shadow: 0 4px 16px rgba(255, 42, 133, 0.45);
     }
 
-    .stage-btn.active-stage-2 {
-      background: linear-gradient(135deg, rgba(235, 172, 28, 0.9), rgba(120, 78, 10, 0.92));
-      border-color: #ffe494;
-      box-shadow: 0 6px 20px rgba(245, 196, 81, 0.45);
+    .vc-btn.active-cyan {
+      background: linear-gradient(135deg, #00b4d8, #0077b6);
+      border-color: #90e0ef;
+      box-shadow: 0 4px 16px rgba(0, 240, 255, 0.4);
     }
 
-    .stage-btn.active-stage-3 {
-      background: linear-gradient(135deg, rgba(26, 188, 96, 0.9), rgba(12, 92, 48, 0.92));
-      border-color: #98ffbe;
-      box-shadow: 0 6px 20px rgba(56, 214, 122, 0.45);
+    .vc-btn.map-cta {
+      background: linear-gradient(135deg, #ff9e00, #ff2a85);
+      border-color: #ffe082;
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(255, 158, 0, 0.45);
     }
 
-    /* 3-Viewport Split Dividers & Headers */
-    .viewport-divider {
+    /* 2P Split Screen Center Divider */
+    #split-divider {
       position: absolute;
       top: 0;
       bottom: 0;
-      width: 2px;
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.55));
+      left: 50%;
+      width: 3px;
+      transform: translateX(-50%);
+      background: linear-gradient(180deg, var(--vc-pink), var(--vc-cyan));
+      box-shadow: 0 0 14px rgba(255, 42, 133, 0.7);
       z-index: 10;
       pointer-events: none;
+      display: none;
     }
 
-    #div-left { left: 33%; }
-    #div-right { left: 67%; }
-
-    .vp-panel {
+    /* Player Header Badges */
+    .player-top-tag {
       position: absolute;
-      top: 80px;
+      top: 76px;
       z-index: 12;
-      pointer-events: none;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      filter: var(--ui-vibrancy);
-    }
-
-    #vp-left-hud { left: 16px; width: calc(33% - 32px); }
-    #vp-center-hud { left: calc(33% + 16px); width: calc(34% - 32px); align-items: center; }
-    #vp-right-hud { left: calc(67% + 16px); width: calc(33% - 32px); align-items: flex-end; }
-
-    .vp-badge {
-      padding: 6px 12px;
+      padding: 6px 13px;
       border-radius: 10px;
-      background: var(--glass-bg);
-      border: 1px solid var(--glass-border);
+      background: var(--vc-dark);
+      border: 1px solid var(--vc-border);
       font-size: 11px;
-      font-weight: 800;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      backdrop-filter: blur(12px);
-      box-shadow: 0 8px 24px rgba(5, 11, 12, 0.22);
-      display: inline-flex;
+      font-weight: 900;
+      letter-spacing: 0.07em;
+      display: flex;
       align-items: center;
       gap: 8px;
-    }
-
-    .dot {
-      width: 9px;
-      height: 9px;
-      border-radius: 50%;
-      display: inline-block;
-    }
-
-    .dot-red { background: #ff2a54; box-shadow: 0 0 8px #ff2a54; }
-    .dot-blue { background: #00d4ff; box-shadow: 0 0 8px #00d4ff; }
-    .dot-green { background: #38d67a; box-shadow: 0 0 8px #38d67a; }
-
-    /* Telemetry Speedometer Cards (Bottom Left & Bottom Right) */
-    .telemetry-card {
-      position: absolute;
-      bottom: 16px;
-      z-index: 12;
-      background: var(--glass-bg);
-      border: 1px solid var(--glass-border);
-      border-radius: 14px;
-      padding: 12px 18px;
-      min-width: 240px;
-      backdrop-filter: blur(14px);
-      box-shadow: 0 14px 38px rgba(5, 11, 12, 0.28);
       pointer-events: none;
-      filter: var(--ui-vibrancy);
+      backdrop-filter: blur(10px);
     }
 
-    #p1-telemetry { left: 16px; border-left: 5px solid #ff2a54; }
-    #p2-telemetry { right: 16px; border-right: 5px solid #00d4ff; text-align: right; }
-
-    .speed-row {
-      display: flex;
-      align-items: baseline;
-      gap: 6px;
+    #tag-p1 {
+      left: 16px;
+      border-left: 4px solid var(--vc-pink);
     }
 
-    #p2-telemetry .speed-row {
-      justify-content: flex-end;
+    #tag-p2 {
+      right: 16px;
+      border-right: 4px solid var(--vc-cyan);
+      display: none;
     }
 
-    .speed-val {
-      font-size: 36px;
+    /* ================= GTA VICE CITY ROTATING RADAR MINIMAP ================= */
+    #vc-radar-wrap {
+      position: absolute;
+      bottom: 18px;
+      left: 20px;
+      width: 210px;
+      height: 210px;
+      z-index: 15;
+      transition: left 0.25s ease, transform 0.25s ease;
+    }
+
+    #vc-radar-wrap.split-center {
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    #vc-radar-ring {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      padding: 5px;
+      background: linear-gradient(135deg, var(--vc-pink), var(--vc-cyan));
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.65), 0 0 22px rgba(255, 42, 133, 0.45);
+      cursor: pointer;
+    }
+
+    #vc-radar-canvas {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      display: block;
+      background: #0b1924;
+    }
+
+    #vc-north-pin {
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #080c16;
+      border: 2px solid var(--vc-gold);
+      color: var(--vc-gold);
       font-weight: 900;
+      font-size: 12px;
+      display: grid;
+      place-items: center;
+      top: -6px;
+      left: calc(50% - 12px);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.75);
+      pointer-events: none;
+    }
+
+    #vc-radar-caption {
+      position: absolute;
+      bottom: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(8, 12, 22, 0.92);
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      border-radius: 999px;
+      padding: 3px 10px;
+      font-size: 9.5px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      color: var(--vc-gold);
+      white-space: nowrap;
+      pointer-events: none;
+    }
+
+    /* ================= VICE CITY SPEEDOMETER & TELEMETRY CARDS ================= */
+    .vc-speed-card {
+      position: absolute;
+      bottom: 18px;
+      z-index: 14;
+      background: var(--vc-dark);
+      border: 1.5px solid rgba(255, 255, 255, 0.24);
+      border-radius: 14px;
+      padding: 10px 18px;
+      min-width: 225px;
+      backdrop-filter: blur(14px);
+      box-shadow: 0 12px 34px rgba(0, 0, 0, 0.5);
+      pointer-events: none;
+    }
+
+    #p1-hud-card {
+      right: 18px;
+      border-right: 5px solid var(--vc-pink);
+      text-align: right;
+    }
+
+    #p1-hud-card.split-left {
+      right: auto;
+      left: 18px;
+      border-right: 1.5px solid rgba(255, 255, 255, 0.24);
+      border-left: 5px solid var(--vc-pink);
+      text-align: left;
+    }
+
+    #p2-hud-card {
+      right: 18px;
+      border-right: 5px solid var(--vc-cyan);
+      text-align: right;
+      display: none;
+    }
+
+    .speed-big {
+      font-family: "Arial Black", Impact, sans-serif;
+      font-size: 40px;
+      font-style: italic;
+      line-height: 0.95;
+      color: #fff;
+      text-shadow: 2px 2px 0 var(--vc-pink);
       font-variant-numeric: tabular-nums;
-      line-height: 1;
+    }
+
+    #p2-hud-card .speed-big {
+      text-shadow: 2px 2px 0 #0096c7;
     }
 
     .speed-unit {
-      font-size: 12px;
-      font-weight: 800;
-      color: var(--text-dim);
+      font-size: 11px;
+      font-weight: 900;
+      color: var(--vc-gold);
+      letter-spacing: 0.1em;
+      margin-left: 4px;
     }
 
-    .dist-row {
-      margin-top: 5px;
-      font-size: 12px;
-      color: #93e2ff;
-      font-weight: 700;
-      font-variant-numeric: tabular-nums;
-    }
-
-    .ctrl-hint {
-      margin-top: 3px;
-      font-size: 10px;
-      color: var(--text-dim);
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-    }
-
-    /* Center Viewport Floating QR Lobby & Tactical Status */
-    #center-bottom-dock {
-      position: absolute;
-      bottom: 14px;
-      left: 33.6%;
-      width: 32.8%;
-      z-index: 15;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      filter: var(--ui-vibrancy);
-    }
-
-    #critique-banner {
+    .nitro-bar-track {
       width: 100%;
-      background: var(--glass-bg);
-      border: 1px solid var(--glass-border);
-      border-radius: 12px;
-      padding: 8px 12px;
-      font-size: 11.5px;
-      line-height: 1.35;
-      color: #f0f9ff;
-      backdrop-filter: blur(14px);
-      box-shadow: 0 10px 28px rgba(5, 11, 12, 0.25);
+      height: 6px;
+      background: rgba(255, 255, 255, 0.14);
+      border-radius: 99px;
+      overflow: hidden;
+      margin: 7px 0 5px;
     }
 
-    #critique-banner strong {
-      color: var(--neon-gold);
-    }
-
-    #qr-lobby-card {
+    .nitro-bar-fill {
+      height: 100%;
       width: 100%;
-      background: var(--glass-bg);
-      border: 1px solid var(--glass-border);
-      border-radius: 14px;
-      padding: 10px 12px;
-      box-shadow: 0 14px 38px rgba(5, 11, 12, 0.32);
-      backdrop-filter: blur(14px);
+      background: linear-gradient(90deg, var(--vc-cyan), var(--vc-pink));
+      transition: width 0.1s linear;
     }
 
-    .qr-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
+    .hud-sub-line {
       font-size: 11px;
       font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: #ffffff;
+      color: #cbd5e1;
+      letter-spacing: 0.04em;
     }
 
-    .qr-toggle-btn {
-      background: rgba(255, 255, 255, 0.14);
-      border: 1px solid rgba(255, 255, 255, 0.34);
-      color: #fff;
-      font-size: 10px;
+    .hud-key-hint {
+      font-size: 9.5px;
+      color: rgba(255, 255, 255, 0.65);
+      margin-top: 2px;
+    }
+
+    /* ================= FULL SAN FRANCISCO INTERACTIVE CITY MAP MODAL ================= */
+    #sf-map-modal {
+      position: absolute;
+      inset: 0;
+      z-index: 40;
+      background: rgba(6, 10, 18, 0.84);
+      backdrop-filter: blur(16px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+    }
+
+    .map-modal-card {
+      width: min(1140px, 96vw);
+      height: min(760px, 92vh);
+      background: rgba(10, 15, 28, 0.96);
+      border: 2px solid var(--vc-pink);
+      border-radius: 18px;
+      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.8), 0 0 40px rgba(255, 42, 133, 0.28);
+      display: grid;
+      grid-template-columns: 1fr 350px;
+      overflow: hidden;
+    }
+
+    .map-canvas-pane {
+      position: relative;
+      background: #0c2230;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #full-sf-map-canvas {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      cursor: crosshair;
+      display: block;
+    }
+
+    .map-floating-instructions {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      background: rgba(8, 12, 22, 0.88);
+      border: 1px solid rgba(0, 240, 255, 0.5);
+      border-radius: 10px;
+      padding: 8px 13px;
+      font-size: 12px;
       font-weight: 800;
-      padding: 4px 9px;
-      border-radius: 7px;
+      color: #fff;
+      pointer-events: none;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+    }
+
+    .map-sidebar {
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      border-left: 1px solid rgba(255, 255, 255, 0.14);
+      overflow-y: auto;
+      gap: 12px;
+    }
+
+    .sidebar-title {
+      font-family: "Arial Black", Impact, sans-serif;
+      font-size: 20px;
+      font-style: italic;
+      background: linear-gradient(90deg, #ff2a85, #ffd166, #00f0ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .sidebar-section {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 12px;
+      padding: 11px 12px;
+    }
+
+    .sidebar-section h4 {
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--vc-gold);
+      margin-bottom: 8px;
+    }
+
+    .click-mode-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .mode-pill-btn {
+      padding: 8px;
+      border-radius: 8px;
+      border: 1.5px solid rgba(255, 255, 255, 0.25);
+      background: rgba(15, 23, 42, 0.8);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 800;
       cursor: pointer;
+      text-align: center;
+    }
+
+    .mode-pill-btn.active-start {
+      border-color: var(--vc-green);
+      background: rgba(6, 214, 160, 0.25);
+      color: #6bf5a6;
+    }
+
+    .mode-pill-btn.active-finish {
+      border-color: var(--vc-pink);
+      background: rgba(255, 42, 133, 0.28);
+      color: #ff9ebb;
+    }
+
+    .landmark-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      max-height: 155px;
+      overflow-y: auto;
+    }
+
+    .lm-chip {
+      padding: 5px 8px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      color: #e2e8f0;
+      font-size: 10.5px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .lm-chip:hover {
+      background: rgba(0, 240, 255, 0.22);
+      border-color: var(--vc-cyan);
+      color: #fff;
+    }
+
+    .launch-btn-primary {
+      width: 100%;
+      padding: 13px;
+      border-radius: 11px;
+      border: none;
+      background: linear-gradient(90deg, #ff2a85, #ff9e00);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 900;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      box-shadow: 0 8px 25px rgba(255, 42, 133, 0.5);
+      margin-bottom: 8px;
+    }
+
+    .launch-btn-secondary {
+      width: 100%;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1.5px solid var(--vc-cyan);
+      background: rgba(0, 240, 255, 0.15);
+      color: #90e0ef;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    /* QR Popup Drawer */
+    #qr-drawer {
+      position: absolute;
+      top: 74px;
+      right: 16px;
+      width: 340px;
+      background: var(--vc-dark);
+      border: 1.5px solid var(--vc-cyan);
+      border-radius: 14px;
+      padding: 12px;
+      z-index: 32;
+      display: none;
+      backdrop-filter: blur(14px);
+      box-shadow: 0 16px 40px rgba(0,0,0,0.65);
     }
 
     .qr-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 10px;
+      margin-top: 8px;
     }
 
-    .qr-slot {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: rgba(255, 255, 255, 0.07);
-      border: 1px solid rgba(255, 255, 255, 0.18);
+    .qr-box {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.16);
       border-radius: 10px;
-      padding: 6px;
+      padding: 8px;
+      text-align: center;
     }
 
-    .qr-slot img {
-      width: 64px;
-      height: 64px;
-      border-radius: 8px;
+    .qr-box img {
+      width: 88px;
+      height: 88px;
       background: #fff;
-      padding: 3px;
-      flex-shrink: 0;
-    }
-
-    .qr-meta {
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-      overflow: hidden;
-    }
-
-    .qr-role {
-      font-size: 11px;
-      font-weight: 900;
-    }
-
-    .qr-status {
-      font-size: 10px;
-      font-weight: 800;
-      padding: 2px 6px;
-      border-radius: 5px;
-      display: inline-block;
-      width: fit-content;
-    }
-
-    .status-waiting {
-      background: rgba(245, 196, 81, 0.22);
-      color: #ffe082;
-      border: 1px solid rgba(245, 196, 81, 0.5);
-    }
-
-    .status-connected {
-      background: rgba(56, 214, 122, 0.25);
-      color: #72f6a8;
-      border: 1px solid rgba(56, 214, 122, 0.6);
-    }
-
-    .qr-url {
-      font-size: 9px;
-      color: var(--text-dim);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    /* Stage 3 Ready-to-Start Banner (Prevents AI Ghost from winning before player presses a key) */
-    #race-ready-banner {
-      position: absolute;
-      top: 155px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 26;
-      background: rgba(9, 15, 19, 0.9);
-      border: 2px solid #38d67a;
-      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55), 0 0 30px rgba(56, 214, 122, 0.4);
-      border-radius: 16px;
-      padding: 18px 28px;
-      text-align: center;
-      backdrop-filter: blur(16px);
-      display: none;
-      max-width: 660px;
-    }
-
-    #race-ready-banner h2 {
-      font-size: 21px;
-      font-weight: 900;
-      color: #ffffff;
-      margin-bottom: 6px;
-    }
-
-    #race-ready-banner p {
-      font-size: 13px;
-      color: rgba(255, 255, 255, 0.85);
-      margin-bottom: 14px;
-    }
-
-    .start-race-cta {
-      background: linear-gradient(90deg, #38d67a, #00d4ff);
-      color: #04131a;
-      border: none;
-      font-weight: 900;
-      font-size: 14px;
-      padding: 11px 26px;
-      border-radius: 10px;
-      cursor: pointer;
-      letter-spacing: 0.05em;
-      box-shadow: 0 8px 25px rgba(56, 214, 122, 0.55);
-    }
-
-    /* Stage 1 Crash Telemetry Alert Banner */
-    #crash-alert-banner {
-      position: absolute;
-      top: 150px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 25;
-      background: rgba(88, 10, 26, 0.92);
-      border: 2px solid #ff4d6d;
-      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6), 0 0 36px rgba(255, 42, 84, 0.65);
-      border-radius: 16px;
-      padding: 16px 26px;
-      text-align: center;
-      backdrop-filter: blur(14px);
-      display: none;
-      max-width: 680px;
-    }
-
-    #crash-alert-banner h2 {
-      font-size: 20px;
-      font-weight: 900;
-      color: #fff;
-      margin-bottom: 5px;
-    }
-
-    #crash-alert-banner p {
-      font-size: 13px;
-      color: #ffd6de;
-      margin-bottom: 12px;
-    }
-
-    .pulse-action-btn {
-      background: var(--neon-gold);
-      color: #091015;
-      border: none;
-      font-weight: 900;
-      font-size: 12px;
-      padding: 9px 18px;
+      padding: 4px;
       border-radius: 8px;
-      cursor: pointer;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      box-shadow: 0 0 18px rgba(245, 196, 81, 0.7);
-    }
-
-    /* Stage 2: Argon Video Audit Overlay Modal */
-    #argon-audit-modal {
-      position: absolute;
-      top: 84px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: min(980px, 94vw);
-      background: rgba(9, 15, 19, 0.94);
-      border: 1.5px solid var(--neon-gold);
-      border-radius: 16px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.75);
-      padding: 18px 22px;
-      z-index: 30;
-      display: none;
-      backdrop-filter: blur(16px);
-    }
-
-    .audit-modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.16);
-      padding-bottom: 10px;
-      margin-bottom: 14px;
-    }
-
-    .audit-modal-title {
-      font-size: 17px;
-      font-weight: 900;
-      color: var(--neon-gold);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .audit-grid {
-      display: grid;
-      grid-template-columns: 1.05fr 1.25fr;
-      gap: 18px;
-      align-items: start;
-    }
-
-    .video-box {
-      background: #02050b;
-      border: 1px solid rgba(255, 42, 84, 0.65);
-      border-radius: 12px;
-      overflow: hidden;
-      position: relative;
-    }
-
-    .video-box video {
-      width: 100%;
-      height: 235px;
-      object-fit: cover;
+      margin: 5px auto;
       display: block;
-      background: #000;
     }
 
-    .video-tag {
-      position: absolute;
-      top: 8px;
-      left: 8px;
-      background: rgba(255, 42, 84, 0.92);
-      color: #fff;
-      font-size: 10px;
-      font-weight: 900;
-      padding: 3px 8px;
-      border-radius: 5px;
-    }
-
-    .reasoning-box {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .log-entry {
-      background: rgba(255, 255, 255, 0.07);
-      border-left: 3px solid var(--neon-cyan);
-      padding: 8px 12px;
-      border-radius: 8px;
-      font-size: 12px;
-      line-height: 1.45;
-    }
-
-    .log-entry.critical {
-      border-left-color: var(--neon-red);
-      background: rgba(120, 18, 38, 0.45);
-    }
-
-    .log-entry.patched {
-      border-left-color: var(--neon-green);
-      background: rgba(16, 90, 52, 0.45);
-    }
-
-    .diff-box {
-      font-family: Consolas, "Courier New", monospace;
-      font-size: 11px;
-      background: rgba(0, 0, 0, 0.55);
-      border: 1px solid rgba(255, 255, 255, 0.18);
-      border-radius: 8px;
-      padding: 8px 10px;
-      line-height: 1.45;
-    }
-
-    .diff-del { color: #ff859d; }
-    .diff-add { color: #6bf5a6; }
-
-    .audit-actions {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 14px;
-      padding-top: 12px;
-      border-top: 1px solid rgba(255, 255, 255, 0.14);
-      gap: 10px;
-    }
-
-    .btn-wireframe {
-      background: rgba(255, 42, 84, 0.24);
-      border: 1px solid #ff6b8b;
-      color: #ffd0da;
-      padding: 9px 14px;
-      border-radius: 9px;
-      font-size: 12px;
-      font-weight: 800;
-      cursor: pointer;
-    }
-
-    .btn-apply-patch {
-      background: linear-gradient(90deg, #38d67a, #00d4ff);
-      border: none;
-      color: #031018;
-      padding: 10px 20px;
-      border-radius: 9px;
-      font-size: 13px;
-      font-weight: 900;
-      cursor: pointer;
-      box-shadow: 0 6px 22px rgba(56, 214, 122, 0.45);
-    }
-
-    /* Countdown & Winner Overlays */
+    /* Countdown & Winner Banners */
     #countdown-overlay {
       position: absolute;
-      top: 44%;
+      top: 42%;
       left: 50%;
       transform: translate(-50%, -50%);
-      z-index: 28;
-      font-size: 118px;
-      font-weight: 900;
+      z-index: 35;
+      font-family: "Arial Black", Impact, sans-serif;
+      font-size: 110px;
+      font-style: italic;
       color: #fff;
-      text-shadow: 0 8px 36px rgba(0, 0, 0, 0.65), 0 0 50px #38d67a;
+      text-shadow: 4px 4px 0 var(--vc-pink), 0 0 40px var(--vc-cyan);
       pointer-events: none;
       display: none;
     }
 
     #winner-banner {
       position: absolute;
-      top: 145px;
+      top: 130px;
       left: 50%;
       transform: translateX(-50%);
-      z-index: 29;
-      background: rgba(9, 24, 18, 0.94);
-      border: 2px solid #38d67a;
-      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.65), 0 0 40px rgba(56, 214, 122, 0.55);
+      z-index: 36;
+      background: rgba(8, 12, 22, 0.95);
+      border: 2px solid var(--vc-gold);
       border-radius: 16px;
-      padding: 20px 34px;
+      padding: 20px 32px;
       text-align: center;
-      backdrop-filter: blur(16px);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.75), 0 0 35px rgba(255, 209, 102, 0.45);
       display: none;
     }
 
-    #winner-banner h1 {
-      font-size: 28px;
-      font-weight: 900;
-      color: #6bf5a6;
-      margin-bottom: 6px;
-    }
-
-    #winner-banner p {
-      font-size: 14px;
-      color: #f0fdf4;
-      margin-bottom: 14px;
-    }
-
-    /* ================= MOBILE TOUCH CONTROLLER MODE ================= */
+    /* ================= MOBILE CONTROLLER VIEW (?player=1 or ?player=2) ================= */
     #mobile-controller-root {
       display: none;
       width: 100vw;
       height: 100vh;
-      background: linear-gradient(160deg, #1b3b5c 0%, #09131c 85%);
+      background: linear-gradient(160deg, #190a28 0%, #09131c 85%);
       flex-direction: column;
       justify-content: space-between;
       padding: 14px;
-    }
-
-    .mc-top-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: var(--glass-bg);
-      border: 1px solid var(--glass-border);
-      border-radius: 12px;
-      padding: 10px 14px;
-    }
-
-    .mc-player-title {
-      font-size: 18px;
-      font-weight: 900;
-    }
-
-    .mc-config-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-top: 10px;
-    }
-
-    .mc-card {
-      background: var(--glass-bg);
-      border: 1px solid var(--glass-border);
-      border-radius: 10px;
-      padding: 10px;
-    }
-
-    .mc-card label {
-      display: block;
-      font-size: 11px;
-      font-weight: 800;
-      color: var(--text-dim);
-      text-transform: uppercase;
-      margin-bottom: 6px;
-    }
-
-    .car-spec-btns {
-      display: flex;
-      gap: 6px;
-    }
-
-    .spec-btn {
-      flex: 1;
-      padding: 8px 6px;
-      border-radius: 7px;
-      border: 2px solid transparent;
-      font-size: 11px;
-      font-weight: 800;
-      color: #fff;
-      cursor: pointer;
-    }
-
-    .spec-btn.active {
-      border-color: #fff;
-      box-shadow: 0 0 12px rgba(255, 255, 255, 0.5);
-    }
-
-    .mc-select {
-      width: 100%;
-      padding: 8px;
-      border-radius: 7px;
-      background: #09131c;
-      color: #fff;
-      border: 1px solid var(--glass-border);
-      font-size: 12px;
-      font-weight: 700;
     }
 
     .mc-pad-area {
@@ -825,283 +642,223 @@
       touch-action: none;
     }
 
-    .touch-btn span {
-      font-size: 12px;
-      color: var(--text-dim);
-    }
-
     .touch-btn.pressed {
-      transform: scale(0.97);
-      background: rgba(56, 189, 248, 0.45);
+      transform: scale(0.96);
+      background: rgba(255, 42, 133, 0.5);
       border-color: #fff;
     }
-
-    .touch-btn.gas-btn { border-color: rgba(56, 214, 122, 0.7); }
-    .touch-btn.gas-btn.pressed { background: rgba(56, 214, 122, 0.55); }
-    .touch-btn.brake-btn { border-color: rgba(255, 42, 84, 0.7); }
-    .touch-btn.brake-btn.pressed { background: rgba(255, 42, 84, 0.55); }
   </style>
 </head>
 <body>
 
-  <!-- ================= BROADCAST 3-VIEWPORT MODE ================= -->
+  <!-- ================= MAIN BROADCAST / GAMEPLAY ROOT ================= -->
   <div id="broadcast-root">
     <canvas id="webgl-canvas"></canvas>
 
-    <!-- Top Glassmorphic Broadcast Navigation HUD -->
+    <!-- Sleek Top Bar: View Switcher (1P / 2P Split Screen) + Full SF Map Picker -->
     <header id="top-hud">
       <div class="brand-cluster">
-        <div class="brand-logo">
-          <div class="brand-title">
-            <span>SAN FRANCISCO</span>
-            <span style="font-size:11px; color:#6bf5a6; font-weight:800;">// ARGONDRIVE REAL2SIM</span>
-          </div>
-          <div class="brand-sub">Apple R3D SF Photogrammetry • Ferrari 458 Italia • Gemini 4 Argon</div>
+        <div class="vc-logo">VICE CITY // SAN FRANCISCO</div>
+        <div class="route-pill" id="hud-route-label">Ferry Building → Pier 39</div>
+        <div class="route-pill" id="tile-stream-badge" style="border-color:rgba(6,214,160,0.5); color:#6bf5a6;">
+          SF 3D TILES STREAMING
         </div>
-        <div class="argon-pill" id="hud-iter-pill">PASS 1 • FIRST DRAFT</div>
       </div>
 
-      <div class="route-selector">
-        <span>START:</span>
-        <select id="start-landmark-select">
-          <option value="Coit Tower / Embarcadero North">Pier 23 / Coit Tower Vista</option>
-          <option value="Pier 39 Waterfront">Pier 39 Waterfront</option>
-          <option value="Bay Bridge West Span">Bay Bridge Approach</option>
-        </select>
-        <span>→ FINISH:</span>
-        <select id="end-landmark-select">
-          <option value="Shack15 Ferry Building">Shack15 Ferry Building (650m)</option>
-          <option value="Embarcadero Plaza">Embarcadero Center Plaza</option>
-          <option value="Ferry Clocktower Arch">Ferry Clocktower Arch</option>
-        </select>
-      </div>
-
-      <div class="stage-buttons">
-        <button class="stage-btn active-stage-1" id="btn-stage-1" onclick="window.selectDemoStage(1)">
-          1. Draft World (Iter 1 - Crash)
+      <div class="hud-btn-group">
+        <button class="vc-btn map-cta" onclick="window.toggleFullSFMap(true)">
+          🗺️ PICK ANY SF LOCATION (M)
         </button>
-        <button class="stage-btn" id="btn-stage-2" onclick="window.selectDemoStage(2)">
-          2. Argon Video Audit
+        <button class="vc-btn" id="btn-view-1p-p1" onclick="window.setViewMode('1p_p1')">
+          👤 1P VIEW (P1)
         </button>
-        <button class="stage-btn" id="btn-stage-3" onclick="window.selectDemoStage(3)">
-          3. Verified Race (Iter 2 - Playable)
+        <button class="vc-btn" id="btn-view-1p-p2" onclick="window.setViewMode('1p_p2')">
+          👤 1P VIEW (P2)
+        </button>
+        <button class="vc-btn active-pink" id="btn-view-2p" onclick="window.setViewMode('2p_split')">
+          👥 2P SPLIT-SCREEN
+        </button>
+        <button class="vc-btn" id="btn-p2-ai" onclick="window.toggleP2AiRival()">
+          🤖 P2 AI RIVAL: OFF
+        </button>
+        <button class="vc-btn" onclick="window.restartCurrentRace()">
+          🏁 RESTART RACE
+        </button>
+        <button class="vc-btn" onclick="window.toggleQrDrawer()">
+          📱 PHONE QR
         </button>
       </div>
     </header>
 
-    <!-- Split Screen Dividers -->
-    <div class="viewport-divider" id="div-left"></div>
-    <div class="viewport-divider" id="div-right"></div>
+    <!-- 2-Player Split Screen Divider -->
+    <div id="split-divider"></div>
 
-    <!-- Top Labels for the 3 Viewports -->
-    <div class="vp-panel" id="vp-left-hud">
-      <div class="vp-badge">
-        <span class="dot dot-red"></span>
-        <span>P1 • FERRARI 458 ROSSO CORSA</span>
-      </div>
+    <!-- Player Viewport Header Badges -->
+    <div class="player-top-tag" id="tag-p1">
+      <span style="color:#ff2a85;">●</span>
+      <span id="tag-p1-text">PLAYER 1 • FERRARI 458 ROSSO CORSA (WASD / SHIFT BOOST)</span>
+    </div>
+    <div class="player-top-tag" id="tag-p2">
+      <span id="tag-p2-text">PLAYER 2 • FERRARI 458 MIAMI BLUE (ARROWS / ENTER BOOST)</span>
+      <span style="color:#00f0ff;">●</span>
     </div>
 
-    <div class="vp-panel" id="vp-center-hud">
-      <div class="vp-badge">
-        <span class="dot dot-green"></span>
-        <span id="tile-stream-badge">SF PHOTOGRAMMETRY STREAMING • RADAR + ARGON GHOST</span>
+    <!-- GTA Vice City Rotating Radar Minimap -->
+    <div id="vc-radar-wrap" class="split-center" title="Click to open Full San Francisco Map (M)" onclick="window.toggleFullSFMap(true)">
+      <div id="vc-radar-ring">
+        <canvas id="vc-radar-canvas" width="220" height="220"></canvas>
+        <div id="vc-north-pin">N</div>
       </div>
-      <div class="vp-badge" style="font-size: 10px; color: #ffe082;">
-        <span id="sim-clock-display">SIM TIME: 00:00.0s</span>
-        <span>•</span>
-        <span id="active-wp-display">TARGET: WP#1 (-12, 35)</span>
-      </div>
+      <div id="vc-radar-caption">CLICK RADAR OR [M] FOR FULL SF MAP</div>
     </div>
 
-    <div class="vp-panel" id="vp-right-hud">
-      <div class="vp-badge">
-        <span>P2 • FERRARI 458 MIAMI BLUE</span>
-        <span class="dot dot-blue"></span>
-      </div>
-    </div>
-
-    <!-- Left P1 Speedometer & Telemetry -->
-    <div class="telemetry-card" id="p1-telemetry">
-      <div class="speed-row">
-        <span class="speed-val" id="p1-speed">0</span>
+    <!-- Player 1 Vice City Speedometer -->
+    <div class="vc-speed-card split-left" id="p1-hud-card">
+      <div>
+        <span class="speed-big" id="p1-speed">0</span>
         <span class="speed-unit">MPH</span>
       </div>
-      <div class="dist-row" id="p1-dist">SHACK15 FINISH: 650m</div>
-      <div class="ctrl-hint">WASD KEYS OR PHONE 1 QR CONTROLLER</div>
+      <div class="nitro-bar-track">
+        <div class="nitro-bar-fill" id="p1-nitro-bar"></div>
+      </div>
+      <div class="hud-sub-line" id="p1-dist">FINISH: 1200m</div>
+      <div class="hud-key-hint">WASD Drive • SPACE Drift • SHIFT Nitro • R Reset Road</div>
     </div>
 
-    <!-- Right P2 Speedometer & Telemetry -->
-    <div class="telemetry-card" id="p2-telemetry">
-      <div class="speed-row">
-        <span class="speed-val" id="p2-speed">0</span>
+    <!-- Player 2 Vice City Speedometer -->
+    <div class="vc-speed-card" id="p2-hud-card">
+      <div>
+        <span class="speed-big" id="p2-speed">0</span>
         <span class="speed-unit">MPH</span>
       </div>
-      <div class="dist-row" id="p2-dist">SHACK15 FINISH: 650m</div>
-      <div class="ctrl-hint">ARROW KEYS OR PHONE 2 QR CONTROLLER</div>
+      <div class="nitro-bar-track">
+        <div class="nitro-bar-fill" id="p2-nitro-bar"></div>
+      </div>
+      <div class="hud-sub-line" id="p2-dist">FINISH: 1200m</div>
+      <div class="hud-key-hint">ARROWS Drive • ENTER Nitro • OR PHONE 2 QR</div>
     </div>
 
-    <!-- Center Viewport Bottom: Argon Critique Log + Live QR Code Lobby -->
-    <div id="center-bottom-dock">
-      <div id="critique-banner">
-        <strong>GEMINI 4 ARGON:</strong>
-        <span id="critique-text">Pass 1 First Draft: Generated from raw SF Embarcadero OSM corridor.</span>
+    <!-- Phone QR Code Drawer -->
+    <div id="qr-drawer">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <strong style="font-size:12px; color:var(--vc-cyan);">📱 SCAN FOR MOBILE CONTROLLERS</strong>
+        <button class="vc-btn" style="padding:3px 8px;" onclick="window.toggleQrDrawer()">✕</button>
       </div>
+      <div class="qr-grid">
+        <div class="qr-box">
+          <div style="font-size:11px; font-weight:800; color:#ff2a85;">PLAYER 1</div>
+          <img id="qr-img-p1" alt="P1 QR" src="" />
+          <div id="p1-lobby-pill" style="font-size:10px; color:#cbd5e1;">WASD / Phone 1</div>
+        </div>
+        <div class="qr-box">
+          <div style="font-size:11px; font-weight:800; color:#00f0ff;">PLAYER 2</div>
+          <img id="qr-img-p2" alt="P2 QR" src="" />
+          <div id="p2-lobby-pill" style="font-size:10px; color:#cbd5e1;">ARROWS / Phone 2</div>
+        </div>
+      </div>
+    </div>
 
-      <div id="qr-lobby-card">
-        <div class="qr-header">
-          <span>📱 SCAN QR FOR 60HZ MOBILE CONTROLLERS</span>
-          <div style="display:flex; gap:6px;">
-            <button class="qr-toggle-btn" id="btn-autopilot-assist" onclick="window.toggleHumanAutopilot()">AI DEMO ASSIST: OFF</button>
-            <button class="qr-toggle-btn" onclick="window.toggleQrBody()">MINIMIZE QR</button>
+    <!-- Full San Francisco Interactive Map Modal (Starts Open so Users Can Pick ANY Location in SF!) -->
+    <div id="sf-map-modal">
+      <div class="map-modal-card">
+        <div class="map-canvas-pane">
+          <canvas id="full-sf-map-canvas" width="900" height="900"></canvas>
+          <div class="map-floating-instructions">
+            🖱️ <strong>CLICK ANYWHERE IN SAN FRANCISCO</strong> to place your
+            <span style="color:#06d6a0;">START (Green)</span> or
+            <span style="color:#ff2a85;">FINISH (Neon Pink)</span> — or click any landmark!
           </div>
         </div>
-        <div class="qr-grid" id="qr-grid-body">
-          <div class="qr-slot">
-            <img id="qr-img-p1" alt="Player 1 QR" src="" />
-            <div class="qr-meta">
-              <div class="qr-role" style="color: #ff4d6d;">PLAYER 1 (RED FERRARI)</div>
-              <div class="qr-status status-waiting" id="p1-lobby-pill">WASD / SCAN QR</div>
-              <div class="qr-url" id="p1-url-label">http://localhost:3000/?player=1</div>
+
+        <div class="map-sidebar">
+          <div>
+            <div class="sidebar-title">SAN FRANCISCO CITY GPS</div>
+            <p style="font-size:11.5px; color:#94a3b8; margin-top:4px;">
+              Pick any two streets or landmarks across the entire city of San Francisco to race with your friend, or free-roam anywhere!
+            </p>
+          </div>
+
+          <div class="sidebar-section">
+            <h4>1. Map Click sets:</h4>
+            <div class="click-mode-row">
+              <button class="mode-pill-btn" id="btn-pick-start" onclick="window.setMapClickMode('start')">
+                📍 SET START
+              </button>
+              <button class="mode-pill-btn active-finish" id="btn-pick-finish" onclick="window.setMapClickMode('finish')">
+                🏁 SET FINISH
+              </button>
+            </div>
+            <div style="margin-top:9px; font-size:11.5px; line-height:1.5;">
+              <div><strong style="color:#06d6a0;">START:</strong> <span id="map-start-name">Ferry Building / Embarcadero</span></div>
+              <div><strong style="color:#ff2a85;">FINISH:</strong> <span id="map-finish-name">Pier 39 / Fisherman's Wharf</span></div>
+              <div><strong style="color:#ffd166;">GPS ROUTE:</strong> <span id="map-route-dist">2.1 KM along SF Streets</span></div>
             </div>
           </div>
-          <div class="qr-slot">
-            <img id="qr-img-p2" alt="Player 2 QR" src="" />
-            <div class="qr-meta">
-              <div class="qr-role" style="color: #38bdf8;">PLAYER 2 (BLUE FERRARI)</div>
-              <div class="qr-status status-waiting" id="p2-lobby-pill">ARROWS / SCAN QR</div>
-              <div class="qr-url" id="p2-url-label">http://localhost:3000/?player=2</div>
+
+          <div class="sidebar-section">
+            <h4>2. Quick-Pick SF Landmarks (Or Click Map):</h4>
+            <div class="landmark-chips" id="landmark-chips-container"></div>
+          </div>
+
+          <div class="sidebar-section">
+            <h4>3. View & Player Options:</h4>
+            <div class="click-mode-row">
+              <button class="mode-pill-btn" id="modal-btn-1p" onclick="window.setViewMode('1p_p1')">
+                👤 1P Fullscreen
+              </button>
+              <button class="mode-pill-btn active-finish" id="modal-btn-2p" onclick="window.setViewMode('2p_split')">
+                👥 2P Split-Screen
+              </button>
             </div>
           </div>
+
+          <div>
+            <button class="launch-btn-primary" onclick="window.startRaceFromMap(false)">
+              🏁 START RACE ON THIS SF ROUTE
+            </button>
+            <button class="launch-btn-secondary" onclick="window.startRaceFromMap(true)">
+              🌴 FREE ROAM / JUST DRIVE AROUND HERE
+            </button>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Stage 3 Ready on Starting Grid Overlay (Waits for player input or button click!) -->
-    <div id="race-ready-banner">
-      <h2>🏎️ VERIFIED 650M EMBARCADERO SPRINT READY AT STARTING GRID</h2>
-      <p>
-        Press <strong>[W]</strong> (Player 1), <strong>[UP ARROW]</strong> (Player 2), <strong>Phone Throttle</strong>,
-        or click below so Humans &amp; the <strong>Argon AI Ghost Ferrari</strong> launch together!
-      </p>
-      <button class="start-race-cta" onclick="window.triggerVerifiedRaceCountdown()">
-        🚦 START 3 - 2 - 1 RACE COUNTDOWN
-      </button>
-    </div>
-
-    <!-- Stage 1 Crash Alert Overlay -->
-    <div id="crash-alert-banner">
-      <h2>💥 COLLISION @ 00:03.2s — FERRY PLAZA EAST COLONNADE (-12, 35)</h2>
-      <p>Ferrari test car clipped unmodeled colonnade pillar in Pass 1 First Draft (`level_iter1.json`).</p>
-      <button class="pulse-action-btn" onclick="window.selectDemoStage(2)">
-        ▶ OPEN STAGE 2: GEMINI 4 ARGON VIDEO AUDIT &amp; SELF-HEAL
-      </button>
-    </div>
-
-    <!-- Stage 2 Argon Multimodal Video Audit Modal -->
-    <div id="argon-audit-modal">
-      <div class="audit-modal-header">
-        <div class="audit-modal-title">
-          <span>👁️ GEMINI 4 ARGON (`gemini-4-argon`) MULTIMODAL VIDEO CRITIQUE</span>
-        </div>
-        <button class="qr-toggle-btn" onclick="document.getElementById('argon-audit-modal').style.display='none'">
-          MINIMIZE TO INSPECT 3D SF WORLD
-        </button>
-      </div>
-
-      <div class="audit-grid">
-        <div>
-          <div class="video-box">
-            <div class="video-tag">PLAYWRIGHT HEADLESS CAPTURE • iter1_crash.webm</div>
-            <video id="audit-video-el" src="/iter1_crash.webm" autoplay loop muted playsinline controls></video>
-          </div>
-          <div style="margin-top: 8px; font-size: 11px; color: var(--text-dim); display:flex; justify-content:space-between;">
-            <span>Bot Endpoint: <code>http://localhost:3000/?bot=1</code></span>
-            <span style="color: #ff6b8b; font-weight:800;">Impact Frame: t = 00:03.2s</span>
-          </div>
-        </div>
-
-        <div class="reasoning-box">
-          <div class="log-entry">
-            <strong>[00:00.0s → 00:02.9s]</strong> Autonomous Ferrari 458 test car accelerates southbound down The Embarcadero toward Waypoint #1 <code>(-12, 35)</code>.
-          </div>
-          <div class="log-entry critical">
-            <strong>[00:03.2s SPATIAL FAILURE DETECTED]</strong> Vehicle clips the unmarked <strong>Ferry Plaza East Colonnade Pillar</strong> at coordinates <code>(x: -12, y: 0, z: 35)</code>.
-          </div>
-          <div class="log-entry patched">
-            <strong>[ARGON SELF-HEALING PATCH]</strong> Injected explicit 3D collision proxy <code>ferry_pillar_east (w:6, h:12, d:6)</code> and shifted Waypoint #1 <strong>-14m West</strong> to <code>(-26, 35)</code> for a clean 650m sprint to <strong>SHACK15 FINISH LINE</strong>.
-          </div>
-
-          <div class="diff-box">
-            <div class="diff-del">- "checkpoints": [{ "id": 1, "x": -12, "y": 0, "z": 35, "radius": 8 }, ...]</div>
-            <div class="diff-add">+ "colliders": [..., { "id": "ferry_pillar_east", "x": -12, "y": 6, "z": 35, "w": 6, "h": 12, "d": 6 }]</div>
-            <div class="diff-add">+ "checkpoints": [{ "id": 1, "x": -26, "y": 0, "z": 35, "radius": 14 }, ...]</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="audit-actions">
-        <button class="btn-wireframe" id="btn-wireframe-toggle" onclick="window.toggleCollisionWireframes()">
-          🔲 Collision Wireframe Proxies: ON (Red Boxes)
-        </button>
-        <button class="btn-apply-patch" id="btn-run-live-patch" onclick="window.runLiveArgonPatch()">
-          ⚡ APPLY GEMINI 4 ARGON PATCH → GO TO VERIFIED RACE
-        </button>
-      </div>
-    </div>
-
-    <!-- Stage 3 Countdown & Winner Celebration Banner -->
+    <!-- Race Countdown & Winner Overlays -->
     <div id="countdown-overlay">3</div>
 
     <div id="winner-banner">
-      <h1 id="winner-title">🏆 FERRARI ROSSO CORSA WINS AT SHACK15!</h1>
-      <p id="winner-subtitle">Verified 650m Embarcadero Sprint Completed in 21.8s — Zero Collisions!</p>
-      <button class="btn-apply-patch" onclick="window.selectDemoStage(3)">
-        🏁 RACE AGAIN ON EMBARCADERO
-      </button>
+      <h1 id="winner-title" style="font-size:28px; color:var(--vc-gold); margin-bottom:6px;">
+        🏆 PLAYER 1 WINS IN SAN FRANCISCO!
+      </h1>
+      <p id="winner-subtitle" style="font-size:14px; color:#e2e8f0; margin-bottom:14px;">
+        Completed the SF Street Race!
+      </p>
+      <div style="display:flex; gap:10px; justify-content:center;">
+        <button class="vc-btn active-pink" onclick="window.restartCurrentRace()">🏁 RACE AGAIN</button>
+        <button class="vc-btn map-cta" onclick="window.toggleFullSFMap(true)">🗺️ PICK NEW SF ROUTE</button>
+      </div>
     </div>
   </div>
 
   <!-- ================= MOBILE QR CONTROLLER MODE (?player=1 or ?player=2) ================= -->
   <div id="mobile-controller-root">
-    <div>
-      <div class="mc-top-bar">
-        <div>
-          <div class="mc-player-title" id="mc-header-title">PLAYER 1 CONTROLLER</div>
-          <div style="font-size:11px; color:var(--text-dim);">ArgonDrive SF • Ferrari 458 60Hz Telemetry</div>
-        </div>
-        <div class="argon-pill" id="mc-ws-status">CONNECTING...</div>
+    <div style="display:flex; justify-content:space-between; align-items:center; background:var(--vc-dark); padding:12px 16px; border-radius:12px; border:1px solid var(--vc-pink);">
+      <div>
+        <div id="mc-header-title" style="font-size:18px; font-weight:900; color:#ff2a85;">PLAYER 1 CONTROLLER</div>
+        <div style="font-size:11px; color:#94a3b8;">Vice City: San Francisco • 60Hz Touch Steering</div>
       </div>
-
-      <div class="mc-config-row">
-        <div class="mc-card">
-          <label>Select Ferrari 458 Paint Spec</label>
-          <div class="car-spec-btns">
-            <button class="spec-btn active" style="background:#d90429;" onclick="window.setMobileCarSpec('Ferrari 458 Rosso Corsa', '#d90429', this)">Rosso Corsa</button>
-            <button class="spec-btn" style="background:#0096c7;" onclick="window.setMobileCarSpec('Ferrari 458 Miami Blue', '#00b4d8', this)">Miami Blue</button>
-            <button class="spec-btn" style="background:#f77f00;" onclick="window.setMobileCarSpec('Ferrari 458 Giallo Modena', '#ff9f1c', this)">Giallo Gold</button>
-          </div>
-        </div>
-
-        <div class="mc-card">
-          <label>SF Embarcadero Route</label>
-          <select class="mc-select" id="mc-route-select" onchange="window.sendMobileState()">
-            <option value="Coit Tower|Shack15 Ferry Building">Pier 23 / Coit Tower → Shack15</option>
-            <option value="Pier 39 Waterfront|Embarcadero Plaza">Pier 39 → Embarcadero Plaza</option>
-            <option value="Bay Bridge West Span|Ferry Clocktower Arch">Bay Bridge → Ferry Clocktower</option>
-          </select>
-        </div>
-      </div>
+      <div id="mc-ws-status" class="route-pill">CONNECTING...</div>
     </div>
 
     <div class="mc-pad-area">
       <div class="steer-cluster">
-        <div class="touch-btn" id="btn-mc-left">◀<span>STEER LEFT</span></div>
-        <div class="touch-btn" id="btn-mc-right">▶<span>STEER RIGHT</span></div>
+        <div class="touch-btn" id="btn-mc-left">◀<span style="font-size:12px;">LEFT</span></div>
+        <div class="touch-btn" id="btn-mc-right">▶<span style="font-size:12px;">RIGHT</span></div>
       </div>
-
       <div class="pedal-cluster">
-        <div class="touch-btn brake-btn" id="btn-mc-brake">▼<span>BRAKE / REV</span></div>
-        <div class="touch-btn gas-btn" id="btn-mc-gas">▲<span>FULL THROTTLE</span></div>
+        <div class="touch-btn" id="btn-mc-brake" style="border-color:#ff2a85;">▼<span style="font-size:12px;">BRAKE / REV</span></div>
+        <div class="touch-btn" id="btn-mc-gas" style="border-color:#06d6a0;">▲<span style="font-size:12px;">GAS / THROTTLE</span></div>
       </div>
     </div>
   </div>
@@ -1119,6 +876,56 @@
     const isBotMode = urlParams.get('bot') === '1';
 
     // =========================================================================
+    // 1. SAN FRANCISCO WORLD COORDINATE SYSTEM & ICONIC LANDMARKS
+    // =========================================================================
+    const SATELLITE_MINIMAP_BBOX = [-13645765.82042106, 4531365.317428466, -13612815.251146253, 4564321.309168];
+    function getSatelliteMinimapBounds() {
+      const radius = 6378137, tiles = 2 ** 20, world = 2 * Math.PI * radius;
+      const [minMX, minMY, maxMX, maxMY] = SATELLITE_MINIMAP_BBOX;
+      const tileX = x => (x + Math.PI * radius) / world * tiles;
+      const tileY = y => (Math.PI * radius - y) / world * tiles;
+      return {
+        minX: -(tileY(minMY) - 405291) * 30.1195,
+        maxX: -(tileY(maxMY) - 405291) * 30.1195,
+        minZ: (tileX(minMX) - 167671) * 30.2463,
+        maxZ: (tileX(maxMX) - 167671) * 30.2463
+      };
+    }
+    const SF_MAP_BOUNDS = getSatelliteMinimapBounds();
+
+    function worldFromLatLon(lat, lon) {
+      const n = 2 ** 20;
+      const tileX = (lon + 180) / 360 * n;
+      const rad = THREE.MathUtils.degToRad(THREE.MathUtils.clamp(lat, -85, 85));
+      const tileY = (1 - Math.log(Math.tan(rad) + 1 / Math.cos(rad)) / Math.PI) / 2 * n;
+      return {
+        x: -(tileY - 405291) * 30.1195,
+        z: (tileX - 167671) * 30.2463
+      };
+    }
+
+    const SF_LANDMARKS = [
+      { name: "Ferry Building / Embarcadero", lat: 37.7955, lon: -122.3937 },
+      { name: "Pier 39 / Fisherman's Wharf", lat: 37.8087, lon: -122.4098 },
+      { name: "Coit Tower / Telegraph Hill", lat: 37.8024, lon: -122.4058 },
+      { name: "Lombard Street", lat: 37.8021, lon: -122.4187 },
+      { name: "Union Square", lat: 37.7879, lon: -122.4075 },
+      { name: "Chinatown / Dragon Gate", lat: 37.7908, lon: -122.4056 },
+      { name: "Salesforce Tower", lat: 37.7897, lon: -122.3962 },
+      { name: "Oracle Park (Ballpark)", lat: 37.7786, lon: -122.3893 },
+      { name: "Civic Center / City Hall", lat: 37.7793, lon: -122.4193 },
+      { name: "Painted Ladies / Alamo Sq", lat: 37.7760, lon: -122.4329 },
+      { name: "Haight-Ashbury", lat: 37.7699, lon: -122.4469 },
+      { name: "Castro Theatre", lat: 37.7620, lon: -122.4348 },
+      { name: "Mission Dolores Park", lat: 37.7596, lon: -122.4269 },
+      { name: "Palace of Fine Arts", lat: 37.8029, lon: -122.4484 },
+      { name: "Golden Gate Bridge Vista", lat: 37.8078, lon: -122.4750 },
+      { name: "Golden Gate Park", lat: 37.7726, lon: -122.4602 },
+      { name: "Twin Peaks", lat: 37.7544, lon: -122.4477 },
+      { name: "Ocean Beach", lat: 37.7594, lon: -122.5107 }
+    ].map(lm => ({ ...lm, ...worldFromLatLon(lm.lat, lm.lon) }));
+
+    // =========================================================================
     // MODE A: MOBILE TOUCH CONTROLLER (?player=1 or ?player=2)
     // =========================================================================
     if (playerParam === '1' || playerParam === '2') {
@@ -1126,761 +933,675 @@
       document.getElementById('broadcast-root').style.display = 'none';
       const mcRoot = document.getElementById('mobile-controller-root');
       mcRoot.style.display = 'flex';
+      const titleEl = document.getElementById('mc-header-title');
+      titleEl.textContent = `PLAYER ${playerNum} FERRARI CONTROLLER`;
+      titleEl.style.color = playerNum === 1 ? '#ff2a85' : '#00f0ff';
 
-      const headerTitle = document.getElementById('mc-header-title');
-      headerTitle.textContent = `PLAYER ${playerNum} FERRARI CONTROLLER`;
-      headerTitle.style.color = playerNum === 1 ? '#ff4d6d' : '#38bdf8';
-
-      const mobileState = {
-        player: playerNum,
-        left: false,
-        right: false,
-        gas: false,
-        brake: false,
-        carName: playerNum === 1 ? 'Ferrari 458 Rosso Corsa' : 'Ferrari 458 Miami Blue',
-        color: playerNum === 1 ? '#d90429' : '#00b4d8',
-        startLoc: 'Coit Tower',
-        endLoc: 'Shack15 Ferry Building'
-      };
-
+      const mobileState = { player: playerNum, left: false, right: false, gas: false, brake: false };
       let ws = null;
-      function connectControllerWs() {
+      function connectWs() {
         const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         ws = new WebSocket(`${proto}//${window.location.host}`);
-        const statusEl = document.getElementById('mc-ws-status');
-
         ws.onopen = () => {
-          statusEl.textContent = 'ONLINE • 60HZ';
+          document.getElementById('mc-ws-status').textContent = 'ONLINE • 60HZ';
           ws.send(JSON.stringify({ type: 'register_controller', ...mobileState }));
         };
-
-        ws.onclose = () => {
-          statusEl.textContent = 'RECONNECTING...';
-          setTimeout(connectControllerWs, 1000);
-        };
+        ws.onclose = () => setTimeout(connectWs, 1000);
       }
-      connectControllerWs();
+      connectWs();
 
-      window.sendMobileState = function () {
-        const routeVal = document.getElementById('mc-route-select').value.split('|');
-        mobileState.startLoc = routeVal[0];
-        mobileState.endLoc = routeVal[1];
-        if (ws && ws.readyState === 1) {
-          ws.send(JSON.stringify(mobileState));
-        }
+      const sendState = () => {
+        if (ws && ws.readyState === 1) ws.send(JSON.stringify(mobileState));
       };
 
-      window.setMobileCarSpec = function (name, color, btnEl) {
-        mobileState.carName = name;
-        mobileState.color = color;
-        document.querySelectorAll('.spec-btn').forEach(b => b.classList.remove('active'));
-        btnEl.classList.add('active');
-        window.sendMobileState();
-      };
-
-      function bindTouchButton(elId, keyName) {
-        const el = document.getElementById(elId);
-        const activate = (e) => {
-          e.preventDefault();
-          mobileState[keyName] = true;
-          el.classList.add('pressed');
-          window.sendMobileState();
-        };
-        const deactivate = (e) => {
-          e.preventDefault();
-          mobileState[keyName] = false;
-          el.classList.remove('pressed');
-          window.sendMobileState();
-        };
-        el.addEventListener('touchstart', activate, { passive: false });
-        el.addEventListener('touchend', deactivate, { passive: false });
-        el.addEventListener('touchcancel', deactivate, { passive: false });
-        el.addEventListener('pointerdown', activate);
-        el.addEventListener('pointerup', deactivate);
-        el.addEventListener('pointerleave', deactivate);
+      function bindBtn(id, key) {
+        const el = document.getElementById(id);
+        const on = (e) => { e.preventDefault(); mobileState[key] = true; el.classList.add('pressed'); sendState(); };
+        const off = (e) => { e.preventDefault(); mobileState[key] = false; el.classList.remove('pressed'); sendState(); };
+        el.addEventListener('touchstart', on, { passive: false });
+        el.addEventListener('touchend', off, { passive: false });
+        el.addEventListener('pointerdown', on);
+        el.addEventListener('pointerup', off);
+        el.addEventListener('pointerleave', off);
       }
-
-      bindTouchButton('btn-mc-left', 'left');
-      bindTouchButton('btn-mc-right', 'right');
-      bindTouchButton('btn-mc-gas', 'gas');
-      bindTouchButton('btn-mc-brake', 'brake');
-
-      setInterval(() => window.sendMobileState(), 50);
+      bindBtn('btn-mc-left', 'left');
+      bindBtn('btn-mc-right', 'right');
+      bindBtn('btn-mc-gas', 'gas');
+      bindBtn('btn-mc-brake', 'brake');
+      setInterval(sendState, 50);
     } else {
-      // =========================================================================
-      // MODE B: 3-VIEWPORT SPLIT-SCREEN BROADCAST & HEADLESS BOT VERIFIER
-      // =========================================================================
-      initBroadcastWorld();
+      initViceCitySanFrancisco();
     }
 
-    function initBroadcastWorld() {
-      if (isBotMode) {
-        document.getElementById('qr-lobby-card').style.display = 'none';
-      }
-
-      // Setup QR Codes with LAN IP
+    // =========================================================================
+    // MODE B: VICE CITY SAN FRANCISCO OPEN-WORLD 3D RACER
+    // =========================================================================
+    function initViceCitySanFrancisco() {
+      // Populate QR codes
       fetch('/api/lan-info')
         .then(r => r.json())
         .then(info => {
           const p1Url = info.player1Url || `${window.location.origin}/?player=1`;
           const p2Url = info.player2Url || `${window.location.origin}/?player=2`;
-          document.getElementById('p1-url-label').textContent = p1Url;
-          document.getElementById('p2-url-label').textContent = p2Url;
-          document.getElementById('qr-img-p1').src =
-            `https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(p1Url)}`;
-          document.getElementById('qr-img-p2').src =
-            `https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(p2Url)}`;
+          document.getElementById('qr-img-p1').src = `https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(p1Url)}`;
+          document.getElementById('qr-img-p2').src = `https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(p2Url)}`;
         })
         .catch(() => {});
 
-      window.toggleQrBody = function () {
-        const body = document.getElementById('qr-grid-body');
-        body.style.display = body.style.display === 'none' ? 'grid' : 'none';
+      window.toggleQrDrawer = function () {
+        const el = document.getElementById('qr-drawer');
+        el.style.display = el.style.display === 'block' ? 'none' : 'block';
       };
 
       // =======================================================================
-      // 1. RENDERER, CALIFORNIA DAYLIGHT SKY (`sf.thijs.gg`) & ENVIRONMENT MAP
+      // 1. THREE.JS SCENE, CALIFORNIA DAYLIGHT SKY & OCEAN WATER (ZERO BOX BLOCKS!)
       // =======================================================================
       const canvas = document.getElementById('webgl-canvas');
-      const renderer = new THREE.WebGLRenderer({
-        canvas,
-        antialias: true,
-        powerPreference: 'high-performance'
-      });
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.65));
+      const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
       renderer.setSize(window.innerWidth, window.innerHeight);
       renderer.setScissorTest(true);
       renderer.outputColorSpace = THREE.SRGBColorSpace;
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 1.04;
-      renderer.shadowMap.enabled = true;
-      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      renderer.toneMappingExposure = 1.02;
 
       const scene = new THREE.Scene();
-      // Exact sf.thijs.gg California sky & coastal fog palette
       scene.background = new THREE.Color(0x83bddc);
-      scene.fog = new THREE.FogExp2(0xc2dce8, 0.00055);
+      scene.fog = new THREE.FogExp2(0xc2dce8, 0.00048);
 
-      // PMREM Environment for photorealistic Ferrari clearcoat & skyscraper reflections
       const pmremGenerator = new THREE.PMREMGenerator(renderer);
       scene.environment = pmremGenerator.fromScene(new RoomEnvironment(), 0.04).texture;
       scene.environmentIntensity = 0.85;
 
-      // Physically-based California Golden-Hour / Daylight Sky Shader
+      // Sky Shader
       const sky = new Sky();
-      sky.scale.setScalar(12000);
+      sky.scale.setScalar(24000);
       scene.add(sky);
       const sunVec = new THREE.Vector3();
-      const skyUniforms = sky.material.uniforms;
-      skyUniforms['turbidity'].value = 3.5;
-      skyUniforms['rayleigh'].value = 1.45;
-      skyUniforms['mieCoefficient'].value = 0.004;
-      skyUniforms['mieDirectionalG'].value = 0.8;
-      const phi = THREE.MathUtils.degToRad(90 - 34);
-      const theta = THREE.MathUtils.degToRad(135);
-      sunVec.setFromSphericalCoords(1, phi, theta);
-      skyUniforms['sunPosition'].value.copy(sunVec);
+      sky.material.uniforms['turbidity'].value = 3.2;
+      sky.material.uniforms['rayleigh'].value = 1.4;
+      sky.material.uniforms['mieCoefficient'].value = 0.004;
+      sky.material.uniforms['mieDirectionalG'].value = 0.8;
+      sunVec.setFromSphericalCoords(1, THREE.MathUtils.degToRad(90 - 36), THREE.MathUtils.degToRad(135));
+      sky.material.uniforms['sunPosition'].value.copy(sunVec);
 
-      // Exact sf.thijs.gg restrained daylight hemisphere + sun lighting so R3D photogrammetry textures pop
+      // Restrained physical lighting matching sf.thijs.gg so baked R3D photogrammetry looks hyper-real
       const hemiLight = new THREE.HemisphereLight(0xeaf6ff, 0x3d4939, 1.32);
       scene.add(hemiLight);
-
-      const sunLight = new THREE.DirectionalLight(0xfff1d0, 1.45);
-      sunLight.position.set(-90, 160, 85);
-      sunLight.castShadow = true;
-      sunLight.shadow.mapSize.set(2048, 2048);
-      sunLight.shadow.camera.near = 10;
-      sunLight.shadow.camera.far = 650;
-      const dShadow = 240;
-      sunLight.shadow.camera.left = -dShadow;
-      sunLight.shadow.camera.right = dShadow;
-      sunLight.shadow.camera.top = dShadow;
-      sunLight.shadow.camera.bottom = -dShadow;
+      const sunLight = new THREE.DirectionalLight(0xfff1d0, 1.25);
+      sunLight.position.set(-70, 120, 60);
       scene.add(sunLight);
 
-      // Cameras:
-      // Layer 0 = Photorealistic 3D scene (Chase cams + Radar)
-      // Layer 1 = Tactical Radar Callout Pins (Visible ONLY on Center Top-Down Radar Cam!)
-      const camP1 = new THREE.PerspectiveCamera(58, 1, 0.3, 4500);
-      const camP2 = new THREE.PerspectiveCamera(58, 1, 0.3, 4500);
+      // San Francisco Bay & Pacific Ocean Water Plane (at SF sea level y = -41.5m)
+      const oceanMesh = new THREE.Mesh(
+        new THREE.PlaneGeometry(36000, 36000),
+        new THREE.MeshStandardMaterial({ color: 0x2b6e8c, roughness: 0.22, metalness: 0.55 })
+      );
+      oceanMesh.rotation.x = -Math.PI / 2;
+      oceanMesh.position.set(0, -41.5, 0);
+      scene.add(oceanMesh);
 
-      const orthoSize = 185;
-      const camTop = new THREE.OrthographicCamera(-orthoSize, orthoSize, orthoSize, -orthoSize, 1, 2500);
-      camTop.position.set(-15, 420, 95);
-      camTop.up.set(0, 0, -1);
-      camTop.lookAt(-15, 0, 95);
-      camTop.layers.enable(1); // Enable radar-only layer on Center Viewport!
+      const camP1 = new THREE.PerspectiveCamera(60, 1, 0.3, 4500);
+      const camP2 = new THREE.PerspectiveCamera(60, 1, 0.3, 4500);
 
-      const cityGroup = new THREE.Group();
-      const photogrammetryOuter = new THREE.Group();
-      const photogrammetryInner = new THREE.Group();
-      photogrammetryOuter.add(photogrammetryInner);
-      const levelGroup = new THREE.Group();
-      const wireframeGroup = new THREE.Group();
+      const tilesGroup = new THREE.Group();
+      const routeVisualGroup = new THREE.Group();
       const fxGroup = new THREE.Group();
-      scene.add(cityGroup, photogrammetryOuter, levelGroup, wireframeGroup, fxGroup);
-
-      let showWireframes = true;
-      window.toggleCollisionWireframes = function () {
-        showWireframes = !showWireframes;
-        wireframeGroup.visible = showWireframes;
-        const btn = document.getElementById('btn-wireframe-toggle');
-        if (btn) {
-          btn.textContent = showWireframes
-            ? '🔲 Collision Wireframe Proxies: ON (Red Boxes)'
-            : '🔲 Collision Wireframe Proxies: OFF';
-        }
-      };
+      scene.add(tilesGroup, routeVisualGroup, fxGroup);
 
       // =======================================================================
-      // 2. STREAM REAL 3D SF PHOTOGRAMMETRY TILES FROM sf.thijs.gg (/sf_tiles/)
+      // 2. DYNAMIC CITY-WIDE 3D SF PHOTOGRAMMETRY TILE STREAMER (Z16 + Z17)
       // =======================================================================
       const dracoLoader = new DRACOLoader();
       dracoLoader.setDecoderPath('/draco/');
       const gltfLoader = new GLTFLoader();
       gltfLoader.setDRACOLoader(dracoLoader);
+      MeshoptDecoder.ready.then(() => gltfLoader.setMeshoptDecoder(MeshoptDecoder));
 
-      // Align sf.thijs.gg's Apple R3D San Francisco photogrammetry coordinate frame
-      // with our Embarcadero boulevard so the real photogrammetry Ferry Building,
-      // Embarcadero Center towers, Coit Tower, and piers surround the track!
-      photogrammetryOuter.position.set(-18, -0.35, 0);
-      photogrammetryOuter.rotation.y = -2.1910;
-      photogrammetryInner.position.set(-2118.7, 31.55, -3535.4);
+      let allTilesIndex = { z16: [], z17: [] };
+      const loadedTiles = new Map(); // key -> { mesh, cx, cz, minY, maxY, zoom }
+      const loadingKeys = new Set();
+      let activeDownloads = 0;
+      const MAX_CONCURRENT_TILE_DOWNLOADS = 6;
 
-      async function streamSFPhotogrammetryTiles() {
-        try {
-          await MeshoptDecoder.ready;
-          gltfLoader.setMeshoptDecoder(MeshoptDecoder);
-          const res = await fetch('/api/sf-photogrammetry-manifest');
-          const manifest = await res.json();
-          const tiles = manifest.tiles || [];
-          const badge = document.getElementById('tile-stream-badge');
-          let loadedCount = 0;
+      fetch('/sf_tiles/sf_all_tiles.json')
+        .then(r => r.json())
+        .then(idx => {
+          allTilesIndex = idx;
+          updateDynamicTileStreaming(true);
+        })
+        .catch(() => {});
 
-          // Sort tiles so Ferry Building & Embarcadero centerpiece tiles load first
-          tiles.sort((a, b) => {
-            const da = Math.hypot((a.offset?.[0] || 0) - 2119, (a.offset?.[2] || 0) - 3550);
-            const db = Math.hypot((b.offset?.[0] || 0) - 2119, (b.offset?.[2] || 0) - 3550);
-            return da - db;
-          });
-
-          await Promise.all(
-            tiles.map(async (tileMeta) => {
-              try {
-                const gltf = await gltfLoader.loadAsync(tileMeta.localUrl);
-                const tileScene = gltf.scene;
-                tileScene.traverse((obj) => {
-                  if (obj.isMesh) {
-                    obj.receiveShadow = true;
-                    if (obj.material) {
-                      obj.material.side = THREE.DoubleSide;
-                    }
-                  }
-                });
-                photogrammetryInner.add(tileScene);
-                loadedCount++;
-                if (badge) {
-                  badge.textContent = `SF R3D PHOTOGRAMMETRY (${loadedCount}/${tiles.length} TILES) • RADAR`;
-                }
-              } catch (e) {
-                // Skip individual tile failure gracefully
-              }
-            })
-          );
-          if (badge) {
-            badge.textContent = `SF R3D PHOTOGRAMMETRY ONLINE (${loadedCount} TILES) • + ARGON GHOST`;
+      function estimateBaseElevation(x, z) {
+        let bestD = Infinity;
+        let bestMinY = -39.0;
+        for (const t of allTilesIndex.z17) {
+          const d = (t[1] - x) ** 2 + (t[2] - z) ** 2;
+          if (d < bestD) {
+            bestD = d;
+            bestMinY = t[3];
           }
-        } catch (err) {
-          console.warn('Photogrammetry stream fallback note:', err);
+        }
+        return bestMinY;
+      }
+
+      const downRaycaster = new THREE.Raycaster();
+      const downDir = new THREE.Vector3(0, -1, 0);
+      const rayOrigin = new THREE.Vector3();
+
+      function sampleGroundHeight(x, z, currentY) {
+        const candidates = [];
+        for (const rec of loadedTiles.values()) {
+          if (Math.abs(rec.cx - x) < 150 && Math.abs(rec.cz - z) < 150 && rec.mesh) {
+            candidates.push(rec.mesh);
+          }
+        }
+        if (candidates.length > 0) {
+          rayOrigin.set(x, (Number.isFinite(currentY) ? currentY : 0) + 45, z);
+          downRaycaster.set(rayOrigin, downDir);
+          downRaycaster.far = 180;
+          const hits = downRaycaster.intersectObjects(candidates, true);
+          if (hits.length > 0) {
+            // Pick lowest street-level hit so cars ignore tree canopies or roof overhangs
+            let streetY = hits[hits.length - 1].point.y;
+            for (const h of hits) {
+              if (!Number.isFinite(currentY) || Math.abs(h.point.y - currentY) < 8.5) {
+                streetY = Math.min(streetY, h.point.y);
+              }
+            }
+            return streetY;
+          }
+        }
+        return Number.isFinite(currentY) ? currentY : estimateBaseElevation(x, z);
+      }
+
+      function updateDynamicTileStreaming(force = false) {
+        if (!allTilesIndex.z17.length) return;
+        const focusPoints = [
+          { x: carP1.x, z: carP1.z },
+          ...(viewMode === '2p_split' ? [{ x: carP2.x, z: carP2.z }] : [])
+        ];
+
+        const desired = [];
+        // High-detail Z17 tiles within 450m of active players
+        for (const t of allTilesIndex.z17) {
+          const [key, cx, cz, minY, maxY] = t;
+          const d = Math.min(...focusPoints.map(p => Math.hypot(cx - p.x, cz - p.z)));
+          if (d < 460) {
+            desired.push({ key, cx, cz, minY, maxY, zoom: 17, dist: d });
+          }
+        }
+        // Medium-detail Z16 background skyline tiles within 950m
+        for (const t of allTilesIndex.z16) {
+          const [key, cx, cz, minY, maxY] = t;
+          const d = Math.min(...focusPoints.map(p => Math.hypot(cx - p.x, cz - p.z)));
+          if (d >= 360 && d < 980) {
+            desired.push({ key, cx, cz, minY, maxY, zoom: 16, dist: d + 120 });
+          }
+        }
+
+        desired.sort((a, b) => a.dist - b.dist);
+
+        // Evict very distant tiles (>1400m) to keep GPU memory fast
+        if (loadedTiles.size > 55) {
+          for (const [k, rec] of loadedTiles.entries()) {
+            const d = Math.min(...focusPoints.map(p => Math.hypot(rec.cx - p.x, rec.cz - p.z)));
+            if (d > 1400) {
+              tilesGroup.remove(rec.mesh);
+              loadedTiles.delete(k);
+            }
+          }
+        }
+
+        for (const item of desired) {
+          if (activeDownloads >= MAX_CONCURRENT_TILE_DOWNLOADS) break;
+          if (loadedTiles.has(item.key) || loadingKeys.has(item.key)) continue;
+
+          loadingKeys.add(item.key);
+          activeDownloads++;
+          const fileUrl = `/sf_tiles/${item.key}-yup-uvflip-v3-world.glb`;
+
+          gltfLoader.load(
+            fileUrl,
+            (gltf) => {
+              activeDownloads--;
+              loadingKeys.delete(item.key);
+              const mesh = gltf.scene;
+              mesh.traverse(node => {
+                if (node.isMesh && node.material) {
+                  node.material.side = THREE.DoubleSide;
+                }
+              });
+              tilesGroup.add(mesh);
+              loadedTiles.set(item.key, { ...item, mesh });
+              const badge = document.getElementById('tile-stream-badge');
+              if (badge) {
+                badge.textContent = `SF 3D TILES ONLINE (${loadedTiles.size})`;
+              }
+            },
+            undefined,
+            () => {
+              activeDownloads--;
+              loadingKeys.delete(item.key);
+            }
+          );
         }
       }
-      streamSFPhotogrammetryTiles();
+      setInterval(updateDynamicTileStreaming, 450);
 
       // =======================================================================
-      // 3. ESRI SATELLITE IMAGERY GROUND + PBR EMBARCADERO ROAD + FERRY BUILDING
+      // 3. SAN FRANCISCO STREET NETWORK, A* PATHFINDER & CLEAR 3D ROAD RIBBON
       // =======================================================================
-      function createAsphaltPBRTextures() {
+      let sfStreetsRaw = null;
+      let decodedStreets = []; // { roadClass, width, points: [[x,z], ...], minX, maxX, minZ, maxZ }
+      const streetNodes = new Map(); // key -> [x, z]
+      const streetAdj = new Map();   // key -> [[neighborKey, dist], ...]
+
+      let selectedStart = { ...SF_LANDMARKS[0] };  // Ferry Building
+      let selectedFinish = { ...SF_LANDMARKS[1] }; // Pier 39
+      let activeRoutePoints = []; // [[x, y, z], ...]
+      let isFreeRoamMode = false;
+
+      function nodeGridKey(x, z) {
+        return `${Math.round(x / 6)},${Math.round(z / 6)}`;
+      }
+
+      fetch('/sf_tiles/sf_streets.json')
+        .then(r => r.json())
+        .then(data => {
+          sfStreetsRaw = data;
+          const q = data.q;
+          const [ox, oz] = data.origin;
+
+          for (const entry of data.s) {
+            const [roadClass, widthDm, , enc] = entry;
+            const pts = [];
+            let qx = 0, qz = 0;
+            let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
+
+            for (let i = 0; i + 1 < enc.length; i += 2) {
+              if (i === 0) { qx = enc[0]; qz = enc[1]; }
+              else { qx += enc[i]; qz += enc[i + 1]; }
+              const x = ox + qx * q;
+              const z = oz + qz * q;
+              pts.push([x, z]);
+              if (x < minX) minX = x;
+              if (x > maxX) maxX = x;
+              if (z < minZ) minZ = z;
+              if (z > maxZ) maxZ = z;
+            }
+            if (pts.length >= 2) {
+              decodedStreets.push({ roadClass, width: Math.max(7, widthDm * 0.1), points: pts, minX, maxX, minZ, maxZ });
+            }
+
+            // Build A* road routing graph across all SF streets
+            for (let i = 0; i < pts.length; i++) {
+              const k = nodeGridKey(pts[i][0], pts[i][1]);
+              if (!streetNodes.has(k)) streetNodes.set(k, pts[i]);
+              if (i > 0) {
+                const kPrev = nodeGridKey(pts[i - 1][0], pts[i - 1][1]);
+                if (k !== kPrev) {
+                  const w = Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
+                  if (!streetAdj.has(k)) streetAdj.set(k, []);
+                  if (!streetAdj.has(kPrev)) streetAdj.set(kPrev, []);
+                  streetAdj.get(k).push([kPrev, w]);
+                  streetAdj.get(kPrev).push([k, w]);
+                }
+              }
+            }
+          }
+
+          computeStreetRoute(selectedStart, selectedFinish);
+          drawFullSFMap();
+          if (isBotMode) {
+            window.startRaceFromMap(false);
+          }
+        });
+
+      function findNearestStreetNode(tx, tz) {
+        let bestK = null, bestD = Infinity;
+        for (const [k, pt] of streetNodes.entries()) {
+          const d = (pt[0] - tx) ** 2 + (pt[1] - tz) ** 2;
+          if (d < bestD) {
+            bestD = d;
+            bestK = k;
+          }
+        }
+        return bestK;
+      }
+
+      function computeStreetRoute(startObj, finishObj) {
+        if (!streetNodes.size) {
+          activeRoutePoints = [
+            [startObj.x, estimateBaseElevation(startObj.x, startObj.z), startObj.z],
+            [finishObj.x, estimateBaseElevation(finishObj.x, finishObj.z), finishObj.z]
+          ];
+          return;
+        }
+
+        const startK = findNearestStreetNode(startObj.x, startObj.z);
+        const endK = findNearestStreetNode(finishObj.x, finishObj.z);
+        const endPt = streetNodes.get(endK);
+
+        const gScore = new Map([[startK, 0]]);
+        const parent = new Map();
+        const open = [[0, startK]];
+        const closed = new Set();
+        let closestReachedK = startK;
+        let closestDistToEnd = Infinity;
+
+        let steps = 0;
+        while (open.length > 0 && steps < 18000) {
+          steps++;
+          // Pop min fScore
+          let minIdx = 0;
+          for (let i = 1; i < open.length; i++) {
+            if (open[i][0] < open[minIdx][0]) minIdx = i;
+          }
+          const [, curr] = open.splice(minIdx, 1)[0];
+          if (curr === endK) {
+            closestReachedK = endK;
+            break;
+          }
+          if (closed.has(curr)) continue;
+          closed.add(curr);
+
+          const currPt = streetNodes.get(curr);
+          const dEnd = Math.hypot(currPt[0] - endPt[0], currPt[1] - endPt[1]);
+          if (dEnd < closestDistToEnd) {
+            closestDistToEnd = dEnd;
+            closestReachedK = curr;
+          }
+
+          const g = gScore.get(curr);
+          for (const [nb, w] of streetAdj.get(curr) || []) {
+            if (closed.has(nb)) continue;
+            const ng = g + w;
+            if (ng < (gScore.get(nb) ?? Infinity)) {
+              gScore.set(nb, ng);
+              parent.set(nb, curr);
+              const nbPt = streetNodes.get(nb);
+              const h = Math.hypot(nbPt[0] - endPt[0], nbPt[1] - endPt[1]) * 1.15;
+              open.push([ng + h, nb]);
+            }
+          }
+        }
+
+        const raw2D = [];
+        let cur = closestReachedK;
+        while (cur) {
+          raw2D.push(streetNodes.get(cur));
+          cur = parent.get(cur);
+        }
+        raw2D.reverse();
+        if (closestReachedK !== endK) {
+          raw2D.push([endPt[0], endPt[1]]);
+        }
+
+        // Resample route every ~14 meters for a silky-smooth drivable road ribbon
+        const resampled = [];
+        for (let i = 0; i < raw2D.length; i++) {
+          const [x, z] = raw2D[i];
+          if (i === 0) {
+            resampled.push([x, z]);
+          } else {
+            const [px, pz] = resampled[resampled.length - 1];
+            const segLen = Math.hypot(x - px, z - pz);
+            if (segLen >= 10) {
+              const subdivisions = Math.ceil(segLen / 14);
+              for (let s = 1; s <= subdivisions; s++) {
+                const t = s / subdivisions;
+                resampled.push([px + (x - px) * t, pz + (z - pz) * t]);
+              }
+            }
+          }
+        }
+
+        // Assign smooth elevation profile along the street route
+        const rawY = resampled.map(([x, z]) => sampleGroundHeight(x, z, estimateBaseElevation(x, z)));
+        activeRoutePoints = resampled.map(([x, z], idx) => {
+          let sumY = 0, cnt = 0;
+          for (let k = Math.max(0, idx - 3); k <= Math.min(rawY.length - 1, idx + 3); k++) {
+            sumY += rawY[k];
+            cnt++;
+          }
+          return [x, sumY / cnt, z];
+        });
+
+        // Update UI distance
+        let totalMeters = 0;
+        for (let i = 1; i < activeRoutePoints.length; i++) {
+          totalMeters += Math.hypot(
+            activeRoutePoints[i][0] - activeRoutePoints[i - 1][0],
+            activeRoutePoints[i][2] - activeRoutePoints[i - 1][2]
+          );
+        }
+        const distLabel = document.getElementById('map-route-dist');
+        if (distLabel) {
+          distLabel.textContent = `${(totalMeters / 1000).toFixed(2)} KM (${Math.round(totalMeters)}m) along SF Streets`;
+        }
+        const topLabel = document.getElementById('hud-route-label');
+        if (topLabel) {
+          topLabel.textContent = isFreeRoamMode
+            ? `FREE ROAM • ${selectedStart.name}`
+            : `${selectedStart.name.split('/')[0]} → ${selectedFinish.name.split('/')[0]}`;
+        }
+
+        buildClearRoadRibbonMesh();
+      }
+
+      // Creates a sleek, clear Asphalt + Vice City Neon GPS Road Ribbon texture
+      function createViceCityRoadTexture() {
         const c = document.createElement('canvas');
         c.width = 512;
         c.height = 512;
         const ctx = c.getContext('2d');
-        ctx.fillStyle = '#2b3038';
+
+        // Clean dark asphalt
+        ctx.fillStyle = '#1e2430';
         ctx.fillRect(0, 0, 512, 512);
 
-        // Fine asphalt aggregate noise
-        for (let i = 0; i < 18000; i++) {
-          const v = 34 + Math.floor(Math.random() * 26);
-          ctx.fillStyle = `rgb(${v},${v + 2},${v + 5})`;
+        // Subtle asphalt grain
+        for (let i = 0; i < 6000; i++) {
+          const v = 26 + Math.floor(Math.random() * 20);
+          ctx.fillStyle = `rgb(${v},${v + 3},${v + 8})`;
           ctx.fillRect(Math.random() * 512, Math.random() * 512, 2, 2);
         }
 
-        // Double yellow center line
-        ctx.fillStyle = '#eab308';
+        // Neon Pink & Cyan Edge Curbs (Vice City signature look)
+        ctx.fillStyle = '#ff2a85';
+        ctx.fillRect(8, 0, 14, 512);
+        ctx.fillStyle = '#00f0ff';
+        ctx.fillRect(490, 0, 14, 512);
+
+        // Twin Gold Center Lines
+        ctx.fillStyle = '#ffd166';
         ctx.fillRect(249, 0, 5, 512);
         ctx.fillRect(258, 0, 5, 512);
 
-        // Dashed white lane dividers (4-lane Embarcadero boulevard)
-        ctx.fillStyle = '#f1f5f9';
-        for (let y = 16; y < 512; y += 64) {
-          ctx.fillRect(128, y, 5, 34);
-          ctx.fillRect(380, y, 5, 34);
+        // Dashed White Lane Dividers
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+        for (let y = 20; y < 512; y += 64) {
+          ctx.fillRect(128, y, 5, 32);
+          ctx.fillRect(378, y, 5, 32);
         }
-
-        // White shoulder lines
-        ctx.fillStyle = '#cbd5e1';
-        ctx.fillRect(18, 0, 6, 512);
-        ctx.fillRect(488, 0, 6, 512);
 
         const tex = new THREE.CanvasTexture(c);
         tex.wrapS = THREE.RepeatWrapping;
         tex.wrapT = THREE.RepeatWrapping;
-        tex.repeat.set(1, 24);
         tex.colorSpace = THREE.SRGBColorSpace;
         return tex;
       }
+      const roadRibbonTex = createViceCityRoadTexture();
 
-      function createSkyscraperFacadeTexture(style) {
-        const c = document.createElement('canvas');
-        c.width = 256;
-        c.height = 512;
-        const ctx = c.getContext('2d');
+      function buildClearRoadRibbonMesh() {
+        while (routeVisualGroup.children.length > 0) {
+          routeVisualGroup.remove(routeVisualGroup.children[0]);
+        }
+        if (isFreeRoamMode || activeRoutePoints.length < 2) return;
 
-        if (style === 'concrete') {
-          ctx.fillStyle = '#d6cfc2';
-          ctx.fillRect(0, 0, 256, 512);
-        } else if (style === 'glass_gold') {
-          ctx.fillStyle = '#3b5266';
-          ctx.fillRect(0, 0, 256, 512);
-        } else {
-          ctx.fillStyle = '#264663';
-          ctx.fillRect(0, 0, 256, 512);
+        const roadHalfWidth = 7.5;
+        const positions = [];
+        const uvs = [];
+        const indices = [];
+        let accDist = 0;
+
+        for (let i = 0; i < activeRoutePoints.length; i++) {
+          const [x, y, z] = activeRoutePoints[i];
+          let dx = 0, dz = 0;
+          if (i < activeRoutePoints.length - 1) {
+            dx = activeRoutePoints[i + 1][0] - x;
+            dz = activeRoutePoints[i + 1][2] - z;
+          } else {
+            dx = x - activeRoutePoints[i - 1][0];
+            dz = z - activeRoutePoints[i - 1][2];
+          }
+          const len = Math.hypot(dx, dz) || 1;
+          const nx = -dz / len;
+          const nz = dx / len;
+
+          if (i > 0) {
+            accDist += Math.hypot(x - activeRoutePoints[i - 1][0], z - activeRoutePoints[i - 1][2]);
+          }
+
+          const ry = y + 0.32; // Slightly above photogrammetry street so road is 100% clear
+          positions.push(x + nx * roadHalfWidth, ry, z + nz * roadHalfWidth);
+          positions.push(x - nx * roadHalfWidth, ry, z - nz * roadHalfWidth);
+
+          const vCoord = accDist / 18;
+          uvs.push(0, vCoord, 1, vCoord);
+
+          if (i < activeRoutePoints.length - 1) {
+            const base = i * 2;
+            indices.push(base, base + 1, base + 2);
+            indices.push(base + 1, base + 3, base + 2);
+          }
         }
 
-        const cols = 8;
-        const rows = 24;
-        const padX = 5;
-        const padY = 4;
-        const cellW = 256 / cols;
-        const cellH = 512 / rows;
+        const geo = new THREE.BufferGeometry();
+        geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+        geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+        geo.setIndex(indices);
+        geo.computeVertexNormals();
 
-        for (let r = 0; r < rows; r++) {
-          for (let col = 0; col < cols; col++) {
-            const lit = Math.random() > 0.35;
-            if (style === 'concrete') {
-              ctx.fillStyle = lit ? '#4b6578' : '#2d3d4a';
-            } else if (style === 'glass_gold') {
-              ctx.fillStyle = lit ? '#8fbcd4' : '#4a6b82';
-            } else {
-              ctx.fillStyle = lit ? '#7ec4e8' : '#325a7a';
+        const mat = new THREE.MeshStandardMaterial({
+          map: roadRibbonTex,
+          roughness: 0.65,
+          metalness: 0.15,
+          side: THREE.DoubleSide,
+          polygonOffset: true,
+          polygonOffsetFactor: -2
+        });
+        routeVisualGroup.add(new THREE.Mesh(geo, mat));
+
+        // Glowing Vice City Neon Pink Checkered Finish Arch at the Final Point
+        const [fx, fy, fz] = activeRoutePoints[activeRoutePoints.length - 1];
+        const [px, , pz] = activeRoutePoints[Math.max(0, activeRoutePoints.length - 2)];
+        const finishYaw = Math.atan2(-(fx - px), -(fz - pz));
+
+        const arch = new THREE.Group();
+        arch.position.set(fx, fy + 0.3, fz);
+        arch.rotation.y = finishYaw;
+
+        const neonPinkMat = new THREE.MeshBasicMaterial({ color: 0xff2a85 });
+        const neonCyanMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
+
+        const leftPillar = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 11, 12), neonPinkMat);
+        leftPillar.position.set(-7.5, 5.5, 0);
+        const rightPillar = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 11, 12), neonCyanMat);
+        rightPillar.position.set(7.5, 5.5, 0);
+        const topBeam = new THREE.Mesh(new THREE.BoxGeometry(16, 1.4, 0.8), neonPinkMat);
+        topBeam.position.set(0, 11, 0);
+
+        // Glowing Vice City Corona Checkered Ring on Ground
+        const corona = new THREE.Mesh(
+          new THREE.RingGeometry(5.5, 7.2, 32),
+          new THREE.MeshBasicMaterial({ color: 0xff2a85, side: THREE.DoubleSide })
+        );
+        corona.rotation.x = -Math.PI / 2;
+        corona.position.y = 0.25;
+
+        arch.add(leftPillar, rightPillar, topBeam, corona);
+        routeVisualGroup.add(arch);
+      }
+
+      // Periodically refine road ribbon elevations as high-res Z17 photogrammetry tiles stream in
+      setInterval(() => {
+        if (!activeRoutePoints.length || isFreeRoamMode) return;
+        let updated = false;
+        for (let i = 0; i < activeRoutePoints.length; i++) {
+          const [x, oldY, z] = activeRoutePoints[i];
+          if (Math.hypot(x - carP1.x, z - carP1.z) < 350) {
+            const newY = sampleGroundHeight(x, z, oldY);
+            if (Math.abs(newY - oldY) > 0.35) {
+              activeRoutePoints[i][1] = THREE.MathUtils.lerp(oldY, newY, 0.45);
+              updated = true;
             }
-            ctx.fillRect(col * cellW + padX, r * cellH + padY, cellW - padX * 2, cellH - padY * 2);
           }
         }
-
-        const tex = new THREE.CanvasTexture(c);
-        tex.wrapS = THREE.RepeatWrapping;
-        tex.wrapT = THREE.RepeatWrapping;
-        tex.colorSpace = THREE.SRGBColorSpace;
-        return tex;
-      }
-
-      let ferryPillarMesh = null;
-      let waterMesh = null;
-
-      function buildSanFranciscoCorridor() {
-        // 1. Drape real Esri World Imagery Satellite Tiles onto the SF Ground Plane
-        const texLoader = new THREE.TextureLoader();
-        texLoader.setCrossOrigin('anonymous');
-        const satGroup = new THREE.Group();
-        const centerTileX = 20973;
-        const centerTileY = 50652;
-        const tileSizeMeters = 242;
-
-        for (let dx = -2; dx <= 2; dx++) {
-          for (let dy = -3; dy <= 2; dy++) {
-            const tx = centerTileX + dx;
-            const ty = centerTileY + dy;
-            const tileUrl = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/17/${ty}/${tx}`;
-            const planeGeo = new THREE.PlaneGeometry(tileSizeMeters, tileSizeMeters);
-            const planeMat = new THREE.MeshStandardMaterial({
-              color: 0xd8e2dc,
-              roughness: 0.9,
-              metalness: 0.05
-            });
-            texLoader.load(
-              tileUrl,
-              (satTex) => {
-                satTex.colorSpace = THREE.SRGBColorSpace;
-                planeMat.map = satTex;
-                planeMat.color.setHex(0xffffff);
-                planeMat.needsUpdate = true;
-              },
-              undefined,
-              () => {}
-            );
-            const tileMesh = new THREE.Mesh(planeGeo, planeMat);
-            tileMesh.rotation.x = -Math.PI / 2;
-            tileMesh.position.set(dx * tileSizeMeters - 18, -0.32, -dy * tileSizeMeters + 80);
-            tileMesh.receiveShadow = true;
-            satGroup.add(tileMesh);
-          }
-        }
-        cityGroup.add(satGroup);
-
-        // 2. Shimmering San Francisco Bay Water (East of Embarcadero Seawall)
-        const waterGeo = new THREE.PlaneGeometry(900, 1600);
-        const waterMat = new THREE.MeshStandardMaterial({
-          color: 0x1b6ca8,
-          roughness: 0.16,
-          metalness: 0.65
-        });
-        waterMesh = new THREE.Mesh(waterGeo, waterMat);
-        waterMesh.rotation.x = -Math.PI / 2;
-        waterMesh.position.set(475, -0.18, 90);
-        cityGroup.add(waterMesh);
-
-        // 3. The Embarcadero Multi-Lane PBR Asphalt Boulevard (960m long covering full 650m sprint)
-        const asphaltTex = createAsphaltPBRTextures();
-        const roadGeo = new THREE.PlaneGeometry(46, 980);
-        const roadMat = new THREE.MeshStandardMaterial({
-          map: asphaltTex,
-          roughness: 0.72,
-          metalness: 0.12
-        });
-        const roadMesh = new THREE.Mesh(roadGeo, roadMat);
-        roadMesh.rotation.x = -Math.PI / 2;
-        roadMesh.position.set(-20, 0.02, 95);
-        roadMesh.receiveShadow = true;
-        cityGroup.add(roadMesh);
-
-        // Concrete Sidewalks & Waterfront Promenade Seawall
-        const sidewalkMat = new THREE.MeshStandardMaterial({ color: 0xcbd5e1, roughness: 0.8 });
-        const westWalk = new THREE.Mesh(new THREE.BoxGeometry(10, 0.28, 980), sidewalkMat);
-        westWalk.position.set(-48, 0.14, 95);
-        westWalk.receiveShadow = true;
-        const eastWalk = new THREE.Mesh(new THREE.BoxGeometry(14, 0.28, 980), sidewalkMat);
-        eastWalk.position.set(10, 0.14, 95);
-        eastWalk.receiveShadow = true;
-        cityGroup.add(westWalk, eastWalk);
-
-        // Iconic Embarcadero Canary Island Date Palm Trees along both sides
-        const trunkMat = new THREE.MeshStandardMaterial({ color: 0x6b4f35, roughness: 0.9 });
-        const frondMat = new THREE.MeshStandardMaterial({ color: 0x2d6a4f, roughness: 0.6 });
-        for (let z = -260; z <= 460; z += 36) {
-          [-44.5, 4.5].forEach((xPos) => {
-            const palm = new THREE.Group();
-            palm.position.set(xPos, 0.25, z);
-            const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.48, 9.5, 8), trunkMat);
-            trunk.position.y = 4.75;
-            trunk.castShadow = true;
-            palm.add(trunk);
-            const crown = new THREE.Mesh(new THREE.DodecahedronGeometry(2.6, 1), frondMat);
-            crown.scale.set(1.3, 0.65, 1.3);
-            crown.position.y = 9.6;
-            crown.castShadow = true;
-            palm.add(crown);
-            cityGroup.add(palm);
-          });
-        }
-
-        // 4. Physical Ferry Plaza East Colonnade Pillar at (-12, 0, 35) — THE ITERATION 1 CRASH OBSTACLE
-        const pillarGroup = new THREE.Group();
-        pillarGroup.position.set(-12, 0, 35);
-        const pillarMat = new THREE.MeshStandardMaterial({
-          color: 0xe2cfb2,
-          roughness: 0.45,
-          metalness: 0.15
-        });
-        const pillarMesh = new THREE.Mesh(new THREE.BoxGeometry(6, 12, 6), pillarMat);
-        pillarMesh.position.y = 6;
-        pillarMesh.castShadow = true;
-        pillarMesh.receiveShadow = true;
-        pillarGroup.add(pillarMesh);
-
-        const hazardBand = new THREE.Mesh(
-          new THREE.BoxGeometry(6.25, 1.3, 6.25),
-          new THREE.MeshBasicMaterial({ color: 0xff2a54 })
-        );
-        hazardBand.position.y = 1.1;
-        pillarGroup.add(hazardBand);
-        ferryPillarMesh = pillarMesh;
-        cityGroup.add(pillarGroup);
-
-        // 5. Landmark: Detailed Beaux-Arts San Francisco Ferry Building & 245-ft Clock Tower
-        const ferryGroup = new THREE.Group();
-        ferryGroup.position.set(28, 0, -210);
-
-        const sandstoneMat = new THREE.MeshStandardMaterial({
-          color: 0xead8b8,
-          roughness: 0.42,
-          metalness: 0.18
-        });
-        const roofMat = new THREE.MeshStandardMaterial({
-          color: 0x4a5d6e,
-          roughness: 0.35,
-          metalness: 0.5
-        });
-
-        // Grand Nave Hall
-        const nave = new THREE.Mesh(new THREE.BoxGeometry(22, 18, 155), sandstoneMat);
-        nave.position.y = 9;
-        nave.castShadow = true;
-        nave.receiveShadow = true;
-        ferryGroup.add(nave);
-
-        const skylightRoof = new THREE.Mesh(new THREE.BoxGeometry(18, 4, 150), roofMat);
-        skylightRoof.position.y = 20;
-        ferryGroup.add(skylightRoof);
-
-        // Iconic Ferry Building Clock Tower
-        const towerBase = new THREE.Mesh(new THREE.BoxGeometry(12, 58, 12), sandstoneMat);
-        towerBase.position.set(-2, 29, 0);
-        towerBase.castShadow = true;
-        ferryGroup.add(towerBase);
-
-        const belfry = new THREE.Mesh(new THREE.BoxGeometry(9.2, 14, 9.2), sandstoneMat);
-        belfry.position.set(-2, 65, 0);
-        ferryGroup.add(belfry);
-
-        const spire = new THREE.Mesh(new THREE.ConeGeometry(6.2, 11, 4), roofMat);
-        spire.rotation.y = Math.PI / 4;
-        spire.position.set(-2, 77.5, 0);
-        ferryGroup.add(spire);
-
-        // 4 Illuminated Clock Faces
-        const clockMat = new THREE.MeshBasicMaterial({ color: 0xfffbeb });
-        [
-          [-8.1, 48, 0, -Math.PI / 2],
-          [4.1, 48, 0, Math.PI / 2],
-          [-2, 48, 6.1, 0],
-          [-2, 48, -6.1, Math.PI]
-        ].forEach(([cx, cy, cz, ry]) => {
-          const dial = new THREE.Mesh(new THREE.CircleGeometry(3.4, 24), clockMat);
-          dial.position.set(cx, cy, cz);
-          dial.rotation.y = ry;
-          ferryGroup.add(dial);
-        });
-
-        cityGroup.add(ferryGroup);
-
-        // 6. Glowing Neon Green "SHACK15 FINISH LINE" Gantry Arch across the Embarcadero at (x: -18, z: -230)
-        const archGroup = new THREE.Group();
-        archGroup.position.set(-18, 0, -230);
-
-        const postMat = new THREE.MeshStandardMaterial({
-          color: 0x10b981,
-          emissive: 0x059669,
-          emissiveIntensity: 0.65,
-          metalness: 0.6,
-          roughness: 0.2
-        });
-        const leftCol = new THREE.Mesh(new THREE.BoxGeometry(2.2, 17, 2.2), postMat);
-        leftCol.position.set(-19, 8.5, 0);
-        const rightCol = new THREE.Mesh(new THREE.BoxGeometry(2.2, 17, 2.2), postMat);
-        rightCol.position.set(19, 8.5, 0);
-        const topGantry = new THREE.Mesh(new THREE.BoxGeometry(41, 3.6, 2.6), postMat);
-        topGantry.position.set(0, 16.5, 0);
-        archGroup.add(leftCol, rightCol, topGantry);
-
-        const signCanvas = document.createElement('canvas');
-        signCanvas.width = 1024;
-        signCanvas.height = 128;
-        const sctx = signCanvas.getContext('2d');
-        sctx.fillStyle = '#041f14';
-        sctx.fillRect(0, 0, 1024, 128);
-        sctx.strokeStyle = '#38d67a';
-        sctx.lineWidth = 8;
-        sctx.strokeRect(6, 6, 1012, 116);
-        sctx.fillStyle = '#6bf5a6';
-        sctx.font = '900 54px Inter, Segoe UI, sans-serif';
-        sctx.textAlign = 'center';
-        sctx.textBaseline = 'middle';
-        sctx.fillText('🏁 SHACK15 • FERRY BUILDING FINISH 🏁', 512, 64);
-
-        const signTex = new THREE.CanvasTexture(signCanvas);
-        signTex.colorSpace = THREE.SRGBColorSpace;
-        const bannerMesh = new THREE.Mesh(
-          new THREE.PlaneGeometry(39, 3.3),
-          new THREE.MeshBasicMaterial({ map: signTex, side: THREE.DoubleSide })
-        );
-        bannerMesh.position.set(0, 16.5, 1.4);
-        archGroup.add(bannerMesh);
-
-        // Checkerboard Finish Line on Asphalt
-        const checkerCanvas = document.createElement('canvas');
-        checkerCanvas.width = 256;
-        checkerCanvas.height = 64;
-        const cctx = checkerCanvas.getContext('2d');
-        for (let r = 0; r < 4; r++) {
-          for (let c = 0; c < 16; c++) {
-            cctx.fillStyle = (r + c) % 2 === 0 ? '#ffffff' : '#0f172a';
-            cctx.fillRect(c * 16, r * 16, 16, 16);
-          }
-        }
-        const checkerTex = new THREE.CanvasTexture(checkerCanvas);
-        const finishStrip = new THREE.Mesh(
-          new THREE.PlaneGeometry(38, 6),
-          new THREE.MeshBasicMaterial({ map: checkerTex, side: THREE.DoubleSide })
-        );
-        finishStrip.rotation.x = -Math.PI / 2;
-        finishStrip.position.set(0, 0.07, 0);
-        archGroup.add(finishStrip);
-
-        cityGroup.add(archGroup);
-      }
-
-      buildSanFranciscoCorridor();
-
-      // Load Textured PBR Skyscrapers along the 650m Embarcadero Corridor
-      const texGlassBlue = createSkyscraperFacadeTexture('glass_blue');
-      const texGlassGold = createSkyscraperFacadeTexture('glass_gold');
-      const texConcrete = createSkyscraperFacadeTexture('concrete');
-
-      fetch('/api/sf-map')
-        .then(r => r.json())
-        .then(mapData => {
-          (mapData.buildings || []).forEach((b) => {
-            const isPier = b.style === 'pier';
-            const facadeTex = b.style === 'concrete'
-              ? texConcrete
-              : (b.style === 'glass_gold' ? texGlassGold : texGlassBlue);
-
-            const mat = isPier
-              ? new THREE.MeshStandardMaterial({ color: 0xcbd5e1, roughness: 0.55, metalness: 0.25 })
-              : new THREE.MeshStandardMaterial({
-                  map: facadeTex,
-                  roughness: b.style === 'concrete' ? 0.65 : 0.2,
-                  metalness: b.style === 'concrete' ? 0.15 : 0.78
-                });
-
-            const mesh = new THREE.Mesh(new THREE.BoxGeometry(b.w, b.h, b.d), mat);
-            mesh.position.set(b.x, b.h / 2, b.z);
-            mesh.castShadow = true;
-            mesh.receiveShadow = true;
-            cityGroup.add(mesh);
-          });
-        })
-        .catch(() => {});
+        if (updated) buildClearRoadRibbonMesh();
+      }, 1200);
 
       // =======================================================================
       // 4. REAL 3D FERRARI 458 ITALIA .GLB SUPERCARS + SPINNING WHEELS
       // =======================================================================
       const aoShadowTex = new THREE.TextureLoader().load('/models/ferrari_ao.png');
 
-      function createFerrariInstance(hexColor, labelText, isGhost) {
+      function createFerrariCar(hexColor, name) {
         const wrapper = new THREE.Group();
         const modelHolder = new THREE.Group();
         wrapper.add(modelHolder);
 
-        const bodyMat = isGhost
-          ? new THREE.MeshPhysicalMaterial({
-              color: 0x00ff88,
-              emissive: 0x00a855,
-              emissiveIntensity: 0.5,
-              metalness: 0.2,
-              roughness: 0.1,
-              transmission: 0.65,
-              transparent: true,
-              opacity: 0.78,
-              clearcoat: 1.0
-            })
-          : new THREE.MeshPhysicalMaterial({
-              color: hexColor,
-              metalness: 0.9,
-              roughness: 0.18,
-              clearcoat: 1.0,
-              clearcoatRoughness: 0.03
-            });
-
-        // Fallback sleek sports car silhouette while GLB finishes loading (<150ms)
-        const fallbackMesh = new THREE.Mesh(new THREE.BoxGeometry(2.0, 1.1, 4.5), bodyMat);
-        fallbackMesh.position.y = 0.6;
-        modelHolder.add(fallbackMesh);
-
-        // Tactical marker visible ONLY in Center Top-Down Orthographic Radar Camera (Layer 1)
-        // so Chase Cameras have ZERO ground rings!
-        const radarPin = new THREE.Mesh(
-          new THREE.RingGeometry(4.5, 6.8, 24),
-          new THREE.MeshBasicMaterial({ color: hexColor, side: THREE.DoubleSide })
-        );
-        radarPin.rotation.x = -Math.PI / 2;
-        radarPin.position.y = 1.5;
-        radarPin.layers.set(1);
-        wrapper.add(radarPin);
+        const bodyMat = new THREE.MeshPhysicalMaterial({
+          color: hexColor,
+          metalness: 0.88,
+          roughness: 0.16,
+          clearcoat: 1.0,
+          clearcoatRoughness: 0.04
+        });
 
         scene.add(wrapper);
-
         return {
+          name,
           group: wrapper,
           modelHolder,
-          fallbackMesh,
           bodyMat,
           wheels: [],
           steerWheels: [],
-          x: -26,
-          y: 0,
-          z: 420,
-          rotationY: Math.PI,
-          steerAngle: 0,
+          x: selectedStart.x,
+          y: -39,
+          z: selectedStart.z,
+          rotationY: 0,
+          pitch: 0,
           speed: 0,
-          wpIndex: 0,
-          crashed: false,
-          finished: false,
-          finishTime: 0,
-          label: labelText,
-          isGhost: Boolean(isGhost)
+          steer: 0,
+          nitro: 100,
+          routeIdx: 0,
+          finished: false
         };
       }
 
-      const carP1 = createFerrariInstance(0xd90429, 'FERRARI 458 ROSSO CORSA (P1)', false);
-      const carP2 = createFerrariInstance(0x00b4d8, 'FERRARI 458 MIAMI BLUE (P2)', false);
-      const carGhost = createFerrariInstance(0x00ff88, 'ARGON AI GHOST FERRARI', true);
+      const carP1 = createFerrariCar(0xff1e42, 'PLAYER 1 (ROSSO CORSA FERRARI)');
+      const carP2 = createFerrariCar(0x00d4ff, 'PLAYER 2 (MIAMI BLUE FERRARI)');
 
-      // Load Three.js Official Ferrari 458 Italia .glb locally from /models/ferrari.glb
       gltfLoader.load('/models/ferrari.glb', (gltf) => {
         const template = gltf.scene.children[0];
-
-        [carP1, carP2, carGhost].forEach((carObj) => {
-          carObj.modelHolder.remove(carObj.fallbackMesh);
+        [carP1, carP2].forEach((carObj) => {
           const clone = template.clone(true);
-          // Scale Ferrari 1.35x for commanding street broadcast presence
-          clone.scale.setScalar(1.35);
+          clone.scale.setScalar(1.32);
 
-          const detailsMat = new THREE.MeshStandardMaterial({
-            color: 0xffffff,
-            metalness: 0.95,
-            roughness: 0.25
+          const detailsMat = new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 0.9, roughness: 0.25 });
+          const glassMat = new THREE.MeshPhysicalMaterial({ color: 0xffffff, transmission: 0.88, transparent: true, roughness: 0 });
+
+          const bodyNode = clone.getObjectByName('body');
+          if (bodyNode) bodyNode.material = carObj.bodyMat;
+          ['rim_fl', 'rim_fr', 'rim_rr', 'rim_rl', 'trim'].forEach((n) => {
+            const p = clone.getObjectByName(n);
+            if (p) p.material = detailsMat;
           });
-          const glassMat = new THREE.MeshPhysicalMaterial({
-            color: 0xffffff,
-            metalness: 0.25,
-            roughness: 0,
-            transmission: 0.9,
-            transparent: true
-          });
+          const glassNode = clone.getObjectByName('glass');
+          if (glassNode) glassNode.material = glassMat;
 
-          clone.traverse((node) => {
-            if (node.isMesh) {
-              node.castShadow = !carObj.isGhost;
-              node.receiveShadow = true;
-              if (carObj.isGhost) {
-                node.material = carObj.bodyMat;
-              }
-            }
-          });
-
-          if (!carObj.isGhost) {
-            const bodyNode = clone.getObjectByName('body');
-            if (bodyNode) bodyNode.material = carObj.bodyMat;
-            ['rim_fl', 'rim_fr', 'rim_rr', 'rim_rl', 'trim'].forEach((n) => {
-              const part = clone.getObjectByName(n);
-              if (part) part.material = detailsMat;
-            });
-            const glassNode = clone.getObjectByName('glass');
-            if (glassNode) glassNode.material = glassMat;
-          }
-
-          // Contact AO Shadow Plane (Replaces flat red/blue donuts!)
           const shadowPlane = new THREE.Mesh(
             new THREE.PlaneGeometry(0.655 * 4, 1.3 * 4),
             new THREE.MeshBasicMaterial({
@@ -1893,7 +1614,6 @@
           );
           shadowPlane.rotation.x = -Math.PI / 2;
           shadowPlane.position.y = 0.02;
-          shadowPlane.renderOrder = 2;
           clone.add(shadowPlane);
 
           const wFL = clone.getObjectByName('wheel_fl');
@@ -1907,278 +1627,424 @@
         });
       });
 
-      // Realistic Tire Smoke & Collision Sparks Particle System
+      // Tire Smoke & Nitro Flame Particles
       const particles = [];
-      function spawnParticle(x, y, z, colorHex, size, vx, vy, vz, life) {
+      function spawnParticle(x, y, z, colorHex, size, vy, life) {
         const mesh = new THREE.Mesh(
           new THREE.DodecahedronGeometry(size, 0),
-          new THREE.MeshBasicMaterial({ color: colorHex, transparent: true, opacity: 0.65 })
+          new THREE.MeshBasicMaterial({ color: colorHex, transparent: true, opacity: 0.7 })
         );
         mesh.position.set(x, y, z);
         fxGroup.add(mesh);
-        particles.push({ mesh, vx, vy, vz, life, maxLife: life });
-      }
-
-      function spawnCrashExplosion(x, z) {
-        for (let i = 0; i < 45; i++) {
-          const angle = Math.random() * Math.PI * 2;
-          const spd = 5 + Math.random() * 18;
-          spawnParticle(
-            x,
-            1.2 + Math.random() * 2.5,
-            z,
-            i % 2 === 0 ? 0xff2a54 : 0xffcc33,
-            0.45,
-            Math.cos(angle) * spd,
-            4 + Math.random() * 12,
-            Math.sin(angle) * spd,
-            1.1
-          );
-        }
+        particles.push({ mesh, vy, life, maxLife: life });
       }
 
       // =======================================================================
-      // 5. LEVEL LOADING, 650M SPRINT FLOW & FAIR COUNTDOWN TRIGGER
+      // 5. FULL SAN FRANCISCO INTERACTIVE CITY MAP PICKER + VICE CITY RADAR
       // =======================================================================
-      let currentStage = 1;
-      let activeLevel = null;
-      let simTime = 0;
-      let waitingForHumanTrigger = false;
-      let countdownActive = false;
-      let raceStarted = false;
-      let raceOver = false;
-      let cameraShakeTime = 0;
-      let humanAutopilotAssist = false;
-      let countdownTimer = null;
+      const sfSatImg = new Image();
+      sfSatImg.src = '/sf_tiles/sf-satellite-minimap.jpg';
+      sfSatImg.onload = () => drawFullSFMap();
 
-      window.toggleHumanAutopilot = function () {
-        humanAutopilotAssist = !humanAutopilotAssist;
-        const btn = document.getElementById('btn-autopilot-assist');
-        if (btn) {
-          btn.textContent = humanAutopilotAssist ? 'AI DEMO ASSIST: ON' : 'AI DEMO ASSIST: OFF';
-        }
+      let mapClickMode = 'finish'; // 'start' or 'finish'
+
+      window.setMapClickMode = function (mode) {
+        mapClickMode = mode;
+        document.getElementById('btn-pick-start').className = 'mode-pill-btn' + (mode === 'start' ? ' active-start' : '');
+        document.getElementById('btn-pick-finish').className = 'mode-pill-btn' + (mode === 'finish' ? ' active-finish' : '');
       };
 
-      function clearGroup(grp) {
-        while (grp.children.length > 0) {
-          grp.remove(grp.children[0]);
-        }
-      }
-
-      function rebuildLevelVisuals(levelData) {
-        clearGroup(levelGroup);
-        clearGroup(wireframeGroup);
-
-        (levelData.checkpoints || []).forEach((cp) => {
-          const ringColor = cp.isFinish ? 0x38d67a : (levelData.iteration === 1 && cp.id === 1 ? 0xff2a54 : 0x38bdf8);
-          const ringMesh = new THREE.Mesh(
-            new THREE.RingGeometry(cp.radius - 1.2, cp.radius, 36),
-            new THREE.MeshBasicMaterial({ color: ringColor, side: THREE.DoubleSide })
-          );
-          ringMesh.rotation.x = -Math.PI / 2;
-          ringMesh.position.set(cp.x, 0.14, cp.z);
-          levelGroup.add(ringMesh);
-        });
-
-        // Racing Line Spline
-        const pts = [new THREE.Vector3(levelData.spawn.x, 0.28, levelData.spawn.z)];
-        (levelData.checkpoints || []).forEach((cp) => {
-          pts.push(new THREE.Vector3(cp.x, 0.28, cp.z));
-        });
-        const lineGeo = new THREE.BufferGeometry().setFromPoints(pts);
-        const lineMat = new THREE.LineBasicMaterial({
-          color: levelData.iteration === 1 ? 0xff2a54 : 0x38d67a
-        });
-        levelGroup.add(new THREE.Line(lineGeo, lineMat));
-
-        // Red Wireframe Collision Proxies
-        (levelData.colliders || []).forEach((col) => {
-          const isPillarProxy = col.id === 'ferry_pillar_east';
-          const boxGeo = new THREE.BoxGeometry(col.w, col.h, col.d);
-          const edges = new THREE.EdgesGeometry(boxGeo);
-          const wfBox = new THREE.LineSegments(
-            edges,
-            new THREE.LineBasicMaterial({ color: isPillarProxy ? 0xff2a54 : 0xf59e0b })
-          );
-          wfBox.position.set(col.x, col.y, col.z);
-          wireframeGroup.add(wfBox);
-
-          if (isPillarProxy) {
-            const proxyFill = new THREE.Mesh(
-              new THREE.BoxGeometry(col.w + 0.3, col.h + 0.3, col.d + 0.3),
-              new THREE.MeshBasicMaterial({ color: 0xff2a54, transparent: true, opacity: 0.28 })
-            );
-            proxyFill.position.set(col.x, col.y, col.z);
-            wireframeGroup.add(proxyFill);
+      // Populate Quick-Pick SF Landmark Chips
+      const chipsContainer = document.getElementById('landmark-chips-container');
+      SF_LANDMARKS.forEach((lm) => {
+        const btn = document.createElement('button');
+        btn.className = 'lm-chip';
+        btn.textContent = lm.name.split('/')[0].trim();
+        btn.onclick = () => {
+          if (mapClickMode === 'start') {
+            selectedStart = { ...lm };
+            document.getElementById('map-start-name').textContent = lm.name;
+            window.setMapClickMode('finish');
+          } else {
+            selectedFinish = { ...lm };
+            document.getElementById('map-finish-name').textContent = lm.name;
           }
-        });
+          computeStreetRoute(selectedStart, selectedFinish);
+          drawFullSFMap();
+        };
+        chipsContainer.appendChild(btn);
+      });
+
+      function worldToMapPixel(x, z, w, h) {
+        const px = ((z - SF_MAP_BOUNDS.minZ) / (SF_MAP_BOUNDS.maxZ - SF_MAP_BOUNDS.minZ)) * w;
+        const py = ((SF_MAP_BOUNDS.maxX - x) / (SF_MAP_BOUNDS.maxX - SF_MAP_BOUNDS.minX)) * h;
+        return [px, py];
       }
 
-      function resetCarsForStage(levelData, stageNum) {
-        simTime = 0;
-        raceOver = false;
-        document.getElementById('crash-alert-banner').style.display = 'none';
-        document.getElementById('winner-banner').style.display = 'none';
+      function mapPixelToWorld(px, py, w, h) {
+        const z = SF_MAP_BOUNDS.minZ + (px / w) * (SF_MAP_BOUNDS.maxZ - SF_MAP_BOUNDS.minZ);
+        const x = SF_MAP_BOUNDS.maxX - (py / h) * (SF_MAP_BOUNDS.maxX - SF_MAP_BOUNDS.minX);
+        return { x, z };
+      }
 
-        const sp = levelData.spawn || { x: -26, y: 0, z: 420, rotationY: Math.PI };
+      const fullMapCanvas = document.getElementById('full-sf-map-canvas');
+      fullMapCanvas.addEventListener('click', (e) => {
+        const rect = fullMapCanvas.getBoundingClientRect();
+        const scaleX = fullMapCanvas.width / rect.width;
+        const scaleY = fullMapCanvas.height / rect.height;
+        const px = (e.clientX - rect.left) * scaleX;
+        const py = (e.clientY - rect.top) * scaleY;
+        const worldPt = mapPixelToWorld(px, py, fullMapCanvas.width, fullMapCanvas.height);
 
-        carP1.x = sp.x;
-        carP1.z = sp.z;
-        carP1.rotationY = sp.rotationY;
+        // Snap to nearest SF street node so player always spawns on a drivable street
+        const nearK = findNearestStreetNode(worldPt.x, worldPt.z);
+        const snapped = nearK ? streetNodes.get(nearK) : [worldPt.x, worldPt.z];
+
+        // Find closest landmark name for display
+        let nearestLm = SF_LANDMARKS[0], bestD = Infinity;
+        for (const lm of SF_LANDMARKS) {
+          const d = Math.hypot(lm.x - snapped[0], lm.z - snapped[1]);
+          if (d < bestD) { bestD = d; nearestLm = lm; }
+        }
+        const label = bestD < 380 ? nearestLm.name : `SF Street (${Math.round(snapped[0])}, ${Math.round(snapped[1])})`;
+
+        if (mapClickMode === 'start') {
+          selectedStart = { name: label, x: snapped[0], z: snapped[1] };
+          document.getElementById('map-start-name').textContent = label;
+          window.setMapClickMode('finish');
+        } else {
+          selectedFinish = { name: label, x: snapped[0], z: snapped[1] };
+          document.getElementById('map-finish-name').textContent = label;
+        }
+        computeStreetRoute(selectedStart, selectedFinish);
+        drawFullSFMap();
+      });
+
+      function drawFullSFMap() {
+        const ctx = fullMapCanvas.getContext('2d');
+        const W = fullMapCanvas.width, H = fullMapCanvas.height;
+        ctx.fillStyle = '#0b1d28';
+        ctx.fillRect(0, 0, W, H);
+
+        if (sfSatImg.complete && sfSatImg.naturalWidth) {
+          ctx.drawImage(sfSatImg, 0, 0, W, H);
+          // Slight Vice City twilight tint so neon streets & route pop
+          ctx.fillStyle = 'rgba(8, 14, 26, 0.28)';
+          ctx.fillRect(0, 0, W, H);
+        }
+
+        // Draw major SF streets subtly
+        ctx.strokeStyle = 'rgba(0, 240, 255, 0.22)';
+        ctx.lineWidth = 1.1;
+        for (const st of decodedStreets) {
+          if (st.roadClass > 4) continue;
+          ctx.beginPath();
+          st.points.forEach(([x, z], idx) => {
+            const [px, py] = worldToMapPixel(x, z, W, H);
+            if (idx === 0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+          });
+          ctx.stroke();
+        }
+
+        // Draw Active Vice City Neon Pink GPS Street Route
+        if (activeRoutePoints.length >= 2) {
+          ctx.save();
+          ctx.strokeStyle = '#ff2a85';
+          ctx.lineWidth = 5.5;
+          ctx.shadowColor = '#ff2a85';
+          ctx.shadowBlur = 12;
+          ctx.lineCap = 'round';
+          ctx.lineJoin = 'round';
+          ctx.beginPath();
+          activeRoutePoints.forEach(([x, , z], idx) => {
+            const [px, py] = worldToMapPixel(x, z, W, H);
+            if (idx === 0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+          });
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        // Draw Landmark Pins
+        ctx.font = '800 11px Inter, sans-serif';
+        for (const lm of SF_LANDMARKS) {
+          const [px, py] = worldToMapPixel(lm.x, lm.z, W, H);
+          ctx.fillStyle = '#ffd166';
+          ctx.beginPath();
+          ctx.arc(px, py, 4.5, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = 'rgba(8, 12, 22, 0.78)';
+          const shortName = lm.name.split('/')[0].trim();
+          const tw = ctx.measureText(shortName).width;
+          ctx.fillRect(px + 7, py - 8, tw + 6, 15);
+          ctx.fillStyle = '#ffffff';
+          ctx.fillText(shortName, px + 10, py + 3);
+        }
+
+        // Start Marker (Neon Green)
+        const [sx, sy] = worldToMapPixel(selectedStart.x, selectedStart.z, W, H);
+        ctx.fillStyle = '#06d6a0';
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(sx, sy, 9, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        // Finish Marker (Neon Pink)
+        const [fx, fy] = worldToMapPixel(selectedFinish.x, selectedFinish.z, W, H);
+        ctx.fillStyle = '#ff2a85';
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(fx, fy, 9, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+      }
+
+      // GTA Vice City Circular Rotating Radar Minimap Renderer
+      const radarCanvas = document.getElementById('vc-radar-canvas');
+      const radarCtx = radarCanvas.getContext('2d');
+      const northPinEl = document.getElementById('vc-north-pin');
+
+      function drawViceCityRadar() {
+        const focusCar = viewMode === '1p_p2' ? carP2 : carP1;
+        const W = radarCanvas.width, H = radarCanvas.height;
+        const cx = W / 2, cy = H / 2;
+        const radiusMeters = 280;
+        const pxPerMeter = (W / 2) / radiusMeters;
+
+        radarCtx.clearRect(0, 0, W, H);
+        radarCtx.fillStyle = '#091622';
+        radarCtx.fillRect(0, 0, W, H);
+
+        radarCtx.save();
+        radarCtx.translate(cx, cy);
+        // Rotate radar so player's forward heading is always UP on the minimap!
+        // Note: On SF map, +X is North (up) and +Z is East (right).
+        // Car forward vector in world is (-sin(rotY), -cos(rotY)).
+        const mapRot = -focusCar.rotationY - Math.PI / 2;
+        radarCtx.rotate(mapRot);
+
+        const toLocalPx = (wx, wz) => [
+          (wz - focusCar.z) * pxPerMeter,
+          -(wx - focusCar.x) * pxPerMeter
+        ];
+
+        // Draw nearby SF streets from sf_streets.json
+        for (const st of decodedStreets) {
+          if (
+            st.maxX < focusCar.x - radiusMeters ||
+            st.minX > focusCar.x + radiusMeters ||
+            st.maxZ < focusCar.z - radiusMeters ||
+            st.minZ > focusCar.z + radiusMeters
+          ) continue;
+
+          radarCtx.strokeStyle = st.roadClass <= 3 ? '#3b5870' : '#263c4f';
+          radarCtx.lineWidth = Math.max(2.5, st.width * pxPerMeter);
+          radarCtx.lineCap = 'round';
+          radarCtx.beginPath();
+          st.points.forEach(([x, z], i) => {
+            const [lx, ly] = toLocalPx(x, z);
+            if (i === 0) radarCtx.moveTo(lx, ly);
+            else radarCtx.lineTo(lx, ly);
+          });
+          radarCtx.stroke();
+        }
+
+        // Draw Glowing Neon Pink GPS Route on Radar
+        if (!isFreeRoamMode && activeRoutePoints.length >= 2) {
+          radarCtx.strokeStyle = '#ff2a85';
+          radarCtx.lineWidth = 4.5;
+          radarCtx.beginPath();
+          activeRoutePoints.forEach(([x, , z], i) => {
+            const [lx, ly] = toLocalPx(x, z);
+            if (i === 0) radarCtx.moveTo(lx, ly);
+            else radarCtx.lineTo(lx, ly);
+          });
+          radarCtx.stroke();
+        }
+
+        // Draw Other Car Blip on Radar
+        const otherCar = focusCar === carP1 ? carP2 : carP1;
+        const [ox, oy] = toLocalPx(otherCar.x, otherCar.z);
+        radarCtx.fillStyle = focusCar === carP1 ? '#00f0ff' : '#ff2a85';
+        radarCtx.strokeStyle = '#ffffff';
+        radarCtx.lineWidth = 2;
+        radarCtx.beginPath();
+        radarCtx.arc(ox, oy, 6, 0, Math.PI * 2);
+        radarCtx.fill();
+        radarCtx.stroke();
+
+        radarCtx.restore();
+
+        // Center Player Arrow (Always pointing UP in rotating Vice City radar)
+        radarCtx.save();
+        radarCtx.translate(cx, cy);
+        radarCtx.fillStyle = focusCar === carP1 ? '#ff2a85' : '#00f0ff';
+        radarCtx.strokeStyle = '#ffffff';
+        radarCtx.lineWidth = 2.2;
+        radarCtx.beginPath();
+        radarCtx.moveTo(0, -10);
+        radarCtx.lineTo(7, 8);
+        radarCtx.lineTo(0, 4);
+        radarCtx.lineTo(-7, 8);
+        radarCtx.closePath();
+        radarCtx.fill();
+        radarCtx.stroke();
+        radarCtx.restore();
+
+        // Clamp Finish Flag Blip to Radar Edge (Classic Vice City objective icon)
+        if (!isFreeRoamMode && activeRoutePoints.length > 0) {
+          const [fx, , fz] = activeRoutePoints[activeRoutePoints.length - 1];
+          const dx = (fz - focusCar.z) * pxPerMeter;
+          const dy = -(fx - focusCar.x) * pxPerMeter;
+          const c = Math.cos(mapRot), s = Math.sin(mapRot);
+          const rx = dx * c - dy * s;
+          const ry = dx * s + dy * c;
+          const distPx = Math.hypot(rx, ry);
+          const maxR = cx - 12;
+          const bx = cx + (distPx > maxR ? (rx / distPx) * maxR : rx);
+          const by = cy + (distPx > maxR ? (ry / distPx) * maxR : ry);
+
+          radarCtx.fillStyle = '#ffd166';
+          radarCtx.strokeStyle = '#080c16';
+          radarCtx.lineWidth = 2;
+          radarCtx.beginPath();
+          radarCtx.rect(bx - 5, by - 5, 10, 10);
+          radarCtx.fill();
+          radarCtx.stroke();
+        }
+
+        // Orbit North ('N') Badge around the outer rim of the radar
+        const northAngle = mapRot - Math.PI / 2;
+        const rimR = 98;
+        const nx = 105 + Math.cos(northAngle) * rimR - 12;
+        const ny = 105 + Math.sin(northAngle) * rimR - 12;
+        northPinEl.style.left = `${nx}px`;
+        northPinEl.style.top = `${ny}px`;
+      }
+
+      // =======================================================================
+      // 6. VIEW MODES (1P P1 / 1P P2 / 2P SPLIT-SCREEN) & RACE FLOW
+      // =======================================================================
+      let viewMode = '2p_split'; // '1p_p1', '1p_p2', '2p_split'
+      let p2AiEnabled = false;
+      let cameraPreset = 0; // 0 = Close Chase, 1 = Far Chase, 2 = Hood Cam
+      let raceActive = false;
+      let raceFinished = false;
+      let raceStartTime = 0;
+
+      window.setViewMode = function (mode) {
+        viewMode = mode;
+        document.getElementById('btn-view-1p-p1').className = 'vc-btn' + (mode === '1p_p1' ? ' active-pink' : '');
+        document.getElementById('btn-view-1p-p2').className = 'vc-btn' + (mode === '1p_p2' ? ' active-cyan' : '');
+        document.getElementById('btn-view-2p').className = 'vc-btn' + (mode === '2p_split' ? ' active-pink' : '');
+
+        document.getElementById('modal-btn-1p').className = 'mode-pill-btn' + (mode !== '2p_split' ? ' active-finish' : '');
+        document.getElementById('modal-btn-2p').className = 'mode-pill-btn' + (mode === '2p_split' ? ' active-finish' : '');
+
+        const isSplit = mode === '2p_split';
+        document.getElementById('split-divider').style.display = isSplit ? 'block' : 'none';
+        document.getElementById('tag-p2').style.display = isSplit ? 'flex' : 'none';
+        document.getElementById('p2-hud-card').style.display = isSplit ? 'block' : 'none';
+
+        const p1Card = document.getElementById('p1-hud-card');
+        const radarWrap = document.getElementById('vc-radar-wrap');
+        if (isSplit) {
+          p1Card.classList.add('split-left');
+          radarWrap.classList.add('split-center');
+        } else {
+          p1Card.classList.remove('split-left');
+          radarWrap.classList.remove('split-center');
+        }
+      };
+      window.setViewMode('2p_split');
+
+      window.toggleP2AiRival = function () {
+        p2AiEnabled = !p2AiEnabled;
+        const btn = document.getElementById('btn-p2-ai');
+        btn.textContent = p2AiEnabled ? '🤖 P2 AI RIVAL: ON' : '🤖 P2 AI RIVAL: OFF';
+        btn.className = 'vc-btn' + (p2AiEnabled ? ' active-cyan' : '');
+      };
+
+      window.toggleFullSFMap = function (open) {
+        const modal = document.getElementById('sf-map-modal');
+        const next = open !== undefined ? open : modal.style.display === 'none';
+        modal.style.display = next ? 'flex' : 'none';
+        if (next) drawFullSFMap();
+      };
+
+      function placeCarsAtStart() {
+        const p0 = activeRoutePoints[0] || [selectedStart.x, estimateBaseElevation(selectedStart.x, selectedStart.z), selectedStart.z];
+        const p1 = activeRoutePoints[1] || [selectedFinish.x, p0[1], selectedFinish.z];
+        const startYaw = Math.atan2(-(p1[0] - p0[0]), -(p1[2] - p0[2]));
+        const rightX = Math.cos(startYaw);
+        const rightZ = -Math.sin(startYaw);
+
+        carP1.x = p0[0] - rightX * 2.4;
+        carP1.y = p0[1] + 0.35;
+        carP1.z = p0[2] - rightZ * 2.4;
+        carP1.rotationY = startYaw;
         carP1.speed = 0;
-        carP1.wpIndex = 0;
-        carP1.crashed = false;
+        carP1.steer = 0;
+        carP1.nitro = 100;
+        carP1.routeIdx = 0;
         carP1.finished = false;
 
-        carP2.x = sp.x + 5.2;
-        carP2.z = sp.z + 1.5;
-        carP2.rotationY = sp.rotationY;
+        carP2.x = p0[0] + rightX * 2.4;
+        carP2.y = p0[1] + 0.35;
+        carP2.z = p0[2] + rightZ * 2.4;
+        carP2.rotationY = startYaw;
         carP2.speed = 0;
-        carP2.wpIndex = 0;
-        carP2.crashed = false;
+        carP2.steer = 0;
+        carP2.nitro = 100;
+        carP2.routeIdx = 0;
         carP2.finished = false;
 
-        carGhost.x = sp.x - 5.2;
-        carGhost.z = sp.z + 1.5;
-        carGhost.rotationY = sp.rotationY;
-        carGhost.speed = 0;
-        carGhost.wpIndex = 0;
-        carGhost.crashed = false;
-        carGhost.finished = false;
-        carGhost.group.visible = stageNum === 3;
-
-        // Adjust Top-Down Radar Camera to frame the active corridor
-        if (stageNum === 1) {
-          camTop.position.set(-18, 380, 45);
-          camTop.lookAt(-18, 0, 45);
-        } else {
-          camTop.position.set(-18, 460, 95);
-          camTop.lookAt(-18, 0, 95);
-        }
-
-        if (ferryPillarMesh) {
-          ferryPillarMesh.material.emissive.setHex(0x000000);
-        }
+        // Snap cameras immediately behind cars
+        snapCameraBehindCar(carP1, camP1);
+        snapCameraBehindCar(carP2, camP2);
+        updateDynamicTileStreaming(true);
       }
 
-      async function loadLevelConfig(fileName) {
-        const res = await fetch(`/${fileName}?t=${Date.now()}`);
-        const data = await res.json();
-        activeLevel = data;
-        document.getElementById('critique-text').textContent = data.argon_critique;
-        const pill = document.getElementById('hud-iter-pill');
-        if (data.iteration === 1) {
-          pill.textContent = 'ITERATION 1 • FIRST DRAFT (CRASH)';
-          pill.style.color = '#ff8da3';
-          pill.style.borderColor = '#ff2a54';
-          pill.style.background = 'rgba(255, 42, 84, 0.2)';
-        } else {
-          pill.textContent = 'ITERATION 2 • ARGON VERIFIED 650M SPRINT';
-          pill.style.color = '#6bf5a6';
-          pill.style.borderColor = '#38d67a';
-          pill.style.background = 'rgba(56, 214, 122, 0.2)';
-        }
-        rebuildLevelVisuals(data);
-        return data;
-      }
+      window.startRaceFromMap = function (freeRoam = false) {
+        isFreeRoamMode = Boolean(freeRoam);
+        document.getElementById('sf-map-modal').style.display = 'none';
+        document.getElementById('winner-banner').style.display = 'none';
+        computeStreetRoute(selectedStart, selectedFinish);
+        placeCarsAtStart();
 
-      // Trigger the 3-2-1 Countdown ONLY when Player presses throttle or clicks Start!
-      window.triggerVerifiedRaceCountdown = function () {
-        if (countdownActive || raceStarted || currentStage !== 3) return;
-        waitingForHumanTrigger = false;
-        countdownActive = true;
-        document.getElementById('race-ready-banner').style.display = 'none';
+        raceFinished = false;
+        raceActive = true;
+        raceStartTime = performance.now();
 
-        const cdEl = document.getElementById('countdown-overlay');
-        let count = 3;
-        cdEl.textContent = '3';
-        cdEl.style.display = 'block';
-        countdownTimer = setInterval(() => {
-          count--;
-          if (count > 0) {
-            cdEl.textContent = String(count);
-          } else if (count === 0) {
-            cdEl.textContent = 'GO!';
-            countdownActive = false;
-            raceStarted = true;
-          } else {
-            cdEl.style.display = 'none';
-            clearInterval(countdownTimer);
-            countdownTimer = null;
-          }
-        }, 700);
-      };
-
-      window.selectDemoStage = async function (stageNum) {
-        currentStage = stageNum;
-        waitingForHumanTrigger = false;
-        countdownActive = false;
-        raceStarted = false;
-        if (countdownTimer) {
-          clearInterval(countdownTimer);
-          countdownTimer = null;
-        }
-        document.getElementById('countdown-overlay').style.display = 'none';
-        document.getElementById('race-ready-banner').style.display = 'none';
-
-        document.getElementById('btn-stage-1').className = 'stage-btn' + (stageNum === 1 ? ' active-stage-1' : '');
-        document.getElementById('btn-stage-2').className = 'stage-btn' + (stageNum === 2 ? ' active-stage-2' : '');
-        document.getElementById('btn-stage-3').className = 'stage-btn' + (stageNum === 3 ? ' active-stage-3' : '');
-
-        const auditModal = document.getElementById('argon-audit-modal');
-
-        if (stageNum === 1) {
-          auditModal.style.display = 'none';
-          const lvl1 = await loadLevelConfig('level_iter1.json');
-          resetCarsForStage(lvl1, 1);
-          raceStarted = true;
-        } else if (stageNum === 2) {
-          const lvl2 = await loadLevelConfig('level_iter2.json');
-          showWireframes = true;
-          wireframeGroup.visible = true;
-          auditModal.style.display = 'block';
-          const vid = document.getElementById('audit-video-el');
-          if (vid) {
-            vid.currentTime = 0;
-            vid.play().catch(() => {});
-          }
-        } else if (stageNum === 3) {
-          auditModal.style.display = 'none';
-          const lvl2 = await loadLevelConfig('level_iter2.json');
-          resetCarsForStage(lvl2, 3);
-          // Wait for human player to press throttle or click START RACE so Ghost never wins unfairly!
-          waitingForHumanTrigger = true;
-          document.getElementById('race-ready-banner').style.display = 'block';
+        if (!isFreeRoamMode) {
+          const cd = document.getElementById('countdown-overlay');
+          cd.style.display = 'block';
+          cd.textContent = 'GO!';
+          setTimeout(() => { cd.style.display = 'none'; }, 900);
         }
       };
 
-      window.runLiveArgonPatch = async function () {
-        const btn = document.getElementById('btn-run-live-patch');
-        const origText = btn.textContent;
-        btn.textContent = '⚙️ GEMINI-4-ARGON AUDITING VIDEO & PATCHING WAYPOINT #1...';
-        try {
-          await fetch('/api/argon-audit', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ quick: true })
-          });
-        } catch (e) {}
-        btn.textContent = origText;
-        window.selectDemoStage(3);
+      window.restartCurrentRace = function () {
+        window.startRaceFromMap(isFreeRoamMode);
       };
 
       // =======================================================================
-      // 6. KEYBOARD + WEBSOCKET MOBILE INPUT + FERRARI PHYSICS
+      // 7. RESPONSIVE ARCADE CAR CONTROLS & HANDLING PHYSICS
       // =======================================================================
       const keys = {};
       window.addEventListener('keydown', (e) => {
         keys[e.code] = true;
-        if (
-          waitingForHumanTrigger &&
-          currentStage === 3 &&
-          ['KeyW', 'ArrowUp', 'Space'].includes(e.code)
-        ) {
-          window.triggerVerifiedRaceCountdown();
+        if (e.code === 'KeyM') {
+          window.toggleFullSFMap();
+        } else if (e.code === 'KeyC') {
+          cameraPreset = (cameraPreset + 1) % 3;
+        } else if (e.code === 'KeyR') {
+          resetCarToNearestRoad(carP1);
+          if (viewMode === '1p_p2') resetCarToNearestRoad(carP2);
         }
       });
       window.addEventListener('keyup', (e) => {
@@ -2197,15 +2063,8 @@
           try {
             const msg = JSON.parse(ev.data);
             if (msg.type === 'lobby') {
-              const p1Pill = document.getElementById('p1-lobby-pill');
-              const p2Pill = document.getElementById('p2-lobby-pill');
-              p1Pill.textContent = msg.p1Connected ? '📱 P1 CONNECTED' : 'WASD / SCAN QR';
-              p1Pill.className = 'qr-status ' + (msg.p1Connected ? 'status-connected' : 'status-waiting');
-              p2Pill.textContent = msg.p2Connected ? '📱 P2 CONNECTED' : 'ARROWS / SCAN QR';
-              p2Pill.className = 'qr-status ' + (msg.p2Connected ? 'status-connected' : 'status-waiting');
-
-              if (msg.p1Spec?.color) carP1.bodyMat.color.set(msg.p1Spec.color);
-              if (msg.p2Spec?.color) carP2.bodyMat.color.set(msg.p2Spec.color);
+              document.getElementById('p1-lobby-pill').textContent = msg.p1Connected ? '📱 P1 ONLINE' : 'WASD / Phone 1';
+              document.getElementById('p2-lobby-pill').textContent = msg.p2Connected ? '📱 P2 ONLINE' : 'ARROWS / Phone 2';
             } else if (msg.type === 'control' && (msg.player === 1 || msg.player === 2)) {
               wsInputs[msg.player] = {
                 left: Boolean(msg.left),
@@ -2213,9 +2072,6 @@
                 gas: Boolean(msg.gas),
                 brake: Boolean(msg.brake)
               };
-              if (waitingForHumanTrigger && currentStage === 3 && msg.gas) {
-                window.triggerVerifiedRaceCountdown();
-              }
             }
           } catch (e) {}
         };
@@ -2223,195 +2079,204 @@
       }
       connectBroadcastWs();
 
-      function steerCarTowardTarget(car, tx, tz, maxSpd, accel, turnSpd, dtScale) {
-        const dx = tx - car.x;
-        const dz = tz - car.z;
-        const desiredYaw = Math.atan2(-dx, -dz);
-        let diff = desiredYaw - car.rotationY;
-        while (diff > Math.PI) diff -= Math.PI * 2;
-        while (diff < -Math.PI) diff += Math.PI * 2;
-
-        const turnStep = Math.sign(diff) * Math.min(Math.abs(diff), turnSpd * 1.45 * dtScale);
-        car.rotationY += turnStep;
-        car.steerAngle = THREE.MathUtils.lerp(car.steerAngle, THREE.MathUtils.clamp(diff * 0.9, -0.42, 0.42), 0.25);
-        car.speed = Math.min(maxSpd, car.speed + accel * dtScale);
+      function resetCarToNearestRoad(car) {
+        if (activeRoutePoints.length >= 2 && !isFreeRoamMode) {
+          let bestIdx = 0, bestD = Infinity;
+          for (let i = 0; i < activeRoutePoints.length; i++) {
+            const d = Math.hypot(activeRoutePoints[i][0] - car.x, activeRoutePoints[i][2] - car.z);
+            if (d < bestD) { bestD = d; bestIdx = i; }
+          }
+          const pt = activeRoutePoints[bestIdx];
+          const nextPt = activeRoutePoints[Math.min(activeRoutePoints.length - 1, bestIdx + 1)];
+          car.x = pt[0];
+          car.y = pt[1] + 0.35;
+          car.z = pt[2];
+          car.rotationY = Math.atan2(-(nextPt[0] - pt[0]), -(nextPt[2] - pt[2]));
+          car.speed = 0;
+          return;
+        }
+        const nearK = findNearestStreetNode(car.x, car.z);
+        if (nearK) {
+          const [sx, sz] = streetNodes.get(nearK);
+          car.x = sx;
+          car.z = sz;
+          car.y = sampleGroundHeight(sx, sz, car.y) + 0.35;
+          car.speed = 0;
+        }
       }
 
-      function stepCarPhysics(car, controls, isAutonomous, dt) {
-        if (!activeLevel || car.crashed || car.finished) return;
+      function stepCarPhysics(car, ctrl, isAi, dt) {
+        if (!raceActive) return;
 
-        const dtScale = dt * 60;
-        const stats = activeLevel.carStats || { maxSpeed: 0.49, acceleration: 0.011, turnSpeed: 0.038 };
-        // Give human drivers a 6% top-speed edge over the Argon AI Ghost so humans can beat the Ghost fairly!
-        const maxSpd = car.isGhost ? stats.maxSpeed * 0.94 : stats.maxSpeed * 1.02;
-        const cps = activeLevel.checkpoints || [];
-        const targetCp = cps[Math.min(car.wpIndex, cps.length - 1)];
+        const maxForward = ctrl.nitro && car.nitro > 2 ? 42.0 : 31.0; // m/s (~95 MPH boost, ~70 MPH normal)
+        const maxReverse = 12.0;
 
-        if (isAutonomous && targetCp) {
-          // Stage 1 is calibrated so the bot covers (-35, 120) -> (-12, 35) in exactly 3.2s
-          const stageMax = currentStage === 1 ? 0.505 : maxSpd;
-          const stageAccel = currentStage === 1 ? 0.038 : stats.acceleration;
-          steerCarTowardTarget(car, targetCp.x, targetCp.z, stageMax, stageAccel, stats.turnSpeed, dtScale);
-        } else if (controls) {
-          if (controls.gas) {
-            car.speed = Math.min(maxSpd, car.speed + stats.acceleration * 1.15 * dtScale);
-          } else if (controls.brake) {
-            car.speed = Math.max(-maxSpd * 0.45, car.speed - stats.acceleration * 1.6 * dtScale);
+        if (isAi && activeRoutePoints.length >= 2) {
+          // Smooth AI rival navigation along the chosen SF street route
+          const targetIdx = Math.min(activeRoutePoints.length - 1, car.routeIdx + 2);
+          const [tx, , tz] = activeRoutePoints[targetIdx];
+          const desiredYaw = Math.atan2(-(tx - car.x), -(tz - car.z));
+          let diff = Math.atan2(Math.sin(desiredYaw - car.rotationY), Math.cos(desiredYaw - car.rotationY));
+          car.steer = THREE.MathUtils.clamp(diff * 1.8, -1, 1);
+          car.rotationY += THREE.MathUtils.clamp(diff, -2.2 * dt, 2.2 * dt);
+          car.speed = Math.min(28.5, car.speed + 18.0 * dt);
+          if (Math.hypot(tx - car.x, tz - car.z) < 18 && car.routeIdx < activeRoutePoints.length - 1) {
+            car.routeIdx++;
+          }
+        } else {
+          // Human Responsive Arcade Controls (Zero auto-steer fighting player keys!)
+          let throttle = 0;
+          if (ctrl.gas) throttle = 1;
+          else if (ctrl.brake) throttle = -1;
+
+          if (ctrl.nitro && ctrl.gas && car.nitro > 0) {
+            car.nitro = Math.max(0, car.nitro - 28 * dt);
+            spawnParticle(
+              car.x + Math.sin(car.rotationY) * 2.4,
+              car.y + 0.45,
+              car.z + Math.cos(car.rotationY) * 2.4,
+              0x00f0ff,
+              0.26,
+              0.5,
+              0.22
+            );
           } else {
-            car.speed *= Math.pow(0.97, dtScale);
+            car.nitro = Math.min(100, car.nitro + 9 * dt);
           }
 
-          let steerInput = 0;
-          if (Math.abs(car.speed) > 0.01) {
-            const dir = car.speed >= 0 ? 1 : -1;
-            if (controls.left) {
-              car.rotationY += stats.turnSpeed * dir * dtScale;
-              steerInput = 0.38;
-            } else if (controls.right) {
-              car.rotationY -= stats.turnSpeed * dir * dtScale;
-              steerInput = -0.38;
-            } else if (controls.gas && targetCp) {
-              // Subtle Embarcadero lane-assist when holding gas straight so keyboard driving feels silky smooth
-              const dx = targetCp.x - car.x;
-              const dz = targetCp.z - car.z;
-              const desiredYaw = Math.atan2(-dx, -dz);
-              let diff = desiredYaw - car.rotationY;
-              while (diff > Math.PI) diff -= Math.PI * 2;
-              while (diff < -Math.PI) diff += Math.PI * 2;
-              car.rotationY += diff * 0.035 * dtScale;
-            }
+          const accel = throttle > 0 ? (ctrl.nitro && car.nitro > 0 ? 34.0 : 23.0) : 28.0;
+          if (throttle !== 0) {
+            car.speed = THREE.MathUtils.clamp(car.speed + throttle * accel * dt, -maxReverse, maxForward);
+          } else {
+            car.speed *= Math.exp(-1.6 * dt);
+            if (Math.abs(car.speed) < 0.08) car.speed = 0;
           }
-          car.steerAngle = THREE.MathUtils.lerp(car.steerAngle, steerInput, 0.25);
+
+          const rawSteerInput = (ctrl.left ? 1 : 0) - (ctrl.right ? 1 : 0);
+          const steerResp = rawSteerInput !== 0 ? 10.0 : 14.0;
+          car.steer += (rawSteerInput - car.steer) * (1 - Math.exp(-steerResp * dt));
+
+          if (Math.abs(car.speed) > 0.25) {
+            const speedRatio = Math.min(1, Math.abs(car.speed) / 32.0);
+            const turnRate = (ctrl.drift ? 2.35 : 1.75) * (1 - speedRatio * 0.38);
+            const dir = car.speed >= 0 ? 1 : -1;
+            car.rotationY += car.steer * turnRate * dir * dt;
+          }
         }
 
-        const vx = -Math.sin(car.rotationY) * car.speed * dtScale;
-        const vz = -Math.cos(car.rotationY) * car.speed * dtScale;
+        const vx = -Math.sin(car.rotationY) * car.speed * dt;
+        const vz = -Math.cos(car.rotationY) * car.speed * dt;
         car.x += vx;
         car.z += vz;
 
-        // Spin Ferrari Wheels & Turn Front Steer Wheels!
-        car.wheels.forEach((w) => {
-          w.rotation.x -= car.speed * dtScale * 0.55;
-        });
-        car.steerWheels.forEach((w) => {
-          w.rotation.y = car.steerAngle;
-        });
+        // Smooth elevation following: use clean route ribbon height if on route, else photogrammetry ground
+        let targetY = car.y;
+        let nearestRouteDist = Infinity;
+        let nearestIdx = car.routeIdx;
 
-        // Soft White/Gray Tire Smoke Particles when Drifting or Launching
-        if (Math.abs(car.speed) > 0.22 && (Math.abs(car.steerAngle) > 0.18 || Math.random() < 0.25)) {
+        if (activeRoutePoints.length >= 2 && !isFreeRoamMode) {
+          for (let i = 0; i < activeRoutePoints.length; i++) {
+            const d = Math.hypot(activeRoutePoints[i][0] - car.x, activeRoutePoints[i][2] - car.z);
+            if (d < nearestRouteDist) {
+              nearestRouteDist = d;
+              nearestIdx = i;
+            }
+          }
+          car.routeIdx = nearestIdx;
+        }
+
+        if (!isFreeRoamMode && nearestRouteDist < 22 && activeRoutePoints[nearestIdx]) {
+          targetY = activeRoutePoints[nearestIdx][1] + 0.34;
+          // Gentle corridor curb guidance so cars don't clip deep into sidewalk photogrammetry walls
+          if (nearestRouteDist > 10.5) {
+            const [rx, , rz] = activeRoutePoints[nearestIdx];
+            car.x = THREE.MathUtils.lerp(car.x, rx, 0.08);
+            car.z = THREE.MathUtils.lerp(car.z, rz, 0.08);
+          }
+        } else {
+          targetY = sampleGroundHeight(car.x, car.z, car.y) + 0.28;
+        }
+
+        car.y = THREE.MathUtils.lerp(car.y, targetY, 0.22);
+
+        // Spin wheels & steer front wheels
+        car.wheels.forEach(w => { w.rotation.x -= car.speed * dt * 1.4; });
+        car.steerWheels.forEach(w => { w.rotation.y = car.steer * 0.42; });
+        car.modelHolder.rotation.z = -car.steer * Math.min(1, Math.abs(car.speed) / 20) * 0.045;
+
+        // Drift / Launch Tire Smoke
+        if (Math.abs(car.speed) > 10 && (ctrl.drift || Math.abs(car.steer) > 0.65)) {
           spawnParticle(
-            car.x + (Math.random() - 0.5) * 1.4,
-            0.18,
-            car.z + (Math.random() - 0.5) * 1.4,
-            car.isGhost ? 0x6bf5a6 : 0xe2e8f0,
+            car.x + (Math.random() - 0.5) * 1.3,
+            car.y + 0.15,
+            car.z + (Math.random() - 0.5) * 1.3,
+            0xe2e8f0,
             0.28,
-            0,
-            0.45,
-            0,
-            0.42
+            0.6,
+            0.35
           );
         }
 
-        // STAGE 1 CRASH CHECK AGAINST FERRY PLAZA EAST COLONNADE PILLAR AT (-12, 35)
-        const distToPillar = Math.hypot(car.x - (-12), car.z - 35);
-        if (currentStage === 1 && (distToPillar < 5.6 || simTime >= 3.2)) {
-          simTime = 3.2;
-          car.x = -12;
-          car.z = 35;
-          car.crashed = true;
-          car.speed = 0;
-          cameraShakeTime = 0.7;
-          spawnCrashExplosion(-12, 35);
-
-          if (ferryPillarMesh) {
-            ferryPillarMesh.material.emissive.setHex(0xff0033);
-          }
-
-          const crashEdges = new THREE.EdgesGeometry(new THREE.BoxGeometry(6.6, 12.6, 6.6));
-          const crashWf = new THREE.LineSegments(crashEdges, new THREE.LineBasicMaterial({ color: 0xff2a54 }));
-          crashWf.position.set(-12, 6, 35);
-          wireframeGroup.add(crashWf);
-
-          document.getElementById('crash-alert-banner').style.display = 'block';
-          document.getElementById('active-wp-display').textContent = '💥 CRASH @ 00:03.2s (-12, 35)';
-          return;
-        }
-
-        // STAGE 3 COLLIDER PROXY DEFLECTION (Keep cars inside Embarcadero corridor)
-        if (currentStage === 3) {
-          car.x = THREE.MathUtils.clamp(car.x, -42, 4);
-          (activeLevel.colliders || []).forEach((col) => {
-            if (col.id === 'ferry_pillar_east') {
-              const halfW = col.w / 2 + 1.8;
-              const halfD = col.d / 2 + 2.2;
-              if (Math.abs(car.x - col.x) < halfW && Math.abs(car.z - col.z) < halfD) {
-                car.x = col.x - halfW;
-                car.speed *= 0.8;
-              }
-            }
-          });
-        }
-
-        // CHECKPOINT PROGRESSION & SHACK15 FINISH LINE DETECTION
-        if (targetCp) {
-          const distToCp = Math.hypot(car.x - targetCp.x, car.z - targetCp.z);
-          if (distToCp <= targetCp.radius + 3.5) {
-            if (targetCp.isFinish) {
-              car.finished = true;
-              car.finishTime = simTime;
-              if (!raceOver && currentStage === 3) {
-                raceOver = true;
-                spawnCrashExplosion(targetCp.x, targetCp.z);
-                const winBanner = document.getElementById('winner-banner');
-                document.getElementById('winner-title').textContent = `🏆 ${car.label} WINS AT SHACK15!`;
-                document.getElementById('winner-subtitle').textContent =
-                  `Verified 650m Embarcadero Sprint Completed in ${simTime.toFixed(1)}s — 0 Collisions!`;
-                winBanner.style.display = 'block';
-              }
-            } else {
-              car.wpIndex++;
-            }
+        // Check Finish Line Arrival
+        if (!isFreeRoamMode && !raceFinished && activeRoutePoints.length >= 2) {
+          const [fx, , fz] = activeRoutePoints[activeRoutePoints.length - 1];
+          if (Math.hypot(car.x - fx, car.z - fz) < 16.0) {
+            raceFinished = true;
+            const elapsedSec = ((performance.now() - raceStartTime) / 1000).toFixed(1);
+            document.getElementById('winner-title').textContent = `🏆 ${car.name} WINS!`;
+            document.getElementById('winner-subtitle').textContent =
+              `${selectedStart.name.split('/')[0]} → ${selectedFinish.name.split('/')[0]} completed in ${elapsedSec}s!`;
+            document.getElementById('winner-banner').style.display = 'block';
           }
         }
       }
 
-      function updateCarTransformAndCamera(car, cam) {
+      function snapCameraBehindCar(car, cam) {
+        const behindDist = cameraPreset === 0 ? 9.2 : (cameraPreset === 1 ? 13.5 : -0.8);
+        const camHeight = cameraPreset === 0 ? 3.3 : (cameraPreset === 1 ? 4.8 : 1.45);
+        cam.position.set(
+          car.x + Math.sin(car.rotationY) * behindDist,
+          car.y + camHeight,
+          car.z + Math.cos(car.rotationY) * behindDist
+        );
+        cam.lookAt(
+          car.x - Math.sin(car.rotationY) * 18,
+          car.y + 1.3,
+          car.z - Math.cos(car.rotationY) * 18
+        );
+      }
+
+      function updateCarAndCamera(car, cam) {
         car.group.position.set(car.x, car.y, car.z);
         car.group.rotation.y = car.rotationY;
 
         if (!cam) return;
-        const behindDist = 11.5;
-        const camHeight = 4.2;
-        const targetCamX = car.x + Math.sin(car.rotationY) * behindDist;
-        const targetCamZ = car.z + Math.cos(car.rotationY) * behindDist;
+        const behindDist = cameraPreset === 0 ? 9.2 : (cameraPreset === 1 ? 13.5 : -0.8);
+        const camHeight = cameraPreset === 0 ? 3.3 : (cameraPreset === 1 ? 4.8 : 1.45);
+        const tx = car.x + Math.sin(car.rotationY) * behindDist;
+        const ty = car.y + camHeight;
+        const tz = car.z + Math.cos(car.rotationY) * behindDist;
 
-        cam.position.x += (targetCamX - cam.position.x) * 0.22;
-        cam.position.y += (camHeight - cam.position.y) * 0.22;
-        cam.position.z += (targetCamZ - cam.position.z) * 0.22;
+        cam.position.x += (tx - cam.position.x) * 0.22;
+        cam.position.y += (ty - cam.position.y) * 0.22;
+        cam.position.z += (tz - cam.position.z) * 0.22;
 
-        if (cameraShakeTime > 0) {
-          cam.position.x += (Math.random() - 0.5) * 1.2;
-          cam.position.y += (Math.random() - 0.5) * 1.2;
-        }
-
-        const lookAheadX = car.x - Math.sin(car.rotationY) * 16;
-        const lookAheadZ = car.z - Math.cos(car.rotationY) * 16;
-        cam.lookAt(lookAheadX, 1.6, lookAheadZ);
+        cam.lookAt(
+          car.x - Math.sin(car.rotationY) * 18,
+          car.y + 1.3,
+          car.z - Math.cos(car.rotationY) * 18
+        );
       }
 
       // =======================================================================
-      // 7. MAIN 60FPS ANIMATION & 3-VIEWPORT SCISSOR RENDER LOOP
+      // 8. MAIN 60FPS ANIMATION LOOP & VIEWPORT RENDERER
       // =======================================================================
-      let lastFrameTime = performance.now();
+      let lastTime = performance.now();
 
       function animate(now) {
         requestAnimationFrame(animate);
-        const dt = Math.min(0.05, (now - lastFrameTime) / 1000);
-        lastFrameTime = now;
-
-        if (cameraShakeTime > 0) {
-          cameraShakeTime = Math.max(0, cameraShakeTime - dt);
-        }
+        const dt = Math.min(0.05, (now - lastTime) / 1000);
+        lastTime = now;
 
         for (let i = particles.length - 1; i >= 0; i--) {
           const p = particles[i];
@@ -2420,103 +2285,93 @@
             fxGroup.remove(p.mesh);
             particles.splice(i, 1);
           } else {
-            p.mesh.position.x += p.vx * dt;
             p.mesh.position.y += p.vy * dt;
-            p.mesh.position.z += p.vz * dt;
-            p.mesh.material.opacity = (p.life / p.maxLife) * 0.65;
+            p.mesh.material.opacity = (p.life / p.maxLife) * 0.7;
           }
         }
 
-        if (raceStarted && activeLevel) {
-          if (currentStage === 1) {
-            if (!carP1.crashed) {
-              simTime = Math.min(3.2, simTime + dt);
-            }
-            stepCarPhysics(carP1, null, true, dt);
-            stepCarPhysics(carP2, null, true, dt);
-          } else if (currentStage === 3) {
-            if (!raceOver) {
-              simTime += dt;
-            }
-            const p1Ctrl = {
-              left: Boolean(keys['KeyA'] || wsInputs[1].left),
-              right: Boolean(keys['KeyD'] || wsInputs[1].right),
-              gas: Boolean(keys['KeyW'] || wsInputs[1].gas),
-              brake: Boolean(keys['KeyS'] || wsInputs[1].brake)
-            };
-            const p2Ctrl = {
-              left: Boolean(keys['ArrowLeft'] || wsInputs[2].left),
-              right: Boolean(keys['ArrowRight'] || wsInputs[2].right),
-              gas: Boolean(keys['ArrowUp'] || wsInputs[2].gas),
-              brake: Boolean(keys['ArrowDown'] || wsInputs[2].brake)
-            };
+        // In 1P mode, allow BOTH WASD and Arrow Keys to drive the active player's car!
+        const singlePlayerBothKeys = viewMode !== '2p_split';
 
-            const p1HasHumanInput = p1Ctrl.left || p1Ctrl.right || p1Ctrl.gas || p1Ctrl.brake;
-            const p2HasHumanInput = p2Ctrl.left || p2Ctrl.right || p2Ctrl.gas || p2Ctrl.brake;
+        const p1Ctrl = {
+          left: Boolean(keys['KeyA'] || (singlePlayerBothKeys && keys['ArrowLeft']) || wsInputs[1].left),
+          right: Boolean(keys['KeyD'] || (singlePlayerBothKeys && keys['ArrowRight']) || wsInputs[1].right),
+          gas: Boolean(keys['KeyW'] || (singlePlayerBothKeys && keys['ArrowUp']) || wsInputs[1].gas),
+          brake: Boolean(keys['KeyS'] || (singlePlayerBothKeys && keys['ArrowDown']) || wsInputs[1].brake),
+          drift: Boolean(keys['Space']),
+          nitro: Boolean(keys['ShiftLeft'] || (singlePlayerBothKeys && keys['ShiftRight']))
+        };
 
-            stepCarPhysics(carP1, p1Ctrl, humanAutopilotAssist && !p1HasHumanInput, dt);
-            stepCarPhysics(carP2, p2Ctrl, humanAutopilotAssist && !p2HasHumanInput, dt);
-            stepCarPhysics(carGhost, null, true, dt);
-          }
-        }
+        const p2Ctrl = {
+          left: Boolean(keys['ArrowLeft'] || (viewMode === '1p_p2' && keys['KeyA']) || wsInputs[2].left),
+          right: Boolean(keys['ArrowRight'] || (viewMode === '1p_p2' && keys['KeyD']) || wsInputs[2].right),
+          gas: Boolean(keys['ArrowUp'] || (viewMode === '1p_p2' && keys['KeyW']) || wsInputs[2].gas),
+          brake: Boolean(keys['ArrowDown'] || (viewMode === '1p_p2' && keys['KeyS']) || wsInputs[2].brake),
+          drift: Boolean(keys['ControlRight']),
+          nitro: Boolean(keys['ShiftRight'] || keys['Enter'])
+        };
 
-        updateCarTransformAndCamera(carP1, camP1);
-        updateCarTransformAndCamera(carP2, camP2);
-        updateCarTransformAndCamera(carGhost, null);
+        const p2HasHuman = p2Ctrl.left || p2Ctrl.right || p2Ctrl.gas || p2Ctrl.brake;
 
-        // Update Telemetry HUD
-        const timeStr = simTime < 10 ? `00:0${simTime.toFixed(1)}s` : `00:${simTime.toFixed(1)}s`;
-        document.getElementById('sim-clock-display').textContent = `SIM TIME: ${timeStr}`;
+        stepCarPhysics(carP1, p1Ctrl, isBotMode, dt);
+        stepCarPhysics(carP2, p2Ctrl, (p2AiEnabled && !p2HasHuman) || isBotMode, dt);
 
-        const finishZ = currentStage === 1 ? -30 : -230;
-        const p1Mph = Math.round(Math.abs(carP1.speed) * 285);
-        const p2Mph = Math.round(Math.abs(carP2.speed) * 285);
-        const p1Dist = Math.max(0, Math.round(Math.hypot(carP1.x - (-8), carP1.z - finishZ)));
-        const p2Dist = Math.max(0, Math.round(Math.hypot(carP2.x - (-8), carP2.z - finishZ)));
+        updateCarAndCamera(carP1, camP1);
+        updateCarAndCamera(carP2, camP2);
 
+        // Update Speedometers & Distance HUD
+        const p1Mph = Math.round(Math.abs(carP1.speed) * 2.237);
+        const p2Mph = Math.round(Math.abs(carP2.speed) * 2.237);
         document.getElementById('p1-speed').textContent = String(p1Mph);
         document.getElementById('p2-speed').textContent = String(p2Mph);
-        document.getElementById('p1-dist').textContent = `SHACK15 FINISH: ${p1Dist}m`;
-        document.getElementById('p2-dist').textContent = `SHACK15 FINISH: ${p2Dist}m`;
+        document.getElementById('p1-nitro-bar').style.width = `${carP1.nitro}%`;
+        document.getElementById('p2-nitro-bar').style.width = `${carP2.nitro}%`;
 
-        // Single-Canvas 3-Viewport Scissor Render
+        if (!isFreeRoamMode && activeRoutePoints.length > 0) {
+          const [fx, , fz] = activeRoutePoints[activeRoutePoints.length - 1];
+          const d1 = Math.round(Math.hypot(carP1.x - fx, carP1.z - fz));
+          const d2 = Math.round(Math.hypot(carP2.x - fx, carP2.z - fz));
+          document.getElementById('p1-dist').textContent = `FINISH: ${d1}m`;
+          document.getElementById('p2-dist').textContent = `FINISH: ${d2}m`;
+        } else {
+          document.getElementById('p1-dist').textContent = 'FREE ROAM • SAN FRANCISCO';
+          document.getElementById('p2-dist').textContent = 'FREE ROAM • SAN FRANCISCO';
+        }
+
+        drawViceCityRadar();
+
+        // Render 1P Fullscreen OR 2P Side-by-Side Split Screen
         const W = window.innerWidth;
         const H = window.innerHeight;
-        const wLeft = Math.floor(W * 0.33);
-        const wCenter = Math.floor(W * 0.34);
-        const wRight = W - wLeft - wCenter;
 
-        // 1. Left Viewport (33%): Player 1 Ferrari Chase Cam
-        camP1.aspect = wLeft / H;
-        camP1.updateProjectionMatrix();
-        renderer.setViewport(0, 0, wLeft, H);
-        renderer.setScissor(0, 0, wLeft, H);
-        renderer.render(scene, camP1);
+        if (viewMode === '2p_split') {
+          const halfW = Math.floor(W / 2);
 
-        // 2. Center Viewport (34%): Top-Down Orthographic SF Photogrammetry Radar
-        const centerAspect = wCenter / H;
-        camTop.left = -orthoSize * centerAspect;
-        camTop.right = orthoSize * centerAspect;
-        camTop.top = orthoSize;
-        camTop.bottom = -orthoSize;
-        camTop.updateProjectionMatrix();
-        renderer.setViewport(wLeft, 0, wCenter, H);
-        renderer.setScissor(wLeft, 0, wCenter, H);
-        renderer.render(scene, camTop);
+          camP1.aspect = halfW / H;
+          camP1.updateProjectionMatrix();
+          renderer.setViewport(0, 0, halfW, H);
+          renderer.setScissor(0, 0, halfW, H);
+          renderer.render(scene, camP1);
 
-        // 3. Right Viewport (33%): Player 2 Ferrari Chase Cam
-        camP2.aspect = wRight / H;
-        camP2.updateProjectionMatrix();
-        renderer.setViewport(wLeft + wCenter, 0, wRight, H);
-        renderer.setScissor(wLeft + wCenter, 0, wRight, H);
-        renderer.render(scene, camP2);
+          camP2.aspect = (W - halfW) / H;
+          camP2.updateProjectionMatrix();
+          renderer.setViewport(halfW, 0, W - halfW, H);
+          renderer.setScissor(halfW, 0, W - halfW, H);
+          renderer.render(scene, camP2);
+        } else {
+          const activeCam = viewMode === '1p_p2' ? camP2 : camP1;
+          activeCam.aspect = W / H;
+          activeCam.updateProjectionMatrix();
+          renderer.setViewport(0, 0, W, H);
+          renderer.setScissor(0, 0, W, H);
+          renderer.render(scene, activeCam);
+        }
       }
 
       window.addEventListener('resize', () => {
         renderer.setSize(window.innerWidth, window.innerHeight);
       });
 
-      window.selectDemoStage(1);
       requestAnimationFrame(animate);
     }
   </script>
