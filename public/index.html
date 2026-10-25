@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Vice City: San Francisco — Open-World 3D Photogrammetry Street Racing</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <script type="importmap">
     {
@@ -773,24 +775,31 @@
       </div>
     </div>
 
-    <!-- Full San Francisco Interactive Map Modal (Starts Open so Users Can Pick ANY Location in SF!) -->
+    <!-- Full San Francisco Interactive REAL GOOGLE MAPS Modal -->
     <div id="sf-map-modal">
       <div class="map-modal-card">
         <div class="map-canvas-pane">
-          <canvas id="full-sf-map-canvas" width="900" height="900"></canvas>
-          <div class="map-floating-instructions">
-            🖱️ <strong>CLICK ANYWHERE IN SAN FRANCISCO</strong> to place your
-            <span style="color:#06d6a0;">START (Green)</span> or
-            <span style="color:#ff2a85;">FINISH (Neon Pink)</span> — or click any landmark!
+          <div id="google-sf-map" style="width:100%; height:100%; z-index:1;"></div>
+          <div class="map-floating-instructions" style="z-index:500;">
+            🖱️ <strong>REAL GOOGLE MAPS (SAN FRANCISCO)</strong> — Zoom/Pan &amp; Click ANY street to set
+            <span style="color:#06d6a0;">START (A)</span> or
+            <span style="color:#ff2a85;">FINISH (B)</span>!
+          </div>
+          <div style="position:absolute; bottom:14px; left:14px; z-index:500; display:flex; gap:6px;">
+            <button class="vc-btn active-cyan" id="btn-gmap-m" onclick="window.setGoogleMapLayer('m')">🗺️ Google Road Map</button>
+            <button class="vc-btn" id="btn-gmap-y" onclick="window.setGoogleMapLayer('y')">🛰️ Google Hybrid</button>
+            <button class="vc-btn" id="btn-gmap-s" onclick="window.setGoogleMapLayer('s')">🌎 Google Satellite</button>
           </div>
         </div>
 
         <div class="map-sidebar">
           <div>
-            <div class="sidebar-title">SAN FRANCISCO CITY GPS</div>
-            <p style="font-size:11.5px; color:#94a3b8; margin-top:4px;">
-              Pick any two streets or landmarks across the entire city of San Francisco to race with your friend, or free-roam anywhere!
-            </p>
+            <div class="sidebar-title">GOOGLE MAPS // SF GPS</div>
+            <div style="display:flex; gap:6px; margin-top:8px;">
+              <input id="gmap-search-input" type="text" placeholder="Search any SF street or place..." style="flex:1; padding:7px 10px; border-radius:8px; border:1px solid rgba(255,255,255,0.28); background:#080c16; color:#fff; font-size:11.5px;" onkeydown="if(event.key==='Enter') window.searchGoogleMapSF()" />
+              <button class="vc-btn active-cyan" onclick="window.searchGoogleMapSF()">🔍</button>
+            </div>
+            <div id="gmap-search-results" style="margin-top:5px; display:flex; flex-direction:column; gap:4px;"></div>
           </div>
 
           <div class="sidebar-section">
@@ -917,6 +926,15 @@
         x: -(tileY - 405291) * 30.1195,
         z: (tileX - 167671) * 30.2463
       };
+    }
+
+    function latLonFromWorld(x, z) {
+      const n = 2 ** 20;
+      const tileX = z / 30.2463 + 167671;
+      const tileY = -x / 30.1195 + 405291;
+      const lon = (tileX / n) * 360 - 180;
+      const lat = THREE.MathUtils.radToDeg(Math.atan(Math.sinh(Math.PI * (1 - (2 * tileY) / n))));
+      return { lat, lon };
     }
 
     const SF_LANDMARKS = [
@@ -1638,6 +1656,53 @@
         }
 
         buildClearRoadRibbonMesh();
+        drawFullSFMap();
+
+        // Also query real turn-by-turn San Francisco Google/OSRM road routing for street names & exact geometry
+        const sLL = selectedStart.lat ? selectedStart : latLonFromWorld(selectedStart.x, selectedStart.z);
+        const fLL = selectedFinish.lat ? selectedFinish : latLonFromWorld(selectedFinish.x, selectedFinish.z);
+        fetch(`/api/gmap-route?startLat=${sLL.lat}&startLon=${sLL.lon}&endLat=${fLL.lat}&endLon=${fLL.lon}`)
+          .then(r => r.json())
+          .then(gRoute => {
+            if (!gRoute.ok || !Array.isArray(gRoute.coordinates) || gRoute.coordinates.length < 2) return;
+            const worldPts = gRoute.coordinates.map(([lon, lat]) => {
+              const w = worldFromLatLon(lat, lon);
+              return [w.x, w.z];
+            });
+            const resampled2 = [];
+            for (let i = 0; i < worldPts.length; i++) {
+              const [x, z] = worldPts[i];
+              if (i === 0) resampled2.push([x, z]);
+              else {
+                const [px, pz] = resampled2[resampled2.length - 1];
+                const segLen = Math.hypot(x - px, z - pz);
+                if (segLen >= 8) {
+                  const subs = Math.ceil(segLen / 14);
+                  for (let s = 1; s <= subs; s++) {
+                    const t = s / subs;
+                    resampled2.push([px + (x - px) * t, pz + (z - pz) * t]);
+                  }
+                }
+              }
+            }
+            const rawY2 = resampled2.map(([x, z]) => sampleGroundHeight(x, z, estimateBaseElevation(x, z)));
+            activeRoutePoints = resampled2.map(([x, z], idx) => {
+              let sumY = 0, cnt = 0;
+              for (let k = Math.max(0, idx - 3); k <= Math.min(rawY2.length - 1, idx + 3); k++) {
+                sumY += rawY2[k];
+                cnt++;
+              }
+              return [x, sumY / cnt, z];
+            });
+            const viaText = gRoute.streets?.length ? ` via ${gRoute.streets.slice(0, 3).join(' → ')}` : '';
+            const distEl = document.getElementById('map-route-dist');
+            if (distEl && gRoute.distanceMeters) {
+              distEl.textContent = `${(gRoute.distanceMeters / 1000).toFixed(2)} KM${viaText}`;
+            }
+            buildClearRoadRibbonMesh();
+            drawFullSFMap();
+          })
+          .catch(() => {});
       }
 
       // Creates a sleek, clear Asphalt + Vice City Neon GPS Road Ribbon texture
@@ -1938,18 +2003,147 @@
       }
 
       // =======================================================================
-      // 5. FULL SAN FRANCISCO INTERACTIVE CITY MAP PICKER + VICE CITY RADAR
+      // 5. REAL INTERACTIVE GOOGLE MAPS (LEAFLET) + ROTATING GOOGLE MAPS RADAR
       // =======================================================================
-      const sfSatImg = new Image();
-      sfSatImg.src = '/sf_tiles/sf-satellite-minimap.jpg';
-      sfSatImg.onload = () => drawFullSFMap();
-
       let mapClickMode = 'finish'; // 'start' or 'finish'
+      let currentGmapLyrs = 'm'; // 'm' = Google Road Map, 'y' = Google Hybrid, 's' = Satellite
 
       window.setMapClickMode = function (mode) {
         mapClickMode = mode;
         document.getElementById('btn-pick-start').className = 'mode-pill-btn' + (mode === 'start' ? ' active-start' : '');
         document.getElementById('btn-pick-finish').className = 'mode-pill-btn' + (mode === 'finish' ? ' active-finish' : '');
+      };
+
+      // Initialize Real Interactive Google Map of San Francisco
+      const L = window.L;
+      const gmap = L.map('google-sf-map', {
+        center: [37.788, -122.418],
+        zoom: 13,
+        minZoom: 12,
+        maxZoom: 20,
+        zoomControl: true
+      });
+
+      let gmapTileLayer = L.tileLayer('/api/gmap-tile/m/{z}/{x}/{y}', {
+        maxZoom: 20,
+        attribution: 'Google Maps • San Francisco'
+      }).addTo(gmap);
+
+      window.setGoogleMapLayer = function (lyrs) {
+        currentGmapLyrs = lyrs;
+        ['m', 'y', 's'].forEach(k => {
+          const btn = document.getElementById(`btn-gmap-${k}`);
+          if (btn) btn.className = 'vc-btn' + (k === lyrs ? ' active-cyan' : '');
+        });
+        if (gmapTileLayer) gmap.removeLayer(gmapTileLayer);
+        gmapTileLayer = L.tileLayer(`/api/gmap-tile/${lyrs}/{z}/{x}/{y}`, {
+          maxZoom: 20,
+          attribution: 'Google Maps • San Francisco'
+        }).addTo(gmap);
+      };
+
+      const startIcon = L.divIcon({
+        className: 'gmap-pin-start',
+        html: `<div style="width:26px;height:26px;border-radius:50%;background:#06d6a0;border:3px solid #fff;color:#041f14;font-weight:900;font-size:13px;display:grid;place-items:center;box-shadow:0 3px 12px rgba(0,0,0,0.65);">A</div>`,
+        iconSize: [26, 26],
+        iconAnchor: [13, 13]
+      });
+
+      const finishIcon = L.divIcon({
+        className: 'gmap-pin-finish',
+        html: `<div style="width:26px;height:26px;border-radius:50%;background:#ff2a85;border:3px solid #fff;color:#fff;font-weight:900;font-size:13px;display:grid;place-items:center;box-shadow:0 3px 12px rgba(0,0,0,0.65);">B</div>`,
+        iconSize: [26, 26],
+        iconAnchor: [13, 13]
+      });
+
+      const startMarker = L.marker([selectedStart.lat, selectedStart.lon], { icon: startIcon, draggable: true }).addTo(gmap);
+      const finishMarker = L.marker([selectedFinish.lat, selectedFinish.lon], { icon: finishIcon, draggable: true }).addTo(gmap);
+      const routeGlowLine = L.polyline([], { color: '#ff2a85', weight: 8, opacity: 0.45 }).addTo(gmap);
+      const routeCoreLine = L.polyline([], { color: '#1a73e8', weight: 5, opacity: 0.95 }).addTo(gmap);
+
+      // Add clickable landmark pins on Google Map
+      SF_LANDMARKS.forEach((lm) => {
+        const dot = L.circleMarker([lm.lat, lm.lon], {
+          radius: 6,
+          fillColor: '#ffd166',
+          color: '#080c16',
+          weight: 2,
+          fillOpacity: 0.95
+        }).addTo(gmap);
+        dot.bindTooltip(lm.name, { direction: 'top', offset: [0, -6] });
+        dot.on('click', () => applyPickedLatLon(lm.lat, lm.lon, lm.name));
+      });
+
+      function applyPickedLatLon(lat, lon, customLabel = null) {
+        const w = worldFromLatLon(lat, lon);
+        const nearK = findNearestStreetNode(w.x, w.z);
+        const snapped = nearK ? streetNodes.get(nearK) : [w.x, w.z];
+        const snappedLL = latLonFromWorld(snapped[0], snapped[1]);
+
+        let label = customLabel;
+        if (!label) {
+          let nearestLm = SF_LANDMARKS[0], bestD = Infinity;
+          for (const lm of SF_LANDMARKS) {
+            const d = Math.hypot(lm.x - snapped[0], lm.z - snapped[1]);
+            if (d < bestD) { bestD = d; nearestLm = lm; }
+          }
+          label = bestD < 340 ? nearestLm.name : `SF (${snappedLL.lat.toFixed(4)}, ${snappedLL.lon.toFixed(4)})`;
+        }
+
+        if (mapClickMode === 'start') {
+          selectedStart = { name: label, x: snapped[0], z: snapped[1], lat: snappedLL.lat, lon: snappedLL.lon };
+          document.getElementById('map-start-name').textContent = label;
+          window.setMapClickMode('finish');
+        } else {
+          selectedFinish = { name: label, x: snapped[0], z: snapped[1], lat: snappedLL.lat, lon: snappedLL.lon };
+          document.getElementById('map-finish-name').textContent = label;
+        }
+        computeStreetRoute(selectedStart, selectedFinish);
+        drawFullSFMap();
+      }
+
+      gmap.on('click', (e) => {
+        applyPickedLatLon(e.latlng.lat, e.latlng.lng);
+      });
+
+      startMarker.on('dragend', () => {
+        const ll = startMarker.getLatLng();
+        mapClickMode = 'start';
+        applyPickedLatLon(ll.lat, ll.lng);
+      });
+
+      finishMarker.on('dragend', () => {
+        const ll = finishMarker.getLatLng();
+        mapClickMode = 'finish';
+        applyPickedLatLon(ll.lat, ll.lng);
+      });
+
+      // Google Maps SF Address / Place Search
+      window.searchGoogleMapSF = async function () {
+        const input = document.getElementById('gmap-search-input');
+        const box = document.getElementById('gmap-search-results');
+        const q = (input.value || '').trim();
+        if (!q) return;
+        box.innerHTML = `<div style="font-size:11px; color:#94a3b8;">Searching Google/SF Maps for "${q}"...</div>`;
+        try {
+          const r = await fetch(`/api/gmap-search?q=${encodeURIComponent(q)}`);
+          const data = await r.json();
+          box.innerHTML = '';
+          (data.results || []).forEach(res => {
+            const item = document.createElement('button');
+            item.className = 'lm-chip';
+            item.style.textAlign = 'left';
+            item.textContent = `📍 ${res.name}`;
+            item.onclick = () => {
+              box.innerHTML = '';
+              gmap.setView([res.lat, res.lon], 16);
+              applyPickedLatLon(res.lat, res.lon, res.name);
+            };
+            box.appendChild(item);
+          });
+        } catch (e) {
+          box.innerHTML = '';
+        }
       };
 
       // Populate Quick-Pick SF Landmark Chips
@@ -1959,202 +2153,99 @@
         btn.className = 'lm-chip';
         btn.textContent = lm.name.split('/')[0].trim();
         btn.onclick = () => {
-          if (mapClickMode === 'start') {
-            selectedStart = { ...lm };
-            document.getElementById('map-start-name').textContent = lm.name;
-            window.setMapClickMode('finish');
-          } else {
-            selectedFinish = { ...lm };
-            document.getElementById('map-finish-name').textContent = lm.name;
-          }
-          computeStreetRoute(selectedStart, selectedFinish);
-          drawFullSFMap();
+          gmap.panTo([lm.lat, lm.lon]);
+          applyPickedLatLon(lm.lat, lm.lon, lm.name);
         };
         chipsContainer.appendChild(btn);
       });
 
-      function worldToMapPixel(x, z, w, h) {
-        const px = ((z - SF_MAP_BOUNDS.minZ) / (SF_MAP_BOUNDS.maxZ - SF_MAP_BOUNDS.minZ)) * w;
-        const py = ((SF_MAP_BOUNDS.maxX - x) / (SF_MAP_BOUNDS.maxX - SF_MAP_BOUNDS.minX)) * h;
-        return [px, py];
-      }
-
-      function mapPixelToWorld(px, py, w, h) {
-        const z = SF_MAP_BOUNDS.minZ + (px / w) * (SF_MAP_BOUNDS.maxZ - SF_MAP_BOUNDS.minZ);
-        const x = SF_MAP_BOUNDS.maxX - (py / h) * (SF_MAP_BOUNDS.maxX - SF_MAP_BOUNDS.minX);
-        return { x, z };
-      }
-
-      const fullMapCanvas = document.getElementById('full-sf-map-canvas');
-      fullMapCanvas.addEventListener('click', (e) => {
-        const rect = fullMapCanvas.getBoundingClientRect();
-        const scaleX = fullMapCanvas.width / rect.width;
-        const scaleY = fullMapCanvas.height / rect.height;
-        const px = (e.clientX - rect.left) * scaleX;
-        const py = (e.clientY - rect.top) * scaleY;
-        const worldPt = mapPixelToWorld(px, py, fullMapCanvas.width, fullMapCanvas.height);
-
-        // Snap to nearest SF street node so player always spawns on a drivable street
-        const nearK = findNearestStreetNode(worldPt.x, worldPt.z);
-        const snapped = nearK ? streetNodes.get(nearK) : [worldPt.x, worldPt.z];
-
-        // Find closest landmark name for display
-        let nearestLm = SF_LANDMARKS[0], bestD = Infinity;
-        for (const lm of SF_LANDMARKS) {
-          const d = Math.hypot(lm.x - snapped[0], lm.z - snapped[1]);
-          if (d < bestD) { bestD = d; nearestLm = lm; }
-        }
-        const label = bestD < 380 ? nearestLm.name : `SF Street (${Math.round(snapped[0])}, ${Math.round(snapped[1])})`;
-
-        if (mapClickMode === 'start') {
-          selectedStart = { name: label, x: snapped[0], z: snapped[1] };
-          document.getElementById('map-start-name').textContent = label;
-          window.setMapClickMode('finish');
-        } else {
-          selectedFinish = { name: label, x: snapped[0], z: snapped[1] };
-          document.getElementById('map-finish-name').textContent = label;
-        }
-        computeStreetRoute(selectedStart, selectedFinish);
-        drawFullSFMap();
-      });
-
       function drawFullSFMap() {
-        const ctx = fullMapCanvas.getContext('2d');
-        const W = fullMapCanvas.width, H = fullMapCanvas.height;
-        ctx.fillStyle = '#0b1d28';
-        ctx.fillRect(0, 0, W, H);
+        const sLL = selectedStart.lat ? selectedStart : latLonFromWorld(selectedStart.x, selectedStart.z);
+        const fLL = selectedFinish.lat ? selectedFinish : latLonFromWorld(selectedFinish.x, selectedFinish.z);
+        startMarker.setLatLng([sLL.lat, sLL.lon]);
+        finishMarker.setLatLng([fLL.lat, fLL.lon]);
 
-        if (sfSatImg.complete && sfSatImg.naturalWidth) {
-          ctx.drawImage(sfSatImg, 0, 0, W, H);
-          // Slight Vice City twilight tint so neon streets & route pop
-          ctx.fillStyle = 'rgba(8, 14, 26, 0.28)';
-          ctx.fillRect(0, 0, W, H);
-        }
-
-        // Draw major SF streets subtly
-        ctx.strokeStyle = 'rgba(0, 240, 255, 0.22)';
-        ctx.lineWidth = 1.1;
-        for (const st of decodedStreets) {
-          if (st.roadClass > 4) continue;
-          ctx.beginPath();
-          st.points.forEach(([x, z], idx) => {
-            const [px, py] = worldToMapPixel(x, z, W, H);
-            if (idx === 0) ctx.moveTo(px, py);
-            else ctx.lineTo(px, py);
-          });
-          ctx.stroke();
-        }
-
-        // Draw Active Vice City Neon Pink GPS Street Route
         if (activeRoutePoints.length >= 2) {
-          ctx.save();
-          ctx.strokeStyle = '#ff2a85';
-          ctx.lineWidth = 5.5;
-          ctx.shadowColor = '#ff2a85';
-          ctx.shadowBlur = 12;
-          ctx.lineCap = 'round';
-          ctx.lineJoin = 'round';
-          ctx.beginPath();
-          activeRoutePoints.forEach(([x, , z], idx) => {
-            const [px, py] = worldToMapPixel(x, z, W, H);
-            if (idx === 0) ctx.moveTo(px, py);
-            else ctx.lineTo(px, py);
+          const latlngs = activeRoutePoints.map(([x, , z]) => {
+            const ll = latLonFromWorld(x, z);
+            return [ll.lat, ll.lon];
           });
-          ctx.stroke();
-          ctx.restore();
+          routeGlowLine.setLatLngs(latlngs);
+          routeCoreLine.setLatLngs(latlngs);
         }
-
-        // Draw Landmark Pins
-        ctx.font = '800 11px Inter, sans-serif';
-        for (const lm of SF_LANDMARKS) {
-          const [px, py] = worldToMapPixel(lm.x, lm.z, W, H);
-          ctx.fillStyle = '#ffd166';
-          ctx.beginPath();
-          ctx.arc(px, py, 4.5, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.fillStyle = 'rgba(8, 12, 22, 0.78)';
-          const shortName = lm.name.split('/')[0].trim();
-          const tw = ctx.measureText(shortName).width;
-          ctx.fillRect(px + 7, py - 8, tw + 6, 15);
-          ctx.fillStyle = '#ffffff';
-          ctx.fillText(shortName, px + 10, py + 3);
-        }
-
-        // Start Marker (Neon Green)
-        const [sx, sy] = worldToMapPixel(selectedStart.x, selectedStart.z, W, H);
-        ctx.fillStyle = '#06d6a0';
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.arc(sx, sy, 9, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-
-        // Finish Marker (Neon Pink)
-        const [fx, fy] = worldToMapPixel(selectedFinish.x, selectedFinish.z, W, H);
-        ctx.fillStyle = '#ff2a85';
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.arc(fx, fy, 9, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
+        setTimeout(() => gmap.invalidateSize(), 60);
       }
 
-      // GTA Vice City Circular Rotating Radar Minimap Renderer
+      // Live Rotating Google Maps Tile Cache for the Circular Vice City Radar Minimap
       const radarCanvas = document.getElementById('vc-radar-canvas');
       const radarCtx = radarCanvas.getContext('2d');
       const northPinEl = document.getElementById('vc-north-pin');
+      const radarTileImages = new Map(); // "lyrs/z/x/y" -> Image
+
+      function getRadarGoogleTile(lyrs, z, tx, ty) {
+        const key = `${lyrs}/${z}/${tx}/${ty}`;
+        if (radarTileImages.has(key)) return radarTileImages.get(key);
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.src = `/api/gmap-tile/${lyrs}/${z}/${tx}/${ty}`;
+        radarTileImages.set(key, img);
+        return img;
+      }
 
       function drawViceCityRadar() {
         const focusCar = viewMode === '1p_p2' ? carP2 : carP1;
         const W = radarCanvas.width, H = radarCanvas.height;
         const cx = W / 2, cy = H / 2;
-        const radiusMeters = 280;
-        const pxPerMeter = (W / 2) / radiusMeters;
+
+        // Convert focusCar world (x,z) to Google Maps Zoom 16 tile coordinates
+        const carLL = latLonFromWorld(focusCar.x, focusCar.z);
+        const zoom = 16;
+        const n = 2 ** zoom;
+        const exactTileX = ((carLL.lon + 180) / 360) * n;
+        const latRad = THREE.MathUtils.degToRad(carLL.lat);
+        const exactTileY = ((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2) * n;
+
+        const centerTx = Math.floor(exactTileX);
+        const centerTy = Math.floor(exactTileY);
+        const subPixelX = (exactTileX - centerTx) * 256;
+        const subPixelY = (exactTileY - centerTy) * 256;
+
+        // At zoom 16 at SF latitude (37.79), 1 pixel = ~1.889 meters
+        const metersPerPixelZ16 = (156543.03392 * Math.cos(latRad)) / n;
+        const pxPerMeter = 1 / metersPerPixelZ16;
 
         radarCtx.clearRect(0, 0, W, H);
-        radarCtx.fillStyle = '#091622';
+        radarCtx.fillStyle = '#e5e3df';
         radarCtx.fillRect(0, 0, W, H);
 
         radarCtx.save();
         radarCtx.translate(cx, cy);
-        // Rotate radar so player's forward heading is always UP on the minimap!
-        // Note: On SF map, +X is North (up) and +Z is East (right).
-        // Car forward vector in world is (-sin(rotY), -cos(rotY)).
         const mapRot = -focusCar.rotationY - Math.PI / 2;
         radarCtx.rotate(mapRot);
+
+        // 1. Draw Real Google Maps 3x3 Tiles around Car
+        for (let dx = -1; dx <= 1; dx++) {
+          for (let dy = -1; dy <= 1; dy++) {
+            const tileImg = getRadarGoogleTile(currentGmapLyrs, zoom, centerTx + dx, centerTy + dy);
+            if (tileImg.complete && tileImg.naturalWidth) {
+              const drawX = dx * 256 - subPixelX;
+              const drawY = dy * 256 - subPixelY;
+              radarCtx.drawImage(tileImg, drawX, drawY, 256, 256);
+            }
+          }
+        }
 
         const toLocalPx = (wx, wz) => [
           (wz - focusCar.z) * pxPerMeter,
           -(wx - focusCar.x) * pxPerMeter
         ];
 
-        // Draw nearby SF streets from sf_streets.json
-        for (const st of decodedStreets) {
-          if (
-            st.maxX < focusCar.x - radiusMeters ||
-            st.minX > focusCar.x + radiusMeters ||
-            st.maxZ < focusCar.z - radiusMeters ||
-            st.minZ > focusCar.z + radiusMeters
-          ) continue;
-
-          radarCtx.strokeStyle = st.roadClass <= 3 ? '#3b5870' : '#263c4f';
-          radarCtx.lineWidth = Math.max(2.5, st.width * pxPerMeter);
-          radarCtx.lineCap = 'round';
-          radarCtx.beginPath();
-          st.points.forEach(([x, z], i) => {
-            const [lx, ly] = toLocalPx(x, z);
-            if (i === 0) radarCtx.moveTo(lx, ly);
-            else radarCtx.lineTo(lx, ly);
-          });
-          radarCtx.stroke();
-        }
-
-        // Draw Glowing Neon Pink GPS Route on Radar
+        // 2. Draw Glowing Google Maps Blue + Vice City Neon Pink GPS Route on Radar
         if (!isFreeRoamMode && activeRoutePoints.length >= 2) {
+          radarCtx.lineCap = 'round';
+          radarCtx.lineJoin = 'round';
           radarCtx.strokeStyle = '#ff2a85';
-          radarCtx.lineWidth = 4.5;
+          radarCtx.lineWidth = 7;
           radarCtx.beginPath();
           activeRoutePoints.forEach(([x, , z], i) => {
             const [lx, ly] = toLocalPx(x, z);
@@ -2162,9 +2253,13 @@
             else radarCtx.lineTo(lx, ly);
           });
           radarCtx.stroke();
+
+          radarCtx.strokeStyle = '#1a73e8';
+          radarCtx.lineWidth = 3.5;
+          radarCtx.stroke();
         }
 
-        // Draw Other Car Blip on Radar
+        // 3. Draw Other Car Blip on Radar
         const otherCar = focusCar === carP1 ? carP2 : carP1;
         const [ox, oy] = toLocalPx(otherCar.x, otherCar.z);
         radarCtx.fillStyle = focusCar === carP1 ? '#00f0ff' : '#ff2a85';
@@ -2177,7 +2272,7 @@
 
         radarCtx.restore();
 
-        // Center Player Arrow (Always pointing UP in rotating Vice City radar)
+        // Center Player Arrow
         radarCtx.save();
         radarCtx.translate(cx, cy);
         radarCtx.fillStyle = focusCar === carP1 ? '#ff2a85' : '#00f0ff';
@@ -2193,7 +2288,7 @@
         radarCtx.stroke();
         radarCtx.restore();
 
-        // Clamp Finish Flag Blip to Radar Edge (Classic Vice City objective icon)
+        // Clamp Finish Flag Blip to Radar Edge
         if (!isFreeRoamMode && activeRoutePoints.length > 0) {
           const [fx, , fz] = activeRoutePoints[activeRoutePoints.length - 1];
           const dx = (fz - focusCar.z) * pxPerMeter;
@@ -2206,11 +2301,11 @@
           const bx = cx + (distPx > maxR ? (rx / distPx) * maxR : rx);
           const by = cy + (distPx > maxR ? (ry / distPx) * maxR : ry);
 
-          radarCtx.fillStyle = '#ffd166';
-          radarCtx.strokeStyle = '#080c16';
+          radarCtx.fillStyle = '#ff2a85';
+          radarCtx.strokeStyle = '#ffffff';
           radarCtx.lineWidth = 2;
           radarCtx.beginPath();
-          radarCtx.rect(bx - 5, by - 5, 10, 10);
+          radarCtx.arc(bx, by, 6, 0, Math.PI * 2);
           radarCtx.fill();
           radarCtx.stroke();
         }

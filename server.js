@@ -137,6 +137,104 @@ app.get('/api/z20-region/:region', async (req, res) => {
   }
 });
 
+// GET /api/gmap-tile/:lyrs/:z/:x/:y -> Local caching proxy for real Google Maps Tiles (Road=m, Hybrid=y, Sat=s, Terrain=p)
+app.get('/api/gmap-tile/:lyrs/:z/:x/:y', async (req, res) => {
+  const lyrs = ['m', 'y', 's', 'p'].includes(req.params.lyrs) ? req.params.lyrs : 'm';
+  const z = parseInt(req.params.z, 10);
+  const x = parseInt(req.params.x, 10);
+  const y = parseInt(req.params.y, 10);
+  if (!Number.isFinite(z) || !Number.isFinite(x) || !Number.isFinite(y)) {
+    return res.status(400).end();
+  }
+
+  const gmapDir = path.join(__dirname, 'public', 'gmap_tiles');
+  fs.mkdirSync(gmapDir, { recursive: true });
+  const ext = lyrs === 'm' || lyrs === 'p' ? 'png' : 'jpg';
+  const cacheFile = path.join(gmapDir, `gmap_${lyrs}_${z}_${x}_${y}.${ext}`);
+
+  if (fs.existsSync(cacheFile) && fs.statSync(cacheFile).size > 200) {
+    res.setHeader('Content-Type', ext === 'png' ? 'image/png' : 'image/jpeg');
+    return res.sendFile(cacheFile);
+  }
+
+  const sub = (x + y) % 4;
+  const gUrl = `https://mt${sub}.google.com/vt/lyrs=${lyrs}&x=${x}&y=${y}&z=${z}&hl=en`;
+  try {
+    const upstream = await fetch(gUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+      }
+    });
+    if (!upstream.ok) return res.status(upstream.status).end();
+    const buf = Buffer.from(await upstream.arrayBuffer());
+    fs.writeFileSync(cacheFile, buf);
+    res.setHeader('Content-Type', ext === 'png' ? 'image/png' : 'image/jpeg');
+    return res.send(buf);
+  } catch (err) {
+    return res.status(502).end();
+  }
+});
+
+// GET /api/gmap-route -> Real turn-by-turn San Francisco driving route
+app.get('/api/gmap-route', async (req, res) => {
+  const { startLat, startLon, endLat, endLon } = req.query;
+  if (!startLat || !startLon || !endLat || !endLon) {
+    return res.status(400).json({ ok: false });
+  }
+  const osrmUrl =
+    `https://router.project-osrm.org/route/v1/driving/${Number(startLon)},${Number(startLat)};${Number(endLon)},${Number(endLat)}` +
+    `?overview=full&geometries=geojson&steps=true`;
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 3200);
+    const r = await fetch(osrmUrl, { signal: controller.signal });
+    clearTimeout(timer);
+    if (!r.ok) return res.json({ ok: false });
+    const data = await r.json();
+    const route = data?.routes?.[0];
+    if (!route || !route.geometry?.coordinates?.length) {
+      return res.json({ ok: false });
+    }
+    const steps = (route.legs?.[0]?.steps || [])
+      .map(s => s.name)
+      .filter((n, idx, arr) => n && n !== arr[idx - 1]);
+    return res.json({
+      ok: true,
+      distanceMeters: route.distance,
+      durationSeconds: route.duration,
+      streets: steps.slice(0, 8),
+      coordinates: route.geometry.coordinates // [[lon, lat], ...]
+    });
+  } catch (e) {
+    return res.json({ ok: false });
+  }
+});
+
+// GET /api/gmap-search -> Real San Francisco address / street / POI search
+app.get('/api/gmap-search', async (req, res) => {
+  const q = String(req.query.q || '').trim();
+  if (!q) return res.json({ results: [] });
+  const nomUrl =
+    `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q + ', San Francisco, CA')}` +
+    `&viewbox=-122.52,37.84,-122.35,37.70&bounded=1&limit=6`;
+  try {
+    const r = await fetch(nomUrl, {
+      headers: { 'User-Agent': 'ViceCitySanFrancisco/1.0' }
+    });
+    if (!r.ok) return res.json({ results: [] });
+    const items = await r.json();
+    return res.json({
+      results: items.map(it => ({
+        name: (it.display_name || '').split(',').slice(0, 2).join(', '),
+        lat: Number(it.lat),
+        lon: Number(it.lon)
+      }))
+    });
+  } catch (e) {
+    return res.json({ results: [] });
+  }
+});
+
 // GET /sat_tiles/:z/:y/:x -> Local caching proxy for Esri World Imagery satellite ground tiles
 app.get('/sat_tiles/:z/:y/:x', async (req, res) => {
   const { z, y, x } = req.params;
