@@ -681,14 +681,26 @@
         <button class="vc-btn" id="btn-p2-ai" onclick="window.toggleP2AiRival()">
           🤖 P2 AI RIVAL: OFF
         </button>
+        <button class="vc-btn active-cyan" id="btn-time-mode" onclick="window.cycleTimeMood()">
+          🌅 MOOD: VICE SUNSET
+        </button>
+        <button class="vc-btn active-pink" id="btn-argon-enhance" onclick="window.runArgonCityEnhance()">
+          ✨ ARGON HD ENHANCE
+        </button>
         <button class="vc-btn" onclick="window.restartCurrentRace()">
-          🏁 RESTART RACE
+          🏁 RESTART
         </button>
         <button class="vc-btn" onclick="window.toggleQrDrawer()">
-          📱 PHONE QR
+          📱 QR
         </button>
       </div>
     </header>
+
+    <!-- Gemini 4 Argon Live City Visual Critique & Shader Enhancement Toast -->
+    <div id="argon-enhance-toast" style="position:absolute; top:74px; left:50%; transform:translateX(-50%); z-index:25; background:rgba(8,12,22,0.92); border:1.5px solid #ffd166; border-radius:12px; padding:8px 16px; font-size:11.5px; color:#f8fafc; box-shadow:0 10px 30px rgba(0,0,0,0.55); backdrop-filter:blur(12px); display:none; max-width:780px; text-align:center;">
+      <strong style="color:#ffd166;">✨ GEMINI 4 ARGON CITY ARCHITECT:</strong>
+      <span id="argon-toast-text">16x Anisotropic Filtering + Z20 Street Photogrammetry + Road De-Melting Active.</span>
+    </div>
 
     <!-- 2-Player Split Screen Divider -->
     <div id="split-divider"></div>
@@ -1046,12 +1058,213 @@
 
       const tilesGroup = new THREE.Group();
       const routeVisualGroup = new THREE.Group();
+      const propsGroup = new THREE.Group();
+      const trafficGroup = new THREE.Group();
       const fxGroup = new THREE.Group();
-      scene.add(tilesGroup, routeVisualGroup, fxGroup);
+      scene.add(tilesGroup, routeVisualGroup, propsGroup, trafficGroup, fxGroup);
 
       // =======================================================================
-      // 2. DYNAMIC CITY-WIDE 3D SF PHOTOGRAMMETRY TILE STREAMER (Z16 + Z17)
+      // 2. ARGON GLSL PHOTOGRAMMETRY SHADER + Z16/Z17/Z20 DYNAMIC STREAMER
       // =======================================================================
+      const maxAnisotropy = renderer.capabilities.getMaxAnisotropy() || 16;
+      const argonShaderUniforms = {
+        uContrast: { value: 1.15 },
+        uSaturation: { value: 1.38 },
+        uShadowLift: { value: 0.16 },
+        uWindowGlow: { value: 0.65 },
+        uNightFactor: { value: 0.35 }
+      };
+
+      let currentTimeMood = 'sunset'; // 'day', 'sunset', 'night'
+
+      function applyTimeMoodAtmosphere(mood) {
+        currentTimeMood = mood;
+        const btn = document.getElementById('btn-time-mode');
+        if (mood === 'day') {
+          if (btn) btn.textContent = '☀️ MOOD: SF DAY';
+          scene.background.setHex(0x83bddc);
+          scene.fog.color.setHex(0xc2dce8);
+          sunVec.setFromSphericalCoords(1, THREE.MathUtils.degToRad(90 - 44), THREE.MathUtils.degToRad(135));
+          sky.material.uniforms['sunPosition'].value.copy(sunVec);
+          hemiLight.color.setHex(0xeaf6ff);
+          hemiLight.groundColor.setHex(0x3d4939);
+          hemiLight.intensity = 1.35;
+          sunLight.color.setHex(0xfff5e0);
+          sunLight.intensity = 1.32;
+          argonShaderUniforms.uNightFactor.value = 0.0;
+          argonShaderUniforms.uWindowGlow.value = 0.25;
+        } else if (mood === 'sunset') {
+          if (btn) btn.textContent = '🌅 MOOD: VICE SUNSET';
+          scene.background.setHex(0xd97b93);
+          scene.fog.color.setHex(0xe09891);
+          sunVec.setFromSphericalCoords(1, THREE.MathUtils.degToRad(90 - 11), THREE.MathUtils.degToRad(240));
+          sky.material.uniforms['sunPosition'].value.copy(sunVec);
+          hemiLight.color.setHex(0xffb5d0);
+          hemiLight.groundColor.setHex(0x2b1e38);
+          hemiLight.intensity = 1.18;
+          sunLight.color.setHex(0xff9e44);
+          sunLight.intensity = 1.45;
+          argonShaderUniforms.uNightFactor.value = 0.42;
+          argonShaderUniforms.uWindowGlow.value = 0.78;
+        } else {
+          if (btn) btn.textContent = '🌃 MOOD: NEON NIGHT';
+          scene.background.setHex(0x091124);
+          scene.fog.color.setHex(0x101b36);
+          sunVec.setFromSphericalCoords(1, THREE.MathUtils.degToRad(90 - 2), THREE.MathUtils.degToRad(250));
+          sky.material.uniforms['sunPosition'].value.copy(sunVec);
+          hemiLight.color.setHex(0x38bdf8);
+          hemiLight.groundColor.setHex(0x140b29);
+          hemiLight.intensity = 0.75;
+          sunLight.color.setHex(0xff2a85);
+          sunLight.intensity = 0.65;
+          argonShaderUniforms.uNightFactor.value = 1.0;
+          argonShaderUniforms.uWindowGlow.value = 1.35;
+        }
+      }
+
+      window.cycleTimeMood = function () {
+        const order = ['sunset', 'night', 'day'];
+        const next = order[(order.indexOf(currentTimeMood) + 1) % order.length];
+        applyTimeMoodAtmosphere(next);
+      };
+
+      // Upgrades every photogrammetry tile mesh with 16x Anisotropic Filtering + Argon GLSL De-Lighting & Window Neon Shader
+      function enhancePhotogrammetryTileMesh(rootMesh) {
+        rootMesh.traverse((node) => {
+          if (!node.isMesh || !node.material) return;
+          const mats = Array.isArray(node.material) ? node.material : [node.material];
+          mats.forEach((mat) => {
+            mat.side = THREE.DoubleSide;
+            if (mat.map) {
+              mat.map.anisotropy = maxAnisotropy;
+              mat.map.needsUpdate = true;
+            }
+            if (!mat.userData.argonShaderApplied) {
+              mat.userData.argonShaderApplied = true;
+              mat.onBeforeCompile = (shader) => {
+                shader.uniforms.uContrast = argonShaderUniforms.uContrast;
+                shader.uniforms.uSaturation = argonShaderUniforms.uSaturation;
+                shader.uniforms.uShadowLift = argonShaderUniforms.uShadowLift;
+                shader.uniforms.uWindowGlow = argonShaderUniforms.uWindowGlow;
+                shader.uniforms.uNightFactor = argonShaderUniforms.uNightFactor;
+
+                shader.fragmentShader =
+                  `uniform float uContrast;\n` +
+                  `uniform float uSaturation;\n` +
+                  `uniform float uShadowLift;\n` +
+                  `uniform float uWindowGlow;\n` +
+                  `uniform float uNightFactor;\n` +
+                  shader.fragmentShader.replace(
+                    '#include <dithering_fragment>',
+                    `
+                    // 1. Lift crushed aerial photogrammetry shadows
+                    float luma = dot(gl_FragColor.rgb, vec3(0.299, 0.587, 0.114));
+                    float shadowMask = clamp(1.0 - luma * 2.4, 0.0, 1.0);
+                    gl_FragColor.rgb += shadowMask * uShadowLift * vec3(0.88, 0.93, 1.0);
+
+                    // 2. Micro-contrast & saturation boost
+                    gl_FragColor.rgb = clamp((gl_FragColor.rgb - 0.5) * uContrast + 0.5, 0.0, 1.0);
+                    float newLuma = dot(gl_FragColor.rgb, vec3(0.299, 0.587, 0.114));
+                    gl_FragColor.rgb = clamp(mix(vec3(newLuma), gl_FragColor.rgb, uSaturation), 0.0, 1.0);
+
+                    // 3. Smart Skyscraper Window Specular / Vice City Neon Emissive Extraction
+                    float darkGlass = smoothstep(0.24, 0.06, luma);
+                    vec3 viceGlow = mix(vec3(1.0, 0.72, 0.38), vec3(0.0, 0.94, 1.0), step(0.5, fract(gl_FragCoord.x * 0.013 + gl_FragCoord.y * 0.017)));
+                    gl_FragColor.rgb += darkGlass * uWindowGlow * uNightFactor * viceGlow * 0.55;
+                    #include <dithering_fragment>
+                    `
+                  );
+              };
+              mat.needsUpdate = true;
+            }
+          });
+        });
+      }
+
+      // Argon Photogrammetry "De-Melting": Depresses lumpy parked-car blobs inside the active street corridor
+      function deMeltPhotogrammetryRoadVertices(rootMesh) {
+        if (!activeRoutePoints.length || isFreeRoamMode) return;
+        rootMesh.traverse((node) => {
+          if (!node.isMesh || !node.geometry?.attributes?.position) return;
+          const pos = node.geometry.attributes.position;
+          const arr = pos.array;
+          let modified = false;
+
+          for (let i = 0; i < arr.length; i += 3) {
+            const vx = arr[i] + node.position.x;
+            const vy = arr[i + 1] + node.position.y;
+            const vz = arr[i + 2] + node.position.z;
+
+            // Check if vertex is inside our drivable road corridor
+            for (let r = 0; r < activeRoutePoints.length; r += 2) {
+              const [rx, ry, rz] = activeRoutePoints[r];
+              if (Math.abs(vx - rx) < 8.2 && Math.abs(vz - rz) < 8.2) {
+                const dy = vy - ry;
+                // Melted photogrammetry cars/bushes sit 0.1m to 3.8m above the road plane
+                if (dy > -0.05 && dy < 3.8) {
+                  arr[i + 1] = (ry - 0.22) - node.position.y;
+                  modified = true;
+                }
+                break;
+              }
+            }
+          }
+          if (modified) {
+            pos.needsUpdate = true;
+          }
+        });
+      }
+
+      // Live Multimodal Gemini 4 Argon City Enhancer
+      window.runArgonCityEnhance = async function () {
+        const btn = document.getElementById('btn-argon-enhance');
+        const toast = document.getElementById('argon-enhance-toast');
+        const toastText = document.getElementById('argon-toast-text');
+        const origLabel = btn.textContent;
+        btn.textContent = '⚙️ ARGON AUDITING 3D SF...';
+        toast.style.display = 'block';
+        toastText.textContent = `Capturing live 3D street frame at ${selectedStart.name.split('/')[0]} & querying gemini-4-argon...`;
+
+        let imageBase64 = '';
+        try {
+          imageBase64 = canvas.toDataURL('image/jpeg', 0.65);
+        } catch (e) {}
+
+        let z20Count = 0;
+        for (const rec of loadedTiles.values()) {
+          if (rec.zoom === 20) z20Count++;
+        }
+
+        try {
+          const res = await fetch('/api/argon-enhance', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              imageBase64,
+              locationName: `${selectedStart.name.split('/')[0]} → ${selectedFinish.name.split('/')[0]}`,
+              timeMode: currentTimeMood,
+              z20Loaded: z20Count
+            })
+          });
+          const data = await res.json();
+          if (data.contrast) argonShaderUniforms.uContrast.value = Number(data.contrast);
+          if (data.saturation) argonShaderUniforms.uSaturation.value = Number(data.saturation);
+          if (data.shadowLift) argonShaderUniforms.uShadowLift.value = Number(data.shadowLift);
+          if (data.windowGlow) argonShaderUniforms.uWindowGlow.value = Number(data.windowGlow);
+
+          // Re-run road vertex de-melting across all loaded tiles
+          for (const rec of loadedTiles.values()) {
+            if (rec.mesh) deMeltPhotogrammetryRoadVertices(rec.mesh);
+          }
+
+          toastText.textContent = data.critique || 'Argon HD Photogrammetry & Shader Boost Applied!';
+        } catch (err) {
+          toastText.textContent = 'Argon HD Photogrammetry Shader & Road De-Melting Active!';
+        }
+
+        btn.textContent = origLabel;
+      };
+
       const dracoLoader = new DRACOLoader();
       dracoLoader.setDecoderPath('/draco/');
       const gltfLoader = new GLTFLoader();
@@ -1059,6 +1272,8 @@
       MeshoptDecoder.ready.then(() => gltfLoader.setMeshoptDecoder(MeshoptDecoder));
 
       let allTilesIndex = { z16: [], z17: [] };
+      const z20RegionCache = new Map(); // regionKey -> [[key, cx, cz, h], ...]
+      const z20RegionsFetching = new Set();
       const loadedTiles = new Map(); // key -> { mesh, cx, cz, minY, maxY, zoom }
       const loadingKeys = new Set();
       let activeDownloads = 0;
@@ -1071,6 +1286,28 @@
           updateDynamicTileStreaming(true);
         })
         .catch(() => {});
+
+      function ensureZ20RegionForPoint(x, z) {
+        const tx20 = 167671 + Math.round(z / 30.2463);
+        const ty20 = 405291 - Math.round(x / 30.1195);
+        const regionKey = `${Math.floor(tx20 / 32)}-${Math.floor(ty20 / 32)}`;
+        if (z20RegionCache.has(regionKey) || z20RegionsFetching.has(regionKey)) {
+          return z20RegionCache.get(regionKey) || [];
+        }
+        z20RegionsFetching.add(regionKey);
+        fetch(`/api/z20-region/${regionKey}`)
+          .then(r => r.json())
+          .then(data => {
+            z20RegionCache.set(regionKey, data.tiles || []);
+          })
+          .catch(() => {
+            z20RegionCache.set(regionKey, []);
+          })
+          .finally(() => {
+            z20RegionsFetching.delete(regionKey);
+          });
+        return [];
+      }
 
       function estimateBaseElevation(x, z) {
         let bestD = Infinity;
@@ -1123,7 +1360,18 @@
         ];
 
         const desired = [];
-        // High-detail Z17 tiles within 450m of active players
+        // 0. Ultra-High-Res Z20 Street-Level Photogrammetry Tiles within 95m of active cars!
+        for (const p of focusPoints) {
+          const z20List = ensureZ20RegionForPoint(p.x, p.z);
+          for (const t of z20List) {
+            const [key, cx, cz] = t;
+            const d = Math.hypot(cx - p.x, cz - p.z);
+            if (d < 95) {
+              desired.push({ key, cx, cz, minY: -39, maxY: 60, zoom: 20, dist: d - 40 });
+            }
+          }
+        }
+        // 1. High-detail Z17 tiles within 450m of active players
         for (const t of allTilesIndex.z17) {
           const [key, cx, cz, minY, maxY] = t;
           const d = Math.min(...focusPoints.map(p => Math.hypot(cx - p.x, cz - p.z)));
@@ -1131,7 +1379,7 @@
             desired.push({ key, cx, cz, minY, maxY, zoom: 17, dist: d });
           }
         }
-        // Medium-detail Z16 background skyline tiles within 950m
+        // 2. Medium-detail Z16 background skyline tiles within 950m
         for (const t of allTilesIndex.z16) {
           const [key, cx, cz, minY, maxY] = t;
           const d = Math.min(...focusPoints.map(p => Math.hypot(cx - p.x, cz - p.z)));
@@ -1143,10 +1391,10 @@
         desired.sort((a, b) => a.dist - b.dist);
 
         // Evict very distant tiles (>1400m) to keep GPU memory fast
-        if (loadedTiles.size > 55) {
+        if (loadedTiles.size > 75) {
           for (const [k, rec] of loadedTiles.entries()) {
             const d = Math.min(...focusPoints.map(p => Math.hypot(rec.cx - p.x, rec.cz - p.z)));
-            if (d > 1400) {
+            if (d > (rec.zoom === 20 ? 320 : 1400)) {
               tilesGroup.remove(rec.mesh);
               loadedTiles.delete(k);
             }
@@ -1167,16 +1415,15 @@
               activeDownloads--;
               loadingKeys.delete(item.key);
               const mesh = gltf.scene;
-              mesh.traverse(node => {
-                if (node.isMesh && node.material) {
-                  node.material.side = THREE.DoubleSide;
-                }
-              });
+              enhancePhotogrammetryTileMesh(mesh);
+              deMeltPhotogrammetryRoadVertices(mesh);
               tilesGroup.add(mesh);
               loadedTiles.set(item.key, { ...item, mesh });
               const badge = document.getElementById('tile-stream-badge');
               if (badge) {
-                badge.textContent = `SF 3D TILES ONLINE (${loadedTiles.size})`;
+                let z20Cnt = 0;
+                for (const r of loadedTiles.values()) if (r.zoom === 20) z20Cnt++;
+                badge.textContent = `SF HD TILES (${loadedTiles.size} • ${z20Cnt} Z20)`;
               }
             },
             undefined,
@@ -1523,6 +1770,54 @@
 
         arch.add(leftPillar, rightPillar, topBeam, corona);
         routeVisualGroup.add(arch);
+
+        // Spawn Crisp 3D San Francisco Palm Trees & Vice City Neon Streetlamps along the curbs
+        while (propsGroup.children.length > 0) propsGroup.remove(propsGroup.children[0]);
+        const trunkMat = new THREE.MeshStandardMaterial({ color: 0x6b4f35, roughness: 0.9 });
+        const frondMat = new THREE.MeshStandardMaterial({ color: 0x2d6a4f, roughness: 0.65 });
+        const poleMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.8, roughness: 0.3 });
+        const lampPinkMat = new THREE.MeshBasicMaterial({ color: 0xff2a85 });
+        const lampCyanMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
+
+        for (let i = 2; i < activeRoutePoints.length - 2; i += 3) {
+          const [x, y, z] = activeRoutePoints[i];
+          const [nxPt, , nzPt] = activeRoutePoints[i + 1];
+          const dx = nxPt - x, dz = nzPt - z;
+          const len = Math.hypot(dx, dz) || 1;
+          const rx = -dz / len, rz = dx / len;
+
+          [-8.8, 8.8].forEach((offset, sideIdx) => {
+            const px = x + rx * offset;
+            const pz = z + rz * offset;
+
+            if (i % 6 === 0) {
+              // Canary Island Date Palm
+              const palm = new THREE.Group();
+              palm.position.set(px, y + 0.3, pz);
+              const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.38, 7.5, 7), trunkMat);
+              trunk.position.y = 3.75;
+              palm.add(trunk);
+              const crown = new THREE.Mesh(new THREE.DodecahedronGeometry(2.1, 1), frondMat);
+              crown.scale.set(1.35, 0.6, 1.35);
+              crown.position.y = 7.6;
+              palm.add(crown);
+              propsGroup.add(palm);
+            } else {
+              // Glowing Vice City Streetlamp
+              const lamp = new THREE.Group();
+              lamp.position.set(px, y + 0.3, pz);
+              const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.14, 7.2, 6), poleMat);
+              pole.position.y = 3.6;
+              const bulb = new THREE.Mesh(
+                new THREE.SphereGeometry(0.38, 8, 8),
+                sideIdx === 0 ? lampPinkMat : lampCyanMat
+              );
+              bulb.position.set(0, 7.3, 0);
+              lamp.add(pole, bulb);
+              propsGroup.add(lamp);
+            }
+          });
+        }
       }
 
       // Periodically refine road ribbon elevations as high-res Z17 photogrammetry tiles stream in
@@ -2199,10 +2494,22 @@
 
         car.y = THREE.MathUtils.lerp(car.y, targetY, 0.22);
 
+        // Argon Hill-Spline Pitching: tilt Ferrari nose smoothly up/down San Francisco hills
+        let targetPitch = 0;
+        if (!isFreeRoamMode && activeRoutePoints.length >= 2 && activeRoutePoints[nearestIdx]) {
+          const nextR = activeRoutePoints[Math.min(activeRoutePoints.length - 1, nearestIdx + 1)];
+          const prevR = activeRoutePoints[Math.max(0, nearestIdx - 1)];
+          const segDist = Math.hypot(nextR[0] - prevR[0], nextR[2] - prevR[2]) || 14;
+          const slopeAngle = Math.atan2(nextR[1] - prevR[1], segDist);
+          targetPitch = THREE.MathUtils.clamp(-slopeAngle, -0.32, 0.32);
+        }
+        car.pitch = THREE.MathUtils.lerp(car.pitch || 0, targetPitch, 0.18);
+
         // Spin wheels & steer front wheels
         car.wheels.forEach(w => { w.rotation.x -= car.speed * dt * 1.4; });
         car.steerWheels.forEach(w => { w.rotation.y = car.steer * 0.42; });
         car.modelHolder.rotation.z = -car.steer * Math.min(1, Math.abs(car.speed) / 20) * 0.045;
+        car.modelHolder.rotation.x = car.pitch;
 
         // Drift / Launch Tire Smoke
         if (Math.abs(car.speed) > 10 && (ctrl.drift || Math.abs(car.steer) > 0.65)) {
