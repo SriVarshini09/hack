@@ -681,6 +681,9 @@
         <button class="vc-btn" id="btn-p2-ai" onclick="window.toggleP2AiRival()">
           🤖 P2 AI RIVAL: OFF
         </button>
+        <button class="vc-btn active-cyan" id="btn-cursor-look" onclick="window.cycleCursorLookMode()">
+          🎥 CURSOR LOOK: FREE
+        </button>
         <button class="vc-btn active-cyan" id="btn-time-mode" onclick="window.cycleTimeMood()">
           🌅 MOOD: VICE SUNSET
         </button>
@@ -734,7 +737,7 @@
         <div class="nitro-bar-fill" id="p1-nitro-bar"></div>
       </div>
       <div class="hud-sub-line" id="p1-dist">FINISH: 1200m</div>
-      <div class="hud-key-hint">WASD Drive • SPACE Drift • SHIFT Nitro • R Reset Road</div>
+      <div class="hud-key-hint">WASD Drive • Move Cursor Look/Tilt • Scroll Zoom • R Reset</div>
     </div>
 
     <!-- Player 2 Vice City Speedometer -->
@@ -2328,8 +2331,123 @@
       };
 
       // =======================================================================
-      // 7. RESPONSIVE ARCADE CAR CONTROLS & HANDLING PHYSICS
+      // 7. RESPONSIVE ARCADE CAR CONTROLS, CURSOR LOOK/TILT & HANDLING PHYSICS
       // =======================================================================
+      let cursorLookMode = 'free'; // 'free' (hover moves cam), 'drag' (drag moves cam), 'off'
+      let camYawOffsetP1 = 0, camPitchOffsetP1 = 0;
+      let camYawOffsetP2 = 0, camPitchOffsetP2 = 0;
+      let targetYawOffsetP1 = 0, targetPitchOffsetP1 = 0;
+      let targetYawOffsetP2 = 0, targetPitchOffsetP2 = 0;
+      let camZoomScale = 1.0;
+      let isMouseDragging = false;
+      let lastMouseX = 0, lastMouseY = 0;
+
+      window.cycleCursorLookMode = function () {
+        const modes = ['free', 'drag', 'off'];
+        cursorLookMode = modes[(modes.indexOf(cursorLookMode) + 1) % modes.length];
+        const btn = document.getElementById('btn-cursor-look');
+        if (cursorLookMode === 'free') {
+          btn.textContent = '🎥 CURSOR LOOK: FREE';
+          btn.className = 'vc-btn active-cyan';
+        } else if (cursorLookMode === 'drag') {
+          btn.textContent = '🎥 CURSOR LOOK: DRAG';
+          btn.className = 'vc-btn active-pink';
+        } else {
+          btn.textContent = '🎥 CURSOR LOOK: OFF';
+          btn.className = 'vc-btn';
+          targetYawOffsetP1 = 0; targetPitchOffsetP1 = 0;
+          targetYawOffsetP2 = 0; targetPitchOffsetP2 = 0;
+        }
+      };
+
+      canvas.addEventListener('mousedown', (e) => {
+        if (e.button === 2) {
+          // Right-click recenters camera behind car
+          targetYawOffsetP1 = 0; targetPitchOffsetP1 = 0;
+          targetYawOffsetP2 = 0; targetPitchOffsetP2 = 0;
+          return;
+        }
+        isMouseDragging = true;
+        lastMouseX = e.clientX;
+        lastMouseY = e.clientY;
+      });
+
+      window.addEventListener('mouseup', () => {
+        isMouseDragging = false;
+      });
+
+      canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+
+      window.addEventListener('mousemove', (e) => {
+        const mapModal = document.getElementById('sf-map-modal');
+        if (mapModal && mapModal.style.display !== 'none') return;
+        if (cursorLookMode === 'off') return;
+
+        const W = window.innerWidth, H = window.innerHeight;
+
+        if (isMouseDragging || cursorLookMode === 'drag') {
+          if (!isMouseDragging) return;
+          const dx = e.clientX - lastMouseX;
+          const dy = e.clientY - lastMouseY;
+          lastMouseX = e.clientX;
+          lastMouseY = e.clientY;
+
+          // Full 360 horizontal orbit + vertical tilt when dragging
+          if (viewMode === '2p_split' && e.clientX > W / 2) {
+            targetYawOffsetP2 -= dx * 0.0075;
+            targetPitchOffsetP2 = THREE.MathUtils.clamp(targetPitchOffsetP2 + dy * 0.006, -0.45, 1.15);
+          } else if (viewMode === '1p_p2') {
+            targetYawOffsetP2 -= dx * 0.0075;
+            targetPitchOffsetP2 = THREE.MathUtils.clamp(targetPitchOffsetP2 + dy * 0.006, -0.45, 1.15);
+          } else {
+            targetYawOffsetP1 -= dx * 0.0075;
+            targetPitchOffsetP1 = THREE.MathUtils.clamp(targetPitchOffsetP1 + dy * 0.006, -0.45, 1.15);
+          }
+          return;
+        }
+
+        // Free Cursor Hover Look & Tilt: moving cursor anywhere tilts & pans camera smoothly!
+        if (viewMode === '2p_split') {
+          const isRightHalf = e.clientX >= W / 2;
+          const localNx = isRightHalf
+            ? ((e.clientX - W / 2) / (W / 2)) * 2 - 1
+            : (e.clientX / (W / 2)) * 2 - 1;
+          const ny = (e.clientY / H) * 2 - 1;
+
+          // Deadzone in very center so straight driving is effortless
+          const deadX = Math.abs(localNx) < 0.08 ? 0 : localNx;
+          const deadY = Math.abs(ny) < 0.08 ? 0 : ny;
+
+          if (isRightHalf) {
+            targetYawOffsetP2 = -deadX * 1.65; // Look left/right up to ~95 deg
+            targetPitchOffsetP2 = THREE.MathUtils.clamp(deadY * 0.65, -0.38, 0.85);
+          } else {
+            targetYawOffsetP1 = -deadX * 1.65;
+            targetPitchOffsetP1 = THREE.MathUtils.clamp(deadY * 0.65, -0.38, 0.85);
+          }
+        } else {
+          const nx = (e.clientX / W) * 2 - 1;
+          const ny = (e.clientY / H) * 2 - 1;
+          const deadX = Math.abs(nx) < 0.08 ? 0 : nx;
+          const deadY = Math.abs(ny) < 0.08 ? 0 : ny;
+
+          const yawVal = -deadX * 2.1; // Pan up to ~120 deg left/right by moving cursor
+          const pitchVal = THREE.MathUtils.clamp(deadY * 0.72, -0.42, 0.92);
+          if (viewMode === '1p_p2') {
+            targetYawOffsetP2 = yawVal;
+            targetPitchOffsetP2 = pitchVal;
+          } else {
+            targetYawOffsetP1 = yawVal;
+            targetPitchOffsetP1 = pitchVal;
+          }
+        }
+      });
+
+      canvas.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        camZoomScale = THREE.MathUtils.clamp(camZoomScale + e.deltaY * 0.001, 0.5, 2.5);
+      }, { passive: false });
+
       const keys = {};
       window.addEventListener('keydown', (e) => {
         keys[e.code] = true;
@@ -2337,6 +2455,11 @@
           window.toggleFullSFMap();
         } else if (e.code === 'KeyC') {
           cameraPreset = (cameraPreset + 1) % 3;
+        } else if (e.code === 'KeyV') {
+          // Recenter cursor camera look
+          targetYawOffsetP1 = 0; targetPitchOffsetP1 = 0;
+          targetYawOffsetP2 = 0; targetPitchOffsetP2 = 0;
+          camZoomScale = 1.0;
         } else if (e.code === 'KeyR') {
           resetCarToNearestRoad(carP1);
           if (viewMode === '1p_p2') resetCarToNearestRoad(carP2);
@@ -2553,25 +2676,46 @@
         );
       }
 
-      function updateCarAndCamera(car, cam) {
+      function updateCarAndCamera(car, cam, isP2 = false) {
         car.group.position.set(car.x, car.y, car.z);
         car.group.rotation.y = car.rotationY;
 
         if (!cam) return;
-        const behindDist = cameraPreset === 0 ? 9.2 : (cameraPreset === 1 ? 13.5 : -0.8);
-        const camHeight = cameraPreset === 0 ? 3.3 : (cameraPreset === 1 ? 4.8 : 1.45);
-        const tx = car.x + Math.sin(car.rotationY) * behindDist;
-        const ty = car.y + camHeight;
-        const tz = car.z + Math.cos(car.rotationY) * behindDist;
 
-        cam.position.x += (tx - cam.position.x) * 0.22;
-        cam.position.y += (ty - cam.position.y) * 0.22;
-        cam.position.z += (tz - cam.position.z) * 0.22;
+        // Smoothly interpolate cursor yaw & pitch offsets
+        if (isP2) {
+          camYawOffsetP2 = THREE.MathUtils.lerp(camYawOffsetP2, targetYawOffsetP2, 0.14);
+          camPitchOffsetP2 = THREE.MathUtils.lerp(camPitchOffsetP2, targetPitchOffsetP2, 0.14);
+        } else {
+          camYawOffsetP1 = THREE.MathUtils.lerp(camYawOffsetP1, targetYawOffsetP1, 0.14);
+          camPitchOffsetP1 = THREE.MathUtils.lerp(camPitchOffsetP1, targetPitchOffsetP1, 0.14);
+        }
 
+        const yawOff = isP2 ? camYawOffsetP2 : camYawOffsetP1;
+        const pitchOff = isP2 ? camPitchOffsetP2 : camPitchOffsetP1;
+
+        const baseDist = (cameraPreset === 0 ? 9.2 : (cameraPreset === 1 ? 13.5 : 3.5)) * camZoomScale;
+        const baseHeight = (cameraPreset === 0 ? 3.3 : (cameraPreset === 1 ? 4.8 : 1.7)) * camZoomScale;
+
+        const totalYaw = car.rotationY + yawOff;
+        const horizDist = baseDist * Math.cos(pitchOff * 0.65);
+        const verticalLift = baseHeight + Math.sin(pitchOff) * baseDist * 0.85;
+
+        const tx = car.x + Math.sin(totalYaw) * horizDist;
+        const ty = Math.max(car.y + 0.65, car.y + verticalLift);
+        const tz = car.z + Math.cos(totalYaw) * horizDist;
+
+        cam.position.x += (tx - cam.position.x) * 0.24;
+        cam.position.y += (ty - cam.position.y) * 0.24;
+        cam.position.z += (tz - cam.position.z) * 0.24;
+
+        // Tilt look-at target up/down & around based on cursor position so user can inspect tall SF skyscrapers or street ahead
+        const lookAheadDist = 14;
+        const lookLift = 1.45 - pitchOff * 6.5;
         cam.lookAt(
-          car.x - Math.sin(car.rotationY) * 18,
-          car.y + 1.3,
-          car.z - Math.cos(car.rotationY) * 18
+          car.x - Math.sin(totalYaw) * lookAheadDist,
+          car.y + lookLift,
+          car.z - Math.cos(totalYaw) * lookAheadDist
         );
       }
 
@@ -2623,8 +2767,8 @@
         stepCarPhysics(carP1, p1Ctrl, isBotMode, dt);
         stepCarPhysics(carP2, p2Ctrl, (p2AiEnabled && !p2HasHuman) || isBotMode, dt);
 
-        updateCarAndCamera(carP1, camP1);
-        updateCarAndCamera(carP2, camP2);
+        updateCarAndCamera(carP1, camP1, false);
+        updateCarAndCamera(carP2, camP2, true);
 
         // Update Speedometers & Distance HUD
         const p1Mph = Math.round(Math.abs(carP1.speed) * 2.237);
