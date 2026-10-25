@@ -687,7 +687,7 @@
           🎥 CURSOR LOOK: FREE
         </button>
         <button class="vc-btn active-cyan" id="btn-time-mode" onclick="window.cycleTimeMood()">
-          🌅 MOOD: VICE SUNSET
+          ☀️ MOOD: SF DAY
         </button>
         <button class="vc-btn active-pink" id="btn-argon-enhance" onclick="window.runArgonCityEnhance()">
           ✨ ARGON HD ENHANCE
@@ -1031,12 +1031,12 @@
       // =======================================================================
       const canvas = document.getElementById('webgl-canvas');
       const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2.25));
       renderer.setSize(window.innerWidth, window.innerHeight);
       renderer.setScissorTest(true);
       renderer.outputColorSpace = THREE.SRGBColorSpace;
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 1.02;
+      renderer.toneMappingExposure = 0.98;
 
       const scene = new THREE.Scene();
       scene.background = new THREE.Color(0x83bddc);
@@ -1089,14 +1089,14 @@
       // =======================================================================
       const maxAnisotropy = renderer.capabilities.getMaxAnisotropy() || 16;
       const argonShaderUniforms = {
-        uContrast: { value: 1.15 },
-        uSaturation: { value: 1.38 },
-        uShadowLift: { value: 0.16 },
-        uWindowGlow: { value: 0.65 },
-        uNightFactor: { value: 0.35 }
+        uContrast: { value: 1.07 },
+        uSaturation: { value: 1.14 },
+        uShadowLift: { value: 0.08 },
+        uWindowGlow: { value: 0.22 },
+        uNightFactor: { value: 0.0 }
       };
 
-      let currentTimeMood = 'sunset'; // 'day', 'sunset', 'night'
+      let currentTimeMood = 'day'; // 'day', 'sunset', 'night'
 
       function applyTimeMoodAtmosphere(mood) {
         currentTimeMood = mood;
@@ -1298,7 +1298,55 @@
       const loadedTiles = new Map(); // key -> { mesh, cx, cz, minY, maxY, zoom }
       const loadingKeys = new Set();
       let activeDownloads = 0;
-      const MAX_CONCURRENT_TILE_DOWNLOADS = 6;
+      const MAX_CONCURRENT_TILE_DOWNLOADS = 10;
+
+      // Strict Multi-Zoom LOD Ownership Replacement:
+      // Hides coarse Z16 tiles wherever Z17 is loaded, and hides coarse Z17 tiles right where dense Z20 street-level tiles are ready!
+      function syncMultiZoomTileVisibility() {
+        const z20GroundCenters = [];
+        const z17Centers = [];
+
+        for (const rec of loadedTiles.values()) {
+          if (rec.zoom === 20) {
+            rec.mesh.visible = true;
+            if (rec.key.endsWith('-h0')) {
+              z20GroundCenters.push([rec.cx, rec.cz]);
+            }
+          } else if (rec.zoom === 17) {
+            z17Centers.push([rec.cx, rec.cz]);
+          }
+        }
+
+        for (const rec of loadedTiles.values()) {
+          if (rec.zoom === 17) {
+            // Count how many Z20 15m ground tiles are loaded inside this 121m Z17 tile's core
+            let z20Inside = 0;
+            for (let i = 0; i < z20GroundCenters.length; i++) {
+              if (
+                Math.abs(z20GroundCenters[i][0] - rec.cx) < 62 &&
+                Math.abs(z20GroundCenters[i][1] - rec.cz) < 62
+              ) {
+                z20Inside++;
+                if (z20Inside >= 10) break;
+              }
+            }
+            rec.mesh.visible = z20Inside < 10;
+          } else if (rec.zoom === 16) {
+            // Hide 242m Z16 tile if Z17 tiles cover its area
+            let z17Inside = 0;
+            for (let i = 0; i < z17Centers.length; i++) {
+              if (
+                Math.abs(z17Centers[i][0] - rec.cx) < 130 &&
+                Math.abs(z17Centers[i][1] - rec.cz) < 130
+              ) {
+                z17Inside++;
+                if (z17Inside >= 2) break;
+              }
+            }
+            rec.mesh.visible = z17Inside < 2;
+          }
+        }
+      }
 
       fetch('/sf_tiles/sf_all_tiles.json')
         .then(r => r.json())
@@ -1381,30 +1429,30 @@
         ];
 
         const desired = [];
-        // 0. Ultra-High-Res Z20 Street-Level Photogrammetry Tiles within 95m of active cars!
+        // 0. Ultra-High-Res Z20 Street-Level Photogrammetry Tiles (ALL height layers h0..h11) within 130m of active cars!
         for (const p of focusPoints) {
           const z20List = ensureZ20RegionForPoint(p.x, p.z);
           for (const t of z20List) {
-            const [key, cx, cz] = t;
+            const [key, cx, cz, h] = t;
             const d = Math.hypot(cx - p.x, cz - p.z);
-            if (d < 95) {
-              desired.push({ key, cx, cz, minY: -39, maxY: 60, zoom: 20, dist: d - 40 });
+            if (d < 130) {
+              desired.push({ key, cx, cz, minY: -39, maxY: 80, zoom: 20, dist: d - 60 + (h || 0) * 2 });
             }
           }
         }
-        // 1. High-detail Z17 tiles within 450m of active players
+        // 1. High-detail Z17 tiles within 520m of active players
         for (const t of allTilesIndex.z17) {
           const [key, cx, cz, minY, maxY] = t;
           const d = Math.min(...focusPoints.map(p => Math.hypot(cx - p.x, cz - p.z)));
-          if (d < 460) {
+          if (d < 520) {
             desired.push({ key, cx, cz, minY, maxY, zoom: 17, dist: d });
           }
         }
-        // 2. Medium-detail Z16 background skyline tiles within 950m
+        // 2. Medium-detail Z16 background skyline tiles within 1100m
         for (const t of allTilesIndex.z16) {
           const [key, cx, cz, minY, maxY] = t;
           const d = Math.min(...focusPoints.map(p => Math.hypot(cx - p.x, cz - p.z)));
-          if (d >= 360 && d < 980) {
+          if (d >= 360 && d < 1100) {
             desired.push({ key, cx, cz, minY, maxY, zoom: 16, dist: d + 120 });
           }
         }
@@ -1412,10 +1460,10 @@
         desired.sort((a, b) => a.dist - b.dist);
 
         // Evict very distant tiles (>1400m) to keep GPU memory fast
-        if (loadedTiles.size > 75) {
+        if (loadedTiles.size > 140) {
           for (const [k, rec] of loadedTiles.entries()) {
             const d = Math.min(...focusPoints.map(p => Math.hypot(rec.cx - p.x, rec.cz - p.z)));
-            if (d > (rec.zoom === 20 ? 320 : 1400)) {
+            if (d > (rec.zoom === 20 ? 360 : 1400)) {
               tilesGroup.remove(rec.mesh);
               loadedTiles.delete(k);
             }
@@ -1437,9 +1485,9 @@
               loadingKeys.delete(item.key);
               const mesh = gltf.scene;
               enhancePhotogrammetryTileMesh(mesh);
-              deMeltPhotogrammetryRoadVertices(mesh);
               tilesGroup.add(mesh);
               loadedTiles.set(item.key, { ...item, mesh });
+              syncMultiZoomTileVisibility();
               const badge = document.getElementById('tile-stream-badge');
               if (badge) {
                 let z20Cnt = 0;
@@ -1705,40 +1753,31 @@
           .catch(() => {});
       }
 
-      // Creates a sleek, clear Asphalt + Vice City Neon GPS Road Ribbon texture
+      // Creates a sleek, translucent Holographic GPS Route Guide Strip so 100% of the real Z20 SF street asphalt & crosswalks remain visible!
       function createViceCityRoadTexture() {
         const c = document.createElement('canvas');
-        c.width = 512;
+        c.width = 256;
         c.height = 512;
         const ctx = c.getContext('2d');
+        ctx.clearRect(0, 0, 256, 512);
 
-        // Clean dark asphalt
-        ctx.fillStyle = '#1e2430';
-        ctx.fillRect(0, 0, 512, 512);
+        // Subtle glowing cyan/pink GPS guide rails & center chevron
+        ctx.fillStyle = 'rgba(0, 240, 255, 0.78)';
+        ctx.fillRect(10, 0, 12, 512);
+        ctx.fillStyle = 'rgba(255, 42, 133, 0.78)';
+        ctx.fillRect(234, 0, 12, 512);
 
-        // Subtle asphalt grain
-        for (let i = 0; i < 6000; i++) {
-          const v = 26 + Math.floor(Math.random() * 20);
-          ctx.fillStyle = `rgb(${v},${v + 3},${v + 8})`;
-          ctx.fillRect(Math.random() * 512, Math.random() * 512, 2, 2);
-        }
-
-        // Neon Pink & Cyan Edge Curbs (Vice City signature look)
-        ctx.fillStyle = '#ff2a85';
-        ctx.fillRect(8, 0, 14, 512);
-        ctx.fillStyle = '#00f0ff';
-        ctx.fillRect(490, 0, 14, 512);
-
-        // Twin Gold Center Lines
-        ctx.fillStyle = '#ffd166';
-        ctx.fillRect(249, 0, 5, 512);
-        ctx.fillRect(258, 0, 5, 512);
-
-        // Dashed White Lane Dividers
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
-        for (let y = 20; y < 512; y += 64) {
-          ctx.fillRect(128, y, 5, 32);
-          ctx.fillRect(378, y, 5, 32);
+        ctx.fillStyle = 'rgba(255, 209, 102, 0.85)';
+        for (let y = 32; y < 512; y += 96) {
+          ctx.beginPath();
+          ctx.moveTo(128, y);
+          ctx.lineTo(172, y + 36);
+          ctx.lineTo(152, y + 36);
+          ctx.lineTo(128, y + 16);
+          ctx.lineTo(104, y + 36);
+          ctx.lineTo(84, y + 36);
+          ctx.closePath();
+          ctx.fill();
         }
 
         const tex = new THREE.CanvasTexture(c);
@@ -1753,9 +1792,12 @@
         while (routeVisualGroup.children.length > 0) {
           routeVisualGroup.remove(routeVisualGroup.children[0]);
         }
+        while (propsGroup.children.length > 0) {
+          propsGroup.remove(propsGroup.children[0]);
+        }
         if (isFreeRoamMode || activeRoutePoints.length < 2) return;
 
-        const roadHalfWidth = 7.5;
+        const roadHalfWidth = 1.65;
         const positions = [];
         const uvs = [];
         const indices = [];
@@ -1779,11 +1821,11 @@
             accDist += Math.hypot(x - activeRoutePoints[i - 1][0], z - activeRoutePoints[i - 1][2]);
           }
 
-          const ry = y + 0.32; // Slightly above photogrammetry street so road is 100% clear
+          const ry = y + 0.24;
           positions.push(x + nx * roadHalfWidth, ry, z + nz * roadHalfWidth);
           positions.push(x - nx * roadHalfWidth, ry, z - nz * roadHalfWidth);
 
-          const vCoord = accDist / 18;
+          const vCoord = accDist / 12;
           uvs.push(0, vCoord, 1, vCoord);
 
           if (i < activeRoutePoints.length - 1) {
@@ -1799,13 +1841,12 @@
         geo.setIndex(indices);
         geo.computeVertexNormals();
 
-        const mat = new THREE.MeshStandardMaterial({
+        const mat = new THREE.MeshBasicMaterial({
           map: roadRibbonTex,
-          roughness: 0.65,
-          metalness: 0.15,
-          side: THREE.DoubleSide,
-          polygonOffset: true,
-          polygonOffsetFactor: -2
+          transparent: true,
+          opacity: 0.9,
+          depthWrite: false,
+          side: THREE.DoubleSide
         });
         routeVisualGroup.add(new THREE.Mesh(geo, mat));
 
@@ -1828,7 +1869,6 @@
         const topBeam = new THREE.Mesh(new THREE.BoxGeometry(16, 1.4, 0.8), neonPinkMat);
         topBeam.position.set(0, 11, 0);
 
-        // Glowing Vice City Corona Checkered Ring on Ground
         const corona = new THREE.Mesh(
           new THREE.RingGeometry(5.5, 7.2, 32),
           new THREE.MeshBasicMaterial({ color: 0xff2a85, side: THREE.DoubleSide })
@@ -1838,54 +1878,6 @@
 
         arch.add(leftPillar, rightPillar, topBeam, corona);
         routeVisualGroup.add(arch);
-
-        // Spawn Crisp 3D San Francisco Palm Trees & Vice City Neon Streetlamps along the curbs
-        while (propsGroup.children.length > 0) propsGroup.remove(propsGroup.children[0]);
-        const trunkMat = new THREE.MeshStandardMaterial({ color: 0x6b4f35, roughness: 0.9 });
-        const frondMat = new THREE.MeshStandardMaterial({ color: 0x2d6a4f, roughness: 0.65 });
-        const poleMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.8, roughness: 0.3 });
-        const lampPinkMat = new THREE.MeshBasicMaterial({ color: 0xff2a85 });
-        const lampCyanMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
-
-        for (let i = 2; i < activeRoutePoints.length - 2; i += 3) {
-          const [x, y, z] = activeRoutePoints[i];
-          const [nxPt, , nzPt] = activeRoutePoints[i + 1];
-          const dx = nxPt - x, dz = nzPt - z;
-          const len = Math.hypot(dx, dz) || 1;
-          const rx = -dz / len, rz = dx / len;
-
-          [-8.8, 8.8].forEach((offset, sideIdx) => {
-            const px = x + rx * offset;
-            const pz = z + rz * offset;
-
-            if (i % 6 === 0) {
-              // Canary Island Date Palm
-              const palm = new THREE.Group();
-              palm.position.set(px, y + 0.3, pz);
-              const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.38, 7.5, 7), trunkMat);
-              trunk.position.y = 3.75;
-              palm.add(trunk);
-              const crown = new THREE.Mesh(new THREE.DodecahedronGeometry(2.1, 1), frondMat);
-              crown.scale.set(1.35, 0.6, 1.35);
-              crown.position.y = 7.6;
-              palm.add(crown);
-              propsGroup.add(palm);
-            } else {
-              // Glowing Vice City Streetlamp
-              const lamp = new THREE.Group();
-              lamp.position.set(px, y + 0.3, pz);
-              const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.14, 7.2, 6), poleMat);
-              pole.position.y = 3.6;
-              const bulb = new THREE.Mesh(
-                new THREE.SphereGeometry(0.38, 8, 8),
-                sideIdx === 0 ? lampPinkMat : lampCyanMat
-              );
-              bulb.position.set(0, 7.3, 0);
-              lamp.add(pole, bulb);
-              propsGroup.add(lamp);
-            }
-          });
-        }
       }
 
       // Periodically refine road ribbon elevations as high-res Z17 photogrammetry tiles stream in

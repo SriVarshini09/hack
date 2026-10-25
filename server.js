@@ -35,6 +35,65 @@ app.get(['/level_iter1.json', '/level_iter2.json'], (req, res) => {
 });
 
 /**
+ * Universal local caching proxy for sf.thijs.gg's entire /apple-r3d-* 3D Tiles,
+ * Z15..Z20 meshes, Gaussian splats, ownership stencil runtime, and WebWorkers.
+ */
+app.get(/^\/apple-r3d-/, async (req, res) => {
+  const cleanRel = req.path.replace(/^\/+/, '').replace(/\.\./g, '');
+  const baseName = path.basename(cleanRel);
+
+  const setMimeHeaders = (filePath) => {
+    if (filePath.endsWith('.js')) res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+    else if (filePath.endsWith('.json')) res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    else if (filePath.endsWith('.glb')) res.setHeader('Content-Type', 'model/gltf-binary');
+    else if (filePath.endsWith('.bin.gz') || filePath.endsWith('.gz')) res.setHeader('Content-Type', 'application/gzip');
+    else if (filePath.endsWith('.bin')) res.setHeader('Content-Type', 'application/octet-stream');
+  };
+
+  // Reuse existing public/sf_tiles/ cache for .glb tiles if already present
+  if (baseName.endsWith('.glb')) {
+    const existingGlb = path.join(__dirname, 'public', 'sf_tiles', baseName);
+    if (fs.existsSync(existingGlb) && fs.statSync(existingGlb).size > 200) {
+      setMimeHeaders(baseName);
+      return res.send(fs.readFileSync(existingGlb));
+    }
+  }
+
+  const cachePath = path.join(__dirname, 'public', 'r3d_cache', cleanRel);
+  if (fs.existsSync(cachePath) && fs.statSync(cachePath).size > 20) {
+    setMimeHeaders(cachePath);
+    return res.send(fs.readFileSync(cachePath));
+  }
+
+  const upstreamUrl = `https://sf.thijs.gg/${cleanRel}`;
+  try {
+    const upstreamRes = await fetch(upstreamUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+        'Referer': 'https://sf.thijs.gg/',
+        'Origin': 'https://sf.thijs.gg'
+      }
+    });
+    if (!upstreamRes.ok) {
+      return res.status(upstreamRes.status).end();
+    }
+    const buf = Buffer.from(await upstreamRes.arrayBuffer());
+    if (baseName.endsWith('.glb')) {
+      const tilesDir = path.join(__dirname, 'public', 'sf_tiles');
+      fs.mkdirSync(tilesDir, { recursive: true });
+      fs.writeFileSync(path.join(tilesDir, baseName), buf);
+    } else {
+      fs.mkdirSync(path.dirname(cachePath), { recursive: true });
+      fs.writeFileSync(cachePath, buf);
+    }
+    setMimeHeaders(cleanRel);
+    return res.send(buf);
+  } catch (err) {
+    return res.status(502).end();
+  }
+});
+
+/**
  * Local caching proxy for sf.thijs.gg Apple R3D San Francisco 3D photogrammetry .glb tiles.
  * Serves cached tiles from public/sf_tiles/ in <1ms, or fetches upstream with Referer/Origin headers
  * and caches to public/sf_tiles/ automatically.
@@ -117,7 +176,7 @@ app.get('/api/z20-region/:region', async (req, res) => {
     function collectZ20(node) {
       if (node.content && node.content.uri) {
         const src = node.extras?.source || {};
-        if (src.key && src.sourceOffsetYUp && (src.h === 0 || src.h === 1)) {
+        if (src.key && src.sourceOffsetYUp) {
           leaves.push([
             src.key,
             +(src.sourceOffsetYUp[0]).toFixed(1),
