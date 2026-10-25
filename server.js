@@ -3,7 +3,7 @@ const http = require('http');
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
-const { execFile } = require('child_process');
+const { execFile, spawn } = require('child_process');
 const { WebSocketServer } = require('ws');
 
 const PORT = process.env.PORT || 3000;
@@ -446,22 +446,58 @@ function buildFallbackSFMapData() {
   };
 }
 
-// GET /api/lan-info -> Returns LAN IP and player controller URLs for QR codes
-app.get('/api/lan-info', (req, res) => {
+let publicTunnelOrigin = '';
+
+function buildLanInfoPayload(reqHost) {
   const lanIp = getLanIpAddress();
-  const hostHeader = req.headers.host || `localhost:${PORT}`;
+  const hostHeader = reqHost || `localhost:${PORT}`;
   const isLocalhost = hostHeader.startsWith('localhost') || hostHeader.startsWith('127.0.0.1');
-  const baseOrigin = isLocalhost && lanIp !== 'localhost'
+  const lanOrigin = isLocalhost && lanIp !== 'localhost'
     ? `http://${lanIp}:${PORT}`
     : `http://${hostHeader}`;
+  const preferredOrigin = publicTunnelOrigin || lanOrigin;
 
-  res.json({
+  return {
     lanIp,
     port: PORT,
-    baseOrigin,
-    player1Url: `${baseOrigin}/?player=1`,
-    player2Url: `${baseOrigin}/?player=2`
-  });
+    baseOrigin: preferredOrigin,
+    publicOrigin: publicTunnelOrigin || null,
+    lanOrigin,
+    player1Url: `${preferredOrigin}/?player=1`,
+    player2Url: `${preferredOrigin}/?player=2`,
+    lanPlayer1Url: `${lanOrigin}/?player=1`,
+    lanPlayer2Url: `${lanOrigin}/?player=2`
+  };
+}
+
+function startPublicMobileTunnel() {
+  try {
+    const sshProc = spawn('ssh', [
+      '-T',
+      '-o', 'StrictHostKeyChecking=no',
+      '-o', 'ServerAliveInterval=30',
+      '-R', `80:localhost:${PORT}`,
+      'nokey@localhost.run'
+    ]);
+    sshProc.stdout.on('data', (chunk) => {
+      const text = chunk.toString();
+      const match = text.match(/https:\/\/[a-z0-9\-]+\.lhr\.life/i);
+      if (match && match[0] !== publicTunnelOrigin) {
+        publicTunnelOrigin = match[0];
+        console.log(`[MOBILE-TUNNEL] Public HTTPS Mobile Controller Tunnel Active: ${publicTunnelOrigin}`);
+        broadcastJson({ type: 'lan_info', ...buildLanInfoPayload() });
+      }
+    });
+    sshProc.on('error', () => {});
+    sshProc.on('close', () => {
+      setTimeout(startPublicMobileTunnel, 5000);
+    });
+  } catch (e) {}
+}
+
+// GET /api/lan-info -> Returns Public HTTPS Tunnel + LAN IP player controller URLs for QR codes
+app.get('/api/lan-info', (req, res) => {
+  res.json(buildLanInfoPayload(req.headers.host));
 });
 
 // GET /api/sf-map -> Serves cached SF OSM + Embarcadero 650m data
@@ -624,9 +660,74 @@ const lobbyState = {
 };
 
 const playerControls = {
-  1: { player: 1, left: false, right: false, gas: false, brake: false, color: '#d90429', carName: 'Ferrari 458 Rosso Corsa' },
-  2: { player: 2, left: false, right: false, gas: false, brake: false, color: '#00b4d8', carName: 'Ferrari 458 Miami Blue' }
+  1: { player: 1, left: false, right: false, gas: false, brake: false, drift: false, nitro: false, steerVal: 0, color: '#ff1e42', carName: 'Ferrari 458 Rosso Corsa' },
+  2: { player: 2, left: false, right: false, gas: false, brake: false, drift: false, nitro: false, steerVal: 0, color: '#00d4ff', carName: 'Ferrari 458 Miami Blue' }
 };
+
+function handleIncomingPlayerMessage(msg, wsClient = null) {
+  if (!msg || typeof msg !== 'object') return;
+
+  if (msg.type === 'register_controller') {
+    const p = Number(msg.player) === 2 ? 2 : 1;
+    if (wsClient) wsClient.playerRole = p;
+    if (p === 1) {
+      lobbyState.p1Connected = true;
+      if (msg.color) lobbyState.p1Spec.color = msg.color;
+      if (msg.carName) lobbyState.p1Spec.name = msg.carName;
+    } else {
+      lobbyState.p2Connected = true;
+      if (msg.color) lobbyState.p2Spec.color = msg.color;
+      if (msg.carName) lobbyState.p2Spec.name = msg.carName;
+    }
+    broadcastJson({ type: 'lobby', ...lobbyState });
+    return;
+  }
+
+  if (msg.type === 'mobile_action') {
+    broadcastJson({
+      type: 'mobile_action',
+      player: Number(msg.player) === 2 ? 2 : 1,
+      action: msg.action,
+      color: msg.color
+    });
+    return;
+  }
+
+  if (msg.player === 1 || msg.player === 2) {
+    const p = Number(msg.player);
+    if (wsClient) wsClient.playerRole = p;
+    if (p === 1) lobbyState.p1Connected = true;
+    if (p === 2) lobbyState.p2Connected = true;
+
+    playerControls[p] = {
+      type: 'control',
+      player: p,
+      left: Boolean(msg.left),
+      right: Boolean(msg.right),
+      gas: Boolean(msg.gas),
+      brake: Boolean(msg.brake),
+      drift: Boolean(msg.drift),
+      nitro: Boolean(msg.nitro),
+      steerVal: Number.isFinite(Number(msg.steerVal)) ? Number(msg.steerVal) : 0,
+      color: msg.color || playerControls[p].color,
+      carName: msg.carName || playerControls[p].carName
+    };
+
+    if (msg.color) {
+      if (p === 1) lobbyState.p1Spec.color = msg.color;
+      else lobbyState.p2Spec.color = msg.color;
+      broadcastJson({ type: 'lobby', ...lobbyState });
+    }
+
+    broadcastJson(playerControls[p]);
+  }
+}
+
+// POST /api/mobile-input -> HTTP fallback for mobile controllers in case WebSockets are blocked by cellular/proxy
+app.post('/api/mobile-input', (req, res) => {
+  handleIncomingPlayerMessage(req.body, null);
+  res.json({ ok: true });
+});
 
 function broadcastJson(payload) {
   const data = JSON.stringify(payload);
@@ -640,65 +741,12 @@ function broadcastJson(payload) {
 wss.on('connection', (ws) => {
   ws.playerRole = null;
   ws.send(JSON.stringify({ type: 'lobby', ...lobbyState }));
+  ws.send(JSON.stringify({ type: 'lan_info', ...buildLanInfoPayload() }));
 
   ws.on('message', (raw) => {
     try {
       const msg = JSON.parse(raw.toString());
-
-      if (msg.type === 'register_controller') {
-        const p = Number(msg.player) === 2 ? 2 : 1;
-        ws.playerRole = p;
-        if (p === 1) {
-          lobbyState.p1Connected = true;
-          if (msg.color) lobbyState.p1Spec.color = msg.color;
-          if (msg.carName) lobbyState.p1Spec.name = msg.carName;
-        } else {
-          lobbyState.p2Connected = true;
-          if (msg.color) lobbyState.p2Spec.color = msg.color;
-          if (msg.carName) lobbyState.p2Spec.name = msg.carName;
-        }
-        if (msg.startLoc && msg.endLoc) {
-          lobbyState.route = { startLoc: msg.startLoc, endLoc: msg.endLoc };
-        }
-        broadcastJson({ type: 'lobby', ...lobbyState });
-        return;
-      }
-
-      if (msg.player === 1 || msg.player === 2) {
-        const p = msg.player;
-        ws.playerRole = p;
-        if (p === 1) lobbyState.p1Connected = true;
-        if (p === 2) lobbyState.p2Connected = true;
-
-        playerControls[p] = {
-          type: 'control',
-          player: p,
-          left: Boolean(msg.left),
-          right: Boolean(msg.right),
-          gas: Boolean(msg.gas),
-          brake: Boolean(msg.brake),
-          color: msg.color || playerControls[p].color,
-          carName: msg.carName || playerControls[p].carName,
-          startLoc: msg.startLoc || lobbyState.route.startLoc,
-          endLoc: msg.endLoc || lobbyState.route.endLoc
-        };
-
-        if (msg.color || msg.carName || msg.startLoc || msg.endLoc) {
-          if (p === 1) {
-            if (msg.color) lobbyState.p1Spec.color = msg.color;
-            if (msg.carName) lobbyState.p1Spec.name = msg.carName;
-          } else {
-            if (msg.color) lobbyState.p2Spec.color = msg.color;
-            if (msg.carName) lobbyState.p2Spec.name = msg.carName;
-          }
-          if (msg.startLoc && msg.endLoc) {
-            lobbyState.route = { startLoc: msg.startLoc, endLoc: msg.endLoc };
-          }
-          broadcastJson({ type: 'lobby', ...lobbyState });
-        }
-
-        broadcastJson(playerControls[p]);
-      }
+      handleIncomingPlayerMessage(msg, ws);
     } catch (err) {}
   });
 
@@ -709,6 +757,9 @@ wss.on('connection', (ws) => {
       playerControls[1].right = false;
       playerControls[1].gas = false;
       playerControls[1].brake = false;
+      playerControls[1].drift = false;
+      playerControls[1].nitro = false;
+      playerControls[1].steerVal = 0;
       broadcastJson(playerControls[1]);
       broadcastJson({ type: 'lobby', ...lobbyState });
     } else if (ws.playerRole === 2) {
@@ -717,6 +768,9 @@ wss.on('connection', (ws) => {
       playerControls[2].right = false;
       playerControls[2].gas = false;
       playerControls[2].brake = false;
+      playerControls[2].drift = false;
+      playerControls[2].nitro = false;
+      playerControls[2].steerVal = 0;
       broadcastJson(playerControls[2]);
       broadcastJson({ type: 'lobby', ...lobbyState });
     }
@@ -732,6 +786,7 @@ try {
   fs.writeFileSync(path.join(__dirname, 'sf_city_cache.json'), JSON.stringify(buildFallbackSFMapData(), null, 2), 'utf-8');
 } catch (e) {}
 ensureFerrariAndPhotogrammetryCache();
+startPublicMobileTunnel();
 
 server.listen(PORT, '0.0.0.0', () => {
   const lanIp = getLanIpAddress();

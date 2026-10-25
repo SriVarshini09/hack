@@ -77,7 +77,7 @@
       align-items: center;
       justify-content: space-between;
       padding: 0 16px;
-      z-index: 20;
+      z-index: 55;
       gap: 10px;
     }
 
@@ -361,19 +361,22 @@
     /* ================= FULL SAN FRANCISCO INTERACTIVE CITY MAP MODAL ================= */
     #sf-map-modal {
       position: absolute;
-      inset: 0;
+      top: 68px;
+      left: 0;
+      right: 0;
+      bottom: 0;
       z-index: 40;
       background: rgba(6, 10, 18, 0.84);
       backdrop-filter: blur(16px);
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 18px;
+      padding: 12px 18px;
     }
 
     .map-modal-card {
       width: min(1140px, 96vw);
-      height: min(760px, 92vh);
+      height: min(720px, calc(100vh - 92px));
       background: rgba(10, 15, 28, 0.96);
       border: 2px solid var(--vc-pink);
       border-radius: 18px;
@@ -541,7 +544,7 @@
       border: 1.5px solid var(--vc-cyan);
       border-radius: 14px;
       padding: 12px;
-      z-index: 32;
+      z-index: 60;
       display: none;
       backdrop-filter: blur(14px);
       box-shadow: 0 16px 40px rgba(0,0,0,0.65);
@@ -669,34 +672,37 @@
 
       <div class="hud-btn-group">
         <button class="vc-btn map-cta" onclick="window.toggleFullSFMap(true)">
-          🗺️ PICK ANY SF LOCATION (M)
+          🗺️ SF MAP (M)
+        </button>
+        <button class="vc-btn" id="btn-mode-1p-roam" onclick="window.launchOnePlayerRoam()">
+          🌴 1P FREE ROAM
+        </button>
+        <button class="vc-btn active-pink" id="btn-mode-2p-race" onclick="window.launchTwoPlayerRace()">
+          🏁 2P SPLIT RACE
         </button>
         <button class="vc-btn" id="btn-view-1p-p1" onclick="window.setViewMode('1p_p1')">
-          👤 1P VIEW (P1)
+          👤 1P (P1)
         </button>
         <button class="vc-btn" id="btn-view-1p-p2" onclick="window.setViewMode('1p_p2')">
-          👤 1P VIEW (P2)
+          👤 1P (P2)
         </button>
         <button class="vc-btn active-pink" id="btn-view-2p" onclick="window.setViewMode('2p_split')">
-          👥 2P SPLIT-SCREEN
+          👥 2P SPLIT
         </button>
         <button class="vc-btn" id="btn-p2-ai" onclick="window.toggleP2AiRival()">
-          🤖 P2 AI RIVAL: OFF
+          🤖 P2 AI: OFF
         </button>
         <button class="vc-btn active-cyan" id="btn-cursor-look" onclick="window.cycleCursorLookMode()">
-          🎥 CURSOR LOOK: FREE
+          🎥 LOOK: FREE
         </button>
         <button class="vc-btn active-cyan" id="btn-time-mode" onclick="window.cycleTimeMood()">
-          ☀️ MOOD: SF DAY
+          ☀️ SF DAY
         </button>
         <button class="vc-btn active-pink" id="btn-argon-enhance" onclick="window.runArgonCityEnhance()">
-          ✨ ARGON HD ENHANCE
-        </button>
-        <button class="vc-btn" onclick="window.restartCurrentRace()">
-          🏁 RESTART
+          ✨ ARGON HD
         </button>
         <button class="vc-btn" onclick="window.toggleQrDrawer()">
-          📱 QR
+          📱 PHONE QR
         </button>
       </div>
     </header>
@@ -825,23 +831,28 @@
           </div>
 
           <div class="sidebar-section">
-            <h4>3. View & Player Options:</h4>
-            <div class="click-mode-row">
-              <button class="mode-pill-btn" id="modal-btn-1p" onclick="window.setViewMode('1p_p1')">
-                👤 1P Fullscreen
-              </button>
-              <button class="mode-pill-btn active-finish" id="modal-btn-2p" onclick="window.setViewMode('2p_split')">
-                👥 2P Split-Screen
-              </button>
+            <h4>3. Mobile Phone QR Controllers (Works on Wi-Fi &amp; 5G):</h4>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; text-align:center;">
+              <div style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,42,133,0.45); border-radius:9px; padding:6px;">
+                <div style="font-size:10px; font-weight:900; color:#ff2a85;">PLAYER 1 PHONE</div>
+                <img id="modal-qr-p1" alt="P1 QR" style="width:76px; height:76px; background:#fff; padding:3px; border-radius:6px; margin:4px auto; display:block;" src="" />
+                <div id="modal-status-p1" style="font-size:9.5px; color:#cbd5e1; font-weight:700;">Scan or use WASD</div>
+              </div>
+              <div style="background:rgba(255,255,255,0.05); border:1px solid rgba(0,240,255,0.45); border-radius:9px; padding:6px;">
+                <div style="font-size:10px; font-weight:900; color:#00f0ff;">PLAYER 2 PHONE</div>
+                <img id="modal-qr-p2" alt="P2 QR" style="width:76px; height:76px; background:#fff; padding:3px; border-radius:6px; margin:4px auto; display:block;" src="" />
+                <div id="modal-status-p2" style="font-size:9.5px; color:#cbd5e1; font-weight:700;">Scan or use Arrows</div>
+              </div>
             </div>
+            <div id="qr-tunnel-note" style="font-size:9.5px; color:#6bf5a6; text-align:center; margin-top:5px; word-break:break-all;"></div>
           </div>
 
           <div>
-            <button class="launch-btn-primary" onclick="window.startRaceFromMap(false)">
-              🏁 START RACE ON THIS SF ROUTE
+            <button class="launch-btn-primary" onclick="window.launchTwoPlayerRace()">
+              🏁 START 2-PLAYER RACE ON THIS SF ROUTE
             </button>
-            <button class="launch-btn-secondary" onclick="window.startRaceFromMap(true)">
-              🌴 FREE ROAM / JUST DRIVE AROUND HERE
+            <button class="launch-btn-secondary" onclick="window.launchOnePlayerRoam()">
+              🌴 1-PLAYER FREE ROAM (SOLO DRIVE AROUND SF)
             </button>
           </div>
         </div>
@@ -867,22 +878,43 @@
 
   <!-- ================= MOBILE QR CONTROLLER MODE (?player=1 or ?player=2) ================= -->
   <div id="mobile-controller-root">
-    <div style="display:flex; justify-content:space-between; align-items:center; background:var(--vc-dark); padding:12px 16px; border-radius:12px; border:1px solid var(--vc-pink);">
+    <div style="display:flex; justify-content:space-between; align-items:center; background:var(--vc-dark); padding:10px 14px; border-radius:12px; border:1.5px solid var(--vc-pink); gap:8px; flex-wrap:wrap;">
       <div>
-        <div id="mc-header-title" style="font-size:18px; font-weight:900; color:#ff2a85;">PLAYER 1 CONTROLLER</div>
-        <div style="font-size:11px; color:#94a3b8;">Vice City: San Francisco • 60Hz Touch Steering</div>
+        <div id="mc-header-title" style="font-size:17px; font-weight:900; color:#ff2a85;">PLAYER 1 FERRARI CONTROLLER</div>
+        <div style="font-size:10.5px; color:#94a3b8;">Slide Thumb to Steer • Hold Gas + Nitro/Drift</div>
       </div>
-      <div id="mc-ws-status" class="route-pill">CONNECTING...</div>
+      <div style="display:flex; align-items:center; gap:6px;">
+        <button class="vc-btn" style="padding:6px 10px; font-size:11px;" onclick="window.sendMobileAction('reset')">🔄 RESET ROAD</button>
+        <button class="vc-btn active-pink" style="padding:6px 10px; font-size:11px;" onclick="window.sendMobileAction('start_race')">🏁 START RACE</button>
+        <div id="mc-ws-status" class="route-pill">CONNECTING...</div>
+      </div>
+    </div>
+
+    <!-- Ferrari Paint Color Swatches on Mobile -->
+    <div style="display:flex; align-items:center; justify-content:space-between; background:rgba(8,12,22,0.75); padding:8px 12px; border-radius:10px; margin-top:8px; border:1px solid rgba(255,255,255,0.15);">
+      <span style="font-size:11px; font-weight:800; color:#cbd5e1;">FERRARI PAINT:</span>
+      <div style="display:flex; gap:8px;">
+        <button onclick="window.setMobilePaint('#ff1e42')" style="width:28px;height:28px;border-radius:50%;background:#ff1e42;border:2px solid #fff;cursor:pointer;"></button>
+        <button onclick="window.setMobilePaint('#00d4ff')" style="width:28px;height:28px;border-radius:50%;background:#00d4ff;border:2px solid #fff;cursor:pointer;"></button>
+        <button onclick="window.setMobilePaint('#ff2a85')" style="width:28px;height:28px;border-radius:50%;background:#ff2a85;border:2px solid #fff;cursor:pointer;"></button>
+        <button onclick="window.setMobilePaint('#ffd166')" style="width:28px;height:28px;border-radius:50%;background:#ffd166;border:2px solid #fff;cursor:pointer;"></button>
+        <button onclick="window.setMobilePaint('#06d6a0')" style="width:28px;height:28px;border-radius:50%;background:#06d6a0;border:2px solid #fff;cursor:pointer;"></button>
+      </div>
     </div>
 
     <div class="mc-pad-area">
-      <div class="steer-cluster">
-        <div class="touch-btn" id="btn-mc-left">◀<span style="font-size:12px;">LEFT</span></div>
-        <div class="touch-btn" id="btn-mc-right">▶<span style="font-size:12px;">RIGHT</span></div>
+      <!-- Left Thumb: Slide-enabled Steering Cluster -->
+      <div class="steer-cluster" id="mc-steer-zone">
+        <div class="touch-btn" id="btn-mc-left" style="border-color:#00f0ff;">◀<span style="font-size:12px;">STEER LEFT</span></div>
+        <div class="touch-btn" id="btn-mc-right" style="border-color:#00f0ff;">▶<span style="font-size:12px;">STEER RIGHT</span></div>
       </div>
-      <div class="pedal-cluster">
-        <div class="touch-btn" id="btn-mc-brake" style="border-color:#ff2a85;">▼<span style="font-size:12px;">BRAKE / REV</span></div>
-        <div class="touch-btn" id="btn-mc-gas" style="border-color:#06d6a0;">▲<span style="font-size:12px;">GAS / THROTTLE</span></div>
+
+      <!-- Right Thumb: Gas, Brake, Nitro Boost & Drift -->
+      <div style="display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; gap:10px;">
+        <div class="touch-btn" id="btn-mc-nitro" style="border-color:#ffd166; font-size:20px;">🔥<span style="font-size:11px; color:#ffd166;">NITRO BOOST</span></div>
+        <div class="touch-btn" id="btn-mc-gas" style="border-color:#06d6a0; font-size:22px;">▲<span style="font-size:12px; color:#6bf5a6;">FULL GAS</span></div>
+        <div class="touch-btn" id="btn-mc-drift" style="border-color:#00f0ff; font-size:20px;">💨<span style="font-size:11px; color:#80f8ff;">DRIFT</span></div>
+        <div class="touch-btn" id="btn-mc-brake" style="border-color:#ff2a85; font-size:20px;">▼<span style="font-size:11px; color:#ff9ebb;">BRAKE / REV</span></div>
       </div>
     </div>
   </div>
@@ -970,29 +1002,108 @@
       titleEl.textContent = `PLAYER ${playerNum} FERRARI CONTROLLER`;
       titleEl.style.color = playerNum === 1 ? '#ff2a85' : '#00f0ff';
 
-      const mobileState = { player: playerNum, left: false, right: false, gas: false, brake: false };
+      const mobileState = {
+        player: playerNum,
+        left: false,
+        right: false,
+        gas: false,
+        brake: false,
+        drift: false,
+        nitro: false,
+        color: playerNum === 1 ? '#ff1e42' : '#00d4ff'
+      };
+
       let ws = null;
+      const statusEl = document.getElementById('mc-ws-status');
+
+      function sendState() {
+        const payload = JSON.stringify(mobileState);
+        if (ws && ws.readyState === 1) {
+          ws.send(payload);
+        } else {
+          // HTTP fallback so phone controller works even if cellular proxy blocks WebSockets
+          fetch('/api/mobile-input', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: payload
+          }).catch(() => {});
+        }
+      }
+
       function connectWs() {
         const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         ws = new WebSocket(`${proto}//${window.location.host}`);
         ws.onopen = () => {
-          document.getElementById('mc-ws-status').textContent = 'ONLINE • 60HZ';
+          statusEl.textContent = '🟢 ONLINE • 60HZ';
           ws.send(JSON.stringify({ type: 'register_controller', ...mobileState }));
         };
-        ws.onclose = () => setTimeout(connectWs, 1000);
+        ws.onclose = () => {
+          statusEl.textContent = '🔄 HTTP SYNC';
+          setTimeout(connectWs, 1200);
+        };
       }
       connectWs();
+      // Also register via HTTP immediately
+      fetch('/api/mobile-input', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'register_controller', ...mobileState })
+      }).catch(() => {});
 
-      const sendState = () => {
-        if (ws && ws.readyState === 1) ws.send(JSON.stringify(mobileState));
+      window.setMobilePaint = function (hex) {
+        mobileState.color = hex;
+        sendState();
       };
+
+      window.sendMobileAction = function (action) {
+        const msg = { type: 'mobile_action', player: playerNum, action };
+        if (ws && ws.readyState === 1) ws.send(JSON.stringify(msg));
+        fetch('/api/mobile-input', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(msg)
+        }).catch(() => {});
+      };
+
+      // Slide-aware Steering Zone so user can slide thumb smoothly between Left & Right
+      const steerZone = document.getElementById('mc-steer-zone');
+      const leftBtn = document.getElementById('btn-mc-left');
+      const rightBtn = document.getElementById('btn-mc-right');
+
+      function updateSteerFromTouches(e) {
+        e.preventDefault();
+        const rect = steerZone.getBoundingClientRect();
+        const midX = rect.left + rect.width / 2;
+        let leftActive = false, rightActive = false;
+
+        for (let i = 0; i < e.touches.length; i++) {
+          const t = e.touches[i];
+          if (t.clientX >= rect.left - 20 && t.clientX <= rect.right + 20 &&
+              t.clientY >= rect.top - 30 && t.clientY <= rect.bottom + 30) {
+            if (t.clientX < midX) leftActive = true;
+            else rightActive = true;
+          }
+        }
+        mobileState.left = leftActive;
+        mobileState.right = rightActive;
+        leftBtn.classList.toggle('pressed', leftActive);
+        rightBtn.classList.toggle('pressed', rightActive);
+        sendState();
+      }
+
+      steerZone.addEventListener('touchstart', updateSteerFromTouches, { passive: false });
+      steerZone.addEventListener('touchmove', updateSteerFromTouches, { passive: false });
+      steerZone.addEventListener('touchend', updateSteerFromTouches, { passive: false });
+      steerZone.addEventListener('touchcancel', updateSteerFromTouches, { passive: false });
 
       function bindBtn(id, key) {
         const el = document.getElementById(id);
+        if (!el) return;
         const on = (e) => { e.preventDefault(); mobileState[key] = true; el.classList.add('pressed'); sendState(); };
         const off = (e) => { e.preventDefault(); mobileState[key] = false; el.classList.remove('pressed'); sendState(); };
         el.addEventListener('touchstart', on, { passive: false });
         el.addEventListener('touchend', off, { passive: false });
+        el.addEventListener('touchcancel', off, { passive: false });
         el.addEventListener('pointerdown', on);
         el.addEventListener('pointerup', off);
         el.addEventListener('pointerleave', off);
@@ -1001,7 +1112,9 @@
       bindBtn('btn-mc-right', 'right');
       bindBtn('btn-mc-gas', 'gas');
       bindBtn('btn-mc-brake', 'brake');
-      setInterval(sendState, 50);
+      bindBtn('btn-mc-nitro', 'nitro');
+      bindBtn('btn-mc-drift', 'drift');
+      setInterval(sendState, 45);
     } else {
       initViceCitySanFrancisco();
     }
@@ -1010,15 +1123,28 @@
     // MODE B: VICE CITY SAN FRANCISCO OPEN-WORLD 3D RACER
     // =========================================================================
     function initViceCitySanFrancisco() {
-      // Populate QR codes
+      function applyQrUrls(info) {
+        const p1Url = info.player1Url || `${window.location.origin}/?player=1`;
+        const p2Url = info.player2Url || `${window.location.origin}/?player=2`;
+        const qr1 = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(p1Url)}`;
+        const qr2 = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(p2Url)}`;
+        document.getElementById('qr-img-p1').src = qr1;
+        document.getElementById('qr-img-p2').src = qr2;
+        const mQr1 = document.getElementById('modal-qr-p1');
+        const mQr2 = document.getElementById('modal-qr-p2');
+        if (mQr1) mQr1.src = qr1;
+        if (mQr2) mQr2.src = qr2;
+        const noteEl = document.getElementById('qr-tunnel-note');
+        if (noteEl) {
+          noteEl.textContent = info.publicOrigin
+            ? `🌐 Global Mobile Link Ready: ${info.publicOrigin}`
+            : `📶 LAN Link: ${info.baseOrigin || window.location.origin}`;
+        }
+      }
+
       fetch('/api/lan-info')
         .then(r => r.json())
-        .then(info => {
-          const p1Url = info.player1Url || `${window.location.origin}/?player=1`;
-          const p2Url = info.player2Url || `${window.location.origin}/?player=2`;
-          document.getElementById('qr-img-p1').src = `https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(p1Url)}`;
-          document.getElementById('qr-img-p2').src = `https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(p2Url)}`;
-        })
+        .then(applyQrUrls)
         .catch(() => {});
 
       window.toggleQrDrawer = function () {
@@ -2327,9 +2453,6 @@
         document.getElementById('btn-view-1p-p2').className = 'vc-btn' + (mode === '1p_p2' ? ' active-cyan' : '');
         document.getElementById('btn-view-2p').className = 'vc-btn' + (mode === '2p_split' ? ' active-pink' : '');
 
-        document.getElementById('modal-btn-1p').className = 'mode-pill-btn' + (mode !== '2p_split' ? ' active-finish' : '');
-        document.getElementById('modal-btn-2p').className = 'mode-pill-btn' + (mode === '2p_split' ? ' active-finish' : '');
-
         const isSplit = mode === '2p_split';
         document.getElementById('split-divider').style.display = isSplit ? 'block' : 'none';
         document.getElementById('tag-p2').style.display = isSplit ? 'flex' : 'none';
@@ -2394,6 +2517,33 @@
         updateDynamicTileStreaming(true);
       }
 
+      let countdownInterval = null;
+
+      window.launchOnePlayerRoam = function () {
+        if (countdownInterval) {
+          clearInterval(countdownInterval);
+          countdownInterval = null;
+        }
+        document.getElementById('countdown-overlay').style.display = 'none';
+        document.getElementById('btn-mode-1p-roam').className = 'vc-btn active-cyan';
+        document.getElementById('btn-mode-2p-race').className = 'vc-btn';
+        window.setViewMode('1p_p1');
+        carP2.group.visible = false;
+        window.startRaceFromMap(true);
+      };
+
+      window.launchTwoPlayerRace = function () {
+        if (countdownInterval) {
+          clearInterval(countdownInterval);
+          countdownInterval = null;
+        }
+        document.getElementById('btn-mode-1p-roam').className = 'vc-btn';
+        document.getElementById('btn-mode-2p-race').className = 'vc-btn active-pink';
+        window.setViewMode('2p_split');
+        carP2.group.visible = true;
+        window.startRaceFromMap(false);
+      };
+
       window.startRaceFromMap = function (freeRoam = false) {
         isFreeRoamMode = Boolean(freeRoam);
         document.getElementById('sf-map-modal').style.display = 'none';
@@ -2402,19 +2552,38 @@
         placeCarsAtStart();
 
         raceFinished = false;
-        raceActive = true;
         raceStartTime = performance.now();
 
-        if (!isFreeRoamMode) {
+        if (isFreeRoamMode) {
+          raceActive = true;
+        } else {
+          // Fair 3 - 2 - 1 - GO! Countdown for 2-Player Race
+          raceActive = false;
           const cd = document.getElementById('countdown-overlay');
+          let count = 3;
           cd.style.display = 'block';
-          cd.textContent = 'GO!';
-          setTimeout(() => { cd.style.display = 'none'; }, 900);
+          cd.textContent = '3';
+          if (countdownInterval) clearInterval(countdownInterval);
+          countdownInterval = setInterval(() => {
+            count--;
+            if (count > 0) {
+              cd.textContent = String(count);
+            } else if (count === 0) {
+              cd.textContent = 'GO!';
+              raceActive = true;
+              raceStartTime = performance.now();
+            } else {
+              cd.style.display = 'none';
+              clearInterval(countdownInterval);
+              countdownInterval = null;
+            }
+          }, 650);
         }
       };
 
       window.restartCurrentRace = function () {
-        window.startRaceFromMap(isFreeRoamMode);
+        if (isFreeRoamMode) window.launchOnePlayerRoam();
+        else window.launchTwoPlayerRace();
       };
 
       // =======================================================================
@@ -2557,8 +2726,8 @@
       });
 
       const wsInputs = {
-        1: { left: false, right: false, gas: false, brake: false },
-        2: { left: false, right: false, gas: false, brake: false }
+        1: { left: false, right: false, gas: false, brake: false, drift: false, nitro: false },
+        2: { left: false, right: false, gas: false, brake: false, drift: false, nitro: false }
       };
 
       function connectBroadcastWs() {
@@ -2567,16 +2736,43 @@
         ws.onmessage = (ev) => {
           try {
             const msg = JSON.parse(ev.data);
-            if (msg.type === 'lobby') {
-              document.getElementById('p1-lobby-pill').textContent = msg.p1Connected ? '📱 P1 ONLINE' : 'WASD / Phone 1';
-              document.getElementById('p2-lobby-pill').textContent = msg.p2Connected ? '📱 P2 ONLINE' : 'ARROWS / Phone 2';
+            if (msg.type === 'lan_info') {
+              applyQrUrls(msg);
+            } else if (msg.type === 'lobby') {
+              const s1 = msg.p1Connected ? '🟢 PHONE 1 READY' : 'WASD / Scan QR';
+              const s2 = msg.p2Connected ? '🟢 PHONE 2 READY' : 'Arrows / Scan QR';
+              document.getElementById('p1-lobby-pill').textContent = s1;
+              document.getElementById('p2-lobby-pill').textContent = s2;
+              const ms1 = document.getElementById('modal-status-p1');
+              const ms2 = document.getElementById('modal-status-p2');
+              if (ms1) {
+                ms1.textContent = s1;
+                ms1.style.color = msg.p1Connected ? '#6bf5a6' : '#cbd5e1';
+              }
+              if (ms2) {
+                ms2.textContent = s2;
+                ms2.style.color = msg.p2Connected ? '#6bf5a6' : '#cbd5e1';
+              }
+              if (msg.p1Spec?.color) carP1.bodyMat.color.set(msg.p1Spec.color);
+              if (msg.p2Spec?.color) carP2.bodyMat.color.set(msg.p2Spec.color);
+            } else if (msg.type === 'mobile_action') {
+              if (msg.action === 'reset') {
+                resetCarToNearestRoad(msg.player === 2 ? carP2 : carP1);
+              } else if (msg.action === 'start_race') {
+                window.launchTwoPlayerRace();
+              }
             } else if (msg.type === 'control' && (msg.player === 1 || msg.player === 2)) {
               wsInputs[msg.player] = {
                 left: Boolean(msg.left),
                 right: Boolean(msg.right),
                 gas: Boolean(msg.gas),
-                brake: Boolean(msg.brake)
+                brake: Boolean(msg.brake),
+                drift: Boolean(msg.drift),
+                nitro: Boolean(msg.nitro)
               };
+              if (msg.color) {
+                (msg.player === 2 ? carP2 : carP1).bodyMat.color.set(msg.color);
+              }
             }
           } catch (e) {}
         };
@@ -2836,8 +3032,8 @@
           right: Boolean(keys['KeyD'] || (singlePlayerBothKeys && keys['ArrowRight']) || wsInputs[1].right),
           gas: Boolean(keys['KeyW'] || (singlePlayerBothKeys && keys['ArrowUp']) || wsInputs[1].gas),
           brake: Boolean(keys['KeyS'] || (singlePlayerBothKeys && keys['ArrowDown']) || wsInputs[1].brake),
-          drift: Boolean(keys['Space']),
-          nitro: Boolean(keys['ShiftLeft'] || (singlePlayerBothKeys && keys['ShiftRight']))
+          drift: Boolean(keys['Space'] || wsInputs[1].drift),
+          nitro: Boolean(keys['ShiftLeft'] || (singlePlayerBothKeys && keys['ShiftRight']) || wsInputs[1].nitro)
         };
 
         const p2Ctrl = {
@@ -2845,8 +3041,8 @@
           right: Boolean(keys['ArrowRight'] || (viewMode === '1p_p2' && keys['KeyD']) || wsInputs[2].right),
           gas: Boolean(keys['ArrowUp'] || (viewMode === '1p_p2' && keys['KeyW']) || wsInputs[2].gas),
           brake: Boolean(keys['ArrowDown'] || (viewMode === '1p_p2' && keys['KeyS']) || wsInputs[2].brake),
-          drift: Boolean(keys['ControlRight']),
-          nitro: Boolean(keys['ShiftRight'] || keys['Enter'])
+          drift: Boolean(keys['ControlRight'] || wsInputs[2].drift),
+          nitro: Boolean(keys['ShiftRight'] || keys['Enter'] || wsInputs[2].nitro)
         };
 
         const p2HasHuman = p2Ctrl.left || p2Ctrl.right || p2Ctrl.gas || p2Ctrl.brake;
