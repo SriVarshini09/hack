@@ -883,9 +883,10 @@
         <div id="mc-header-title" style="font-size:17px; font-weight:900; color:#ff2a85;">PLAYER 1 FERRARI CONTROLLER</div>
         <div style="font-size:10.5px; color:#94a3b8;">Slide Thumb to Steer • Hold Gas + Nitro/Drift</div>
       </div>
-      <div style="display:flex; align-items:center; gap:6px;">
-        <button class="vc-btn" style="padding:6px 10px; font-size:11px;" onclick="window.sendMobileAction('reset')">🔄 RESET ROAD</button>
-        <button class="vc-btn active-pink" style="padding:6px 10px; font-size:11px;" onclick="window.sendMobileAction('start_race')">🏁 START RACE</button>
+      <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+        <button class="vc-btn" style="padding:6px 10px; font-size:11px;" onclick="window.sendMobileAction('reset')">🔄 RESET</button>
+        <button class="vc-btn active-cyan" style="padding:6px 10px; font-size:11px;" onclick="window.sendMobileAction('1p_roam')">🌴 1P ROAM</button>
+        <button class="vc-btn active-pink" style="padding:6px 10px; font-size:11px;" onclick="window.sendMobileAction('start_race')">🏁 2P RACE</button>
         <div id="mc-ws-status" class="route-pill">CONNECTING...</div>
       </div>
     </div>
@@ -1014,19 +1015,25 @@
       };
 
       let ws = null;
+      let httpInFlight = false;
       const statusEl = document.getElementById('mc-ws-status');
 
-      function sendState() {
+      function sendState(forceHttp = false) {
         const payload = JSON.stringify(mobileState);
         if (ws && ws.readyState === 1) {
           ws.send(payload);
-        } else {
+        } else if (!httpInFlight || forceHttp) {
           // HTTP fallback so phone controller works even if cellular proxy blocks WebSockets
+          httpInFlight = true;
           fetch('/api/mobile-input', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: payload
-          }).catch(() => {});
+          })
+            .catch(() => {})
+            .finally(() => {
+              httpInFlight = false;
+            });
         }
       }
 
@@ -1036,6 +1043,7 @@
         ws.onopen = () => {
           statusEl.textContent = '🟢 ONLINE • 60HZ';
           ws.send(JSON.stringify({ type: 'register_controller', ...mobileState }));
+          sendState();
         };
         ws.onclose = () => {
           statusEl.textContent = '🔄 HTTP SYNC';
@@ -1052,7 +1060,7 @@
 
       window.setMobilePaint = function (hex) {
         mobileState.color = hex;
-        sendState();
+        sendState(true);
       };
 
       window.sendMobileAction = function (action) {
@@ -1065,56 +1073,84 @@
         }).catch(() => {});
       };
 
-      // Slide-aware Steering Zone so user can slide thumb smoothly between Left & Right
-      const steerZone = document.getElementById('mc-steer-zone');
-      const leftBtn = document.getElementById('btn-mc-left');
-      const rightBtn = document.getElementById('btn-mc-right');
+      // Unified Multi-Touch Gamepad Scanner: supports simultaneous 2-thumb controls + thumb sliding!
+      const padButtons = [
+        { id: 'btn-mc-left', key: 'left', pad: 12 },
+        { id: 'btn-mc-right', key: 'right', pad: 12 },
+        { id: 'btn-mc-gas', key: 'gas', pad: 14 },
+        { id: 'btn-mc-brake', key: 'brake', pad: 10 },
+        { id: 'btn-mc-nitro', key: 'nitro', pad: 14 },
+        { id: 'btn-mc-drift', key: 'drift', pad: 12 }
+      ].map(b => ({ ...b, el: document.getElementById(b.id) }));
 
-      function updateSteerFromTouches(e) {
-        e.preventDefault();
-        const rect = steerZone.getBoundingClientRect();
-        const midX = rect.left + rect.width / 2;
-        let leftActive = false, rightActive = false;
+      function syncAllTouches(e) {
+        if (e.cancelable) e.preventDefault();
+        const nextState = { left: false, right: false, gas: false, brake: false, drift: false, nitro: false };
 
         for (let i = 0; i < e.touches.length; i++) {
           const t = e.touches[i];
-          if (t.clientX >= rect.left - 20 && t.clientX <= rect.right + 20 &&
-              t.clientY >= rect.top - 30 && t.clientY <= rect.bottom + 30) {
-            if (t.clientX < midX) leftActive = true;
-            else rightActive = true;
+          const tx = t.clientX;
+          const ty = t.clientY;
+          for (const btn of padButtons) {
+            if (!btn.el) continue;
+            const r = btn.el.getBoundingClientRect();
+            if (tx >= r.left - btn.pad && tx <= r.right + btn.pad &&
+                ty >= r.top - btn.pad && ty <= r.bottom + btn.pad) {
+              nextState[btn.key] = true;
+            }
           }
         }
-        mobileState.left = leftActive;
-        mobileState.right = rightActive;
-        leftBtn.classList.toggle('pressed', leftActive);
-        rightBtn.classList.toggle('pressed', rightActive);
-        sendState();
+
+        let changed = false;
+        for (const btn of padButtons) {
+          if (mobileState[btn.key] !== nextState[btn.key]) {
+            mobileState[btn.key] = nextState[btn.key];
+            changed = true;
+          }
+          if (btn.el) btn.el.classList.toggle('pressed', nextState[btn.key]);
+        }
+        if (changed) sendState(true);
       }
 
-      steerZone.addEventListener('touchstart', updateSteerFromTouches, { passive: false });
-      steerZone.addEventListener('touchmove', updateSteerFromTouches, { passive: false });
-      steerZone.addEventListener('touchend', updateSteerFromTouches, { passive: false });
-      steerZone.addEventListener('touchcancel', updateSteerFromTouches, { passive: false });
+      const padArea = document.querySelector('.mc-pad-area');
+      padArea.addEventListener('touchstart', syncAllTouches, { passive: false });
+      padArea.addEventListener('touchmove', syncAllTouches, { passive: false });
+      padArea.addEventListener('touchend', syncAllTouches, { passive: false });
+      padArea.addEventListener('touchcancel', syncAllTouches, { passive: false });
 
-      function bindBtn(id, key) {
-        const el = document.getElementById(id);
-        if (!el) return;
-        const on = (e) => { e.preventDefault(); mobileState[key] = true; el.classList.add('pressed'); sendState(); };
-        const off = (e) => { e.preventDefault(); mobileState[key] = false; el.classList.remove('pressed'); sendState(); };
-        el.addEventListener('touchstart', on, { passive: false });
-        el.addEventListener('touchend', off, { passive: false });
-        el.addEventListener('touchcancel', off, { passive: false });
-        el.addEventListener('pointerdown', on);
-        el.addEventListener('pointerup', off);
-        el.addEventListener('pointerleave', off);
+      // Desktop mouse fallback when testing ?player=1 in a desktop browser
+      for (const btn of padButtons) {
+        if (!btn.el) continue;
+        btn.el.addEventListener('mousedown', (e) => {
+          e.preventDefault();
+          mobileState[btn.key] = true;
+          btn.el.classList.add('pressed');
+          sendState(true);
+        });
+        const offMouse = () => {
+          if (!mobileState[btn.key]) return;
+          mobileState[btn.key] = false;
+          btn.el.classList.remove('pressed');
+          sendState(true);
+        };
+        btn.el.addEventListener('mouseup', offMouse);
+        btn.el.addEventListener('mouseleave', offMouse);
       }
-      bindBtn('btn-mc-left', 'left');
-      bindBtn('btn-mc-right', 'right');
-      bindBtn('btn-mc-gas', 'gas');
-      bindBtn('btn-mc-brake', 'brake');
-      bindBtn('btn-mc-nitro', 'nitro');
-      bindBtn('btn-mc-drift', 'drift');
-      setInterval(sendState, 45);
+
+      window.addEventListener('blur', () => {
+        for (const btn of padButtons) {
+          mobileState[btn.key] = false;
+          if (btn.el) btn.el.classList.remove('pressed');
+        }
+        sendState(true);
+      });
+
+      // Keep-alive stream while any button is held down
+      setInterval(() => {
+        const anyActive = mobileState.left || mobileState.right || mobileState.gas ||
+                          mobileState.brake || mobileState.drift || mobileState.nitro;
+        if (anyActive) sendState(false);
+      }, 50);
     } else {
       initViceCitySanFrancisco();
     }
@@ -1123,9 +1159,13 @@
     // MODE B: VICE CITY SAN FRANCISCO OPEN-WORLD 3D RACER
     // =========================================================================
     function initViceCitySanFrancisco() {
+      let lastQrP1Url = '';
       function applyQrUrls(info) {
         const p1Url = info.player1Url || `${window.location.origin}/?player=1`;
         const p2Url = info.player2Url || `${window.location.origin}/?player=2`;
+        if (p1Url === lastQrP1Url) return;
+        lastQrP1Url = p1Url;
+
         const qr1 = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(p1Url)}`;
         const qr2 = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(p2Url)}`;
         document.getElementById('qr-img-p1').src = qr1;
@@ -1142,10 +1182,14 @@
         }
       }
 
-      fetch('/api/lan-info')
-        .then(r => r.json())
-        .then(applyQrUrls)
-        .catch(() => {});
+      const pollLanInfo = () => {
+        fetch('/api/lan-info')
+          .then(r => r.json())
+          .then(applyQrUrls)
+          .catch(() => {});
+      };
+      pollLanInfo();
+      setInterval(pollLanInfo, 6000);
 
       window.toggleQrDrawer = function () {
         const el = document.getElementById('qr-drawer');
@@ -1694,6 +1738,7 @@
           }
 
           computeStreetRoute(selectedStart, selectedFinish);
+          placeCarsAtStart();
           drawFullSFMap();
           if (isBotMode) {
             window.startRaceFromMap(false);
@@ -2443,9 +2488,9 @@
       let viewMode = '2p_split'; // '1p_p1', '1p_p2', '2p_split'
       let p2AiEnabled = false;
       let cameraPreset = 0; // 0 = Close Chase, 1 = Far Chase, 2 = Hood Cam
-      let raceActive = false;
+      let raceActive = true;
       let raceFinished = false;
-      let raceStartTime = 0;
+      let raceStartTime = performance.now();
 
       window.setViewMode = function (mode) {
         viewMode = mode;
@@ -2760,6 +2805,8 @@
                 resetCarToNearestRoad(msg.player === 2 ? carP2 : carP1);
               } else if (msg.action === 'start_race') {
                 window.launchTwoPlayerRace();
+              } else if (msg.action === '1p_roam') {
+                window.launchOnePlayerRoam();
               }
             } else if (msg.type === 'control' && (msg.player === 1 || msg.player === 2)) {
               wsInputs[msg.player] = {
@@ -2772,6 +2819,13 @@
               };
               if (msg.color) {
                 (msg.player === 2 ? carP2 : carP1).bodyMat.color.set(msg.color);
+              }
+              if ((msg.gas || msg.brake) && !countdownInterval) {
+                const modal = document.getElementById('sf-map-modal');
+                if (modal && modal.style.display !== 'none') {
+                  modal.style.display = 'none';
+                }
+                raceActive = true;
               }
             }
           } catch (e) {}

@@ -317,6 +317,226 @@ app.get('/sat_tiles/:z/:y/:x', async (req, res) => {
   }
 });
 
+// Ultra-fast, zero-dependency Mobile Controller page (<5KB) so QR scans over HTTPS tunnel or 5G load in <200ms!
+function renderMobileControllerHtml(playerStr) {
+  const playerNum = Number(playerStr) === 2 ? 2 : 1;
+  const accent = playerNum === 1 ? '#ff2a85' : '#00f0ff';
+  const defaultCarColor = playerNum === 1 ? '#ff1e42' : '#00d4ff';
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Player ${playerNum} Ferrari Controller — Vice City SF</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: radial-gradient(circle at 50% 15%, #1e1035, #060911 80%); color: #fff; font-family: system-ui, -apple-system, sans-serif; touch-action: none; }
+    #mc-root { display: flex; flex-direction: column; justify-content: space-between; width: 100%; height: 100%; padding: 12px; gap: 8px; }
+    .hdr { display: flex; justify-content: space-between; align-items: center; background: rgba(8,12,22,0.9); padding: 10px 14px; border-radius: 12px; border: 1.5px solid ${accent}; flex-wrap: wrap; gap: 8px; }
+    .act-btn { padding: 7px 11px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.28); background: rgba(15,23,42,0.9); color: #f8fafc; font-size: 11px; font-weight: 800; text-transform: uppercase; cursor: pointer; }
+    .act-cyan { background: linear-gradient(135deg, #0284c7, #00f0ff); color: #031525; border-color: #fff; }
+    .act-pink { background: linear-gradient(135deg, #ff2a85, #9333ea); color: #fff; border-color: #fff; }
+    .status-pill { padding: 5px 10px; border-radius: 999px; background: rgba(0,240,255,0.14); border: 1px solid #00f0ff; color: #b8fbff; font-size: 11px; font-weight: 800; }
+    .paint-bar { display: flex; align-items: center; justify-content: space-between; background: rgba(8,12,22,0.8); padding: 8px 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); }
+    .swatch { width: 28px; height: 28px; border-radius: 50%; border: 2px solid #fff; cursor: pointer; }
+    .mc-pad-area { flex: 1; display: grid; grid-template-columns: 1.15fr 1fr; gap: 12px; min-height: 0; }
+    .steer-cluster { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .right-cluster { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 10px; }
+    .touch-btn { border-radius: 18px; border: 2px solid rgba(255,255,255,0.28); background: rgba(15,23,42,0.88); color: #fff; font-size: 22px; font-weight: 900; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; touch-action: none; transition: transform 0.05s; }
+    .touch-btn.pressed { background: rgba(255,42,133,0.48); border-color: #fff; transform: scale(0.96); box-shadow: 0 0 22px rgba(255,42,133,0.65); }
+  </style>
+</head>
+<body>
+  <div id="mc-root">
+    <div class="hdr">
+      <div>
+        <div style="font-size:16px; font-weight:900; color:${accent};">PLAYER ${playerNum} FERRARI CONTROLLER</div>
+        <div style="font-size:10.5px; color:#94a3b8;">Slide Thumb to Steer • Hold Gas + Nitro/Drift</div>
+      </div>
+      <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+        <button class="act-btn" onclick="window.sendMobileAction('reset')">🔄 RESET</button>
+        <button class="act-btn act-cyan" onclick="window.sendMobileAction('1p_roam')">🌴 1P ROAM</button>
+        <button class="act-btn act-pink" onclick="window.sendMobileAction('start_race')">🏁 2P RACE</button>
+        <div id="mc-ws-status" class="status-pill">CONNECTING...</div>
+      </div>
+    </div>
+
+    <div class="paint-bar">
+      <span style="font-size:11px; font-weight:800; color:#cbd5e1;">FERRARI PAINT:</span>
+      <div style="display:flex; gap:8px;">
+        <button class="swatch" style="background:#ff1e42;" onclick="window.setMobilePaint('#ff1e42')"></button>
+        <button class="swatch" style="background:#00d4ff;" onclick="window.setMobilePaint('#00d4ff')"></button>
+        <button class="swatch" style="background:#ff2a85;" onclick="window.setMobilePaint('#ff2a85')"></button>
+        <button class="swatch" style="background:#ffd166;" onclick="window.setMobilePaint('#ffd166')"></button>
+        <button class="swatch" style="background:#06d6a0;" onclick="window.setMobilePaint('#06d6a0')"></button>
+      </div>
+    </div>
+
+    <div class="mc-pad-area">
+      <div class="steer-cluster">
+        <div class="touch-btn" id="btn-mc-left" style="border-color:#00f0ff;">◀<span style="font-size:12px;">STEER LEFT</span></div>
+        <div class="touch-btn" id="btn-mc-right" style="border-color:#00f0ff;">▶<span style="font-size:12px;">STEER RIGHT</span></div>
+      </div>
+      <div class="right-cluster">
+        <div class="touch-btn" id="btn-mc-nitro" style="border-color:#ffd166;">🔥<span style="font-size:11px; color:#ffd166;">NITRO BOOST</span></div>
+        <div class="touch-btn" id="btn-mc-gas" style="border-color:#06d6a0;">▲<span style="font-size:12px; color:#6bf5a6;">FULL GAS</span></div>
+        <div class="touch-btn" id="btn-mc-drift" style="border-color:#00f0ff;">💨<span style="font-size:11px; color:#80f8ff;">DRIFT</span></div>
+        <div class="touch-btn" id="btn-mc-brake" style="border-color:#ff2a85;">▼<span style="font-size:11px; color:#ff9ebb;">BRAKE / REV</span></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const playerNum = ${playerNum};
+    const mobileState = {
+      player: playerNum,
+      left: false, right: false, gas: false, brake: false, drift: false, nitro: false,
+      color: '${defaultCarColor}'
+    };
+    let ws = null;
+    let httpInFlight = false;
+    const statusEl = document.getElementById('mc-ws-status');
+
+    function sendState(forceHttp = false) {
+      const payload = JSON.stringify(mobileState);
+      if (ws && ws.readyState === 1) {
+        ws.send(payload);
+      } else if (!httpInFlight || forceHttp) {
+        httpInFlight = true;
+        fetch('/api/mobile-input', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: payload
+        }).catch(() => {}).finally(() => { httpInFlight = false; });
+      }
+    }
+
+    function connectWs() {
+      try {
+        const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+        ws = new WebSocket(proto + '//' + location.host);
+        ws.onopen = () => {
+          statusEl.textContent = '🟢 ONLINE • 60HZ';
+          ws.send(JSON.stringify({ type: 'register_controller', ...mobileState }));
+          sendState();
+        };
+        ws.onclose = () => {
+          statusEl.textContent = '🟢 HTTP SYNC';
+          setTimeout(connectWs, 1500);
+        };
+      } catch (e) {
+        statusEl.textContent = '🟢 HTTP SYNC';
+      }
+    }
+    connectWs();
+    fetch('/api/mobile-input', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'register_controller', ...mobileState })
+    }).then(() => {
+      if (!ws || ws.readyState !== 1) statusEl.textContent = '🟢 HTTP SYNC';
+    }).catch(() => {});
+
+    window.setMobilePaint = function (hex) {
+      mobileState.color = hex;
+      sendState(true);
+    };
+
+    window.sendMobileAction = function (action) {
+      const msg = { type: 'mobile_action', player: playerNum, action };
+      if (ws && ws.readyState === 1) ws.send(JSON.stringify(msg));
+      fetch('/api/mobile-input', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(msg)
+      }).catch(() => {});
+    };
+
+    const padButtons = [
+      { id: 'btn-mc-left', key: 'left', pad: 12 },
+      { id: 'btn-mc-right', key: 'right', pad: 12 },
+      { id: 'btn-mc-gas', key: 'gas', pad: 14 },
+      { id: 'btn-mc-brake', key: 'brake', pad: 10 },
+      { id: 'btn-mc-nitro', key: 'nitro', pad: 14 },
+      { id: 'btn-mc-drift', key: 'drift', pad: 12 }
+    ].map(b => ({ ...b, el: document.getElementById(b.id) }));
+
+    function syncAllTouches(e) {
+      if (e.cancelable) e.preventDefault();
+      const next = { left: false, right: false, gas: false, brake: false, drift: false, nitro: false };
+      for (let i = 0; i < e.touches.length; i++) {
+        const t = e.touches[i];
+        for (const btn of padButtons) {
+          const r = btn.el.getBoundingClientRect();
+          if (t.clientX >= r.left - btn.pad && t.clientX <= r.right + btn.pad &&
+              t.clientY >= r.top - btn.pad && t.clientY <= r.bottom + btn.pad) {
+            next[btn.key] = true;
+          }
+        }
+      }
+      let changed = false;
+      for (const btn of padButtons) {
+        if (mobileState[btn.key] !== next[btn.key]) {
+          mobileState[btn.key] = next[btn.key];
+          changed = true;
+        }
+        btn.el.classList.toggle('pressed', next[btn.key]);
+      }
+      if (changed) sendState(true);
+    }
+
+    const padArea = document.querySelector('.mc-pad-area');
+    padArea.addEventListener('touchstart', syncAllTouches, { passive: false });
+    padArea.addEventListener('touchmove', syncAllTouches, { passive: false });
+    padArea.addEventListener('touchend', syncAllTouches, { passive: false });
+    padArea.addEventListener('touchcancel', syncAllTouches, { passive: false });
+
+    for (const btn of padButtons) {
+      btn.el.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        mobileState[btn.key] = true;
+        btn.el.classList.add('pressed');
+        sendState(true);
+      });
+      const offMouse = () => {
+        if (!mobileState[btn.key]) return;
+        mobileState[btn.key] = false;
+        btn.el.classList.remove('pressed');
+        sendState(true);
+      };
+      btn.el.addEventListener('mouseup', offMouse);
+      btn.el.addEventListener('mouseleave', offMouse);
+    }
+
+    window.addEventListener('blur', () => {
+      for (const btn of padButtons) {
+        mobileState[btn.key] = false;
+        btn.el.classList.remove('pressed');
+      }
+      sendState(true);
+    });
+
+    setInterval(() => {
+      if (mobileState.left || mobileState.right || mobileState.gas ||
+          mobileState.brake || mobileState.drift || mobileState.nitro) {
+        sendState(false);
+      }
+    }, 55);
+  </script>
+</body>
+</html>`;
+}
+
+app.get('/', (req, res, next) => {
+  if (req.query.player === '1' || req.query.player === '2') {
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-store');
+    return res.send(renderMobileControllerHtml(req.query.player));
+  }
+  next();
+});
+
 // Serve static assets from public/
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -470,16 +690,36 @@ function buildLanInfoPayload(reqHost) {
   };
 }
 
+let activeSshProc = null;
+
 function startPublicMobileTunnel() {
   try {
-    const sshProc = spawn('ssh', [
-      '-T',
-      '-o', 'StrictHostKeyChecking=no',
-      '-o', 'ServerAliveInterval=30',
-      '-R', `80:localhost:${PORT}`,
-      'nokey@localhost.run'
-    ]);
-    sshProc.stdout.on('data', (chunk) => {
+    if (activeSshProc) {
+      try { activeSshProc.kill(); } catch (e) {}
+      activeSshProc = null;
+    }
+    const sshBin = fs.existsSync('C:\\Windows\\System32\\OpenSSH\\ssh.exe')
+      ? 'C:\\Windows\\System32\\OpenSSH\\ssh.exe'
+      : 'ssh';
+
+    const sshProc = spawn(
+      sshBin,
+      [
+        '-T',
+        '-o', 'StrictHostKeyChecking=no',
+        '-o', 'ServerAliveInterval=20',
+        '-o', 'ExitOnForwardFailure=yes',
+        '-R', `80:127.0.0.1:${PORT}`,
+        'nokey@localhost.run'
+      ],
+      {
+        windowsHide: true,
+        stdio: ['ignore', 'pipe', 'pipe']
+      }
+    );
+    activeSshProc = sshProc;
+
+    const handleTunnelOutput = (chunk) => {
       const text = chunk.toString();
       const match = text.match(/https:\/\/[a-z0-9\-]+\.lhr\.life/i);
       if (match && match[0] !== publicTunnelOrigin) {
@@ -487,13 +727,37 @@ function startPublicMobileTunnel() {
         console.log(`[MOBILE-TUNNEL] Public HTTPS Mobile Controller Tunnel Active: ${publicTunnelOrigin}`);
         broadcastJson({ type: 'lan_info', ...buildLanInfoPayload() });
       }
-    });
+    };
+
+    sshProc.stdout.on('data', handleTunnelOutput);
+    sshProc.stderr.on('data', handleTunnelOutput);
     sshProc.on('error', () => {});
     sshProc.on('close', () => {
-      setTimeout(startPublicMobileTunnel, 5000);
+      if (activeSshProc === sshProc) {
+        activeSshProc = null;
+        publicTunnelOrigin = '';
+        setTimeout(startPublicMobileTunnel, 3000);
+      }
     });
   } catch (e) {}
 }
+
+// Watchdog: every 12s verify the public tunnel responds 200 OK; if "no tunnel" (502), auto-heal immediately
+setInterval(async () => {
+  if (!publicTunnelOrigin) return;
+  try {
+    const controller = new AbortController();
+    const t = setTimeout(() => controller.abort(), 4000);
+    const r = await fetch(`${publicTunnelOrigin}/api/lan-info`, { signal: controller.signal });
+    clearTimeout(t);
+    if (!r.ok) {
+      console.warn(`[MOBILE-TUNNEL] Tunnel returned ${r.status}, reconnecting...`);
+      startPublicMobileTunnel();
+    }
+  } catch (e) {
+    startPublicMobileTunnel();
+  }
+}, 12000);
 
 // GET /api/lan-info -> Returns Public HTTPS Tunnel + LAN IP player controller URLs for QR codes
 app.get('/api/lan-info', (req, res) => {
