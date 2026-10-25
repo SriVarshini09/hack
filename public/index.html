@@ -878,17 +878,20 @@
           </div>
 
           <div class="sidebar-section">
-            <h4>3. Phone Controllers (Scan QR or Use Keyboard)</h4>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+              <h4 style="margin-bottom:0;">3. Phone Controllers</h4>
+              <span style="font-size:9.5px; color:var(--sf-vermilion); font-weight:600; cursor:pointer;" onclick="window.openQrLightbox(1)">Click QR to Enlarge ⤢</span>
+            </div>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; text-align:center;">
-              <div style="background:#12161f; border:1px solid var(--sf-border); border-radius:8px; padding:6px;">
-                <div style="font-size:10px; font-weight:700; color:var(--sf-vermilion); letter-spacing:0.04em;">PLAYER 1</div>
+              <div onclick="window.openQrLightbox(1)" title="Click to enlarge Player 1 QR Code" style="background:#12161f; border:1px solid var(--sf-border); border-radius:8px; padding:6px; cursor:pointer; transition:border-color 0.15s;" onmouseover="this.style.borderColor='#e04f33'" onmouseout="this.style.borderColor='var(--sf-border)'">
+                <div style="font-size:10px; font-weight:700; color:var(--sf-vermilion); letter-spacing:0.04em;">PLAYER 1 ⤢</div>
                 <img id="modal-qr-p1" alt="P1 QR" style="width:64px; height:64px; background:#fff; padding:3px; border-radius:5px; margin:4px auto; display:block;" src="" />
-                <div id="modal-status-p1" style="font-size:9.5px; color:var(--sf-muted); font-weight:600;">WASD or Scan QR</div>
+                <div id="modal-status-p1" style="font-size:9.5px; color:var(--sf-muted); font-weight:600;">Click to Enlarge</div>
               </div>
-              <div style="background:#12161f; border:1px solid var(--sf-border); border-radius:8px; padding:6px;">
-                <div style="font-size:10px; font-weight:700; color:var(--sf-blue); letter-spacing:0.04em;">PLAYER 2</div>
+              <div onclick="window.openQrLightbox(2)" title="Click to enlarge Player 2 QR Code" style="background:#12161f; border:1px solid var(--sf-border); border-radius:8px; padding:6px; cursor:pointer; transition:border-color 0.15s;" onmouseover="this.style.borderColor='#3b82f6'" onmouseout="this.style.borderColor='var(--sf-border)'">
+                <div style="font-size:10px; font-weight:700; color:var(--sf-blue); letter-spacing:0.04em;">PLAYER 2 ⤢</div>
                 <img id="modal-qr-p2" alt="P2 QR" style="width:64px; height:64px; background:#fff; padding:3px; border-radius:5px; margin:4px auto; display:block;" src="" />
-                <div id="modal-status-p2" style="font-size:9.5px; color:var(--sf-muted); font-weight:600;">Arrows or Scan QR</div>
+                <div id="modal-status-p2" style="font-size:9.5px; color:var(--sf-muted); font-weight:600;">Click to Enlarge</div>
               </div>
             </div>
             <div id="qr-tunnel-note" style="font-size:9.5px; color:var(--sf-muted); text-align:center; margin-top:4px; word-break:break-all;"></div>
@@ -901,6 +904,35 @@
             <button class="launch-btn-secondary" onclick="window.launchOnePlayerRoam()">
               Solo Free Roam (1 Player)
             </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fullscreen Easy-Scan QR Code Lightbox Modal -->
+    <div id="qr-zoom-modal" onclick="if(event.target===this) window.closeQrLightbox()" style="position:fixed; inset:0; z-index:95; background:rgba(8,10,15,0.88); backdrop-filter:blur(14px); display:none; align-items:center; justify-content:center; padding:20px;">
+      <div style="background:var(--sf-panel); border:1px solid var(--sf-border-strong); border-radius:16px; padding:24px 28px; width:min(680px, 94vw); box-shadow:0 32px 80px rgba(0,0,0,0.85);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
+          <div>
+            <div style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; color:var(--sf-vermilion);">Instant Mobile Gamepad</div>
+            <div style="font-size:20px; font-weight:800; color:#fff;">Scan with Phone Camera</div>
+          </div>
+          <button class="vc-btn" style="padding:6px 12px; font-size:12px;" onclick="window.closeQrLightbox()">✕ Close</button>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:18px; text-align:center;">
+          <div id="zoom-card-p1" style="background:var(--sf-card); border:2px solid var(--sf-vermilion); border-radius:12px; padding:18px;">
+            <div style="font-size:13px; font-weight:800; color:var(--sf-vermilion); letter-spacing:0.05em; margin-bottom:10px;">PLAYER 1 CONTROLLER</div>
+            <img id="zoom-qr-p1" alt="Player 1 Large QR" style="width:220px; height:220px; background:#ffffff; padding:12px; border-radius:10px; margin:0 auto 10px; display:block; box-shadow:0 8px 24px rgba(0,0,0,0.4);" src="" />
+            <div id="zoom-status-p1" style="font-size:12px; font-weight:700; color:#d1d5db; margin-bottom:4px;">Scan QR with Phone 1</div>
+            <div id="zoom-url-p1" style="font-size:10px; color:var(--sf-muted); word-break:break-all;"></div>
+          </div>
+
+          <div id="zoom-card-p2" style="background:var(--sf-card); border:2px solid var(--sf-blue); border-radius:12px; padding:18px;">
+            <div style="font-size:13px; font-weight:800; color:var(--sf-blue); letter-spacing:0.05em; margin-bottom:10px;">PLAYER 2 CONTROLLER</div>
+            <img id="zoom-qr-p2" alt="Player 2 Large QR" style="width:220px; height:220px; background:#ffffff; padding:12px; border-radius:10px; margin:0 auto 10px; display:block; box-shadow:0 8px 24px rgba(0,0,0,0.4);" src="" />
+            <div id="zoom-status-p2" style="font-size:12px; font-weight:700; color:#d1d5db; margin-bottom:4px;">Scan QR with Phone 2</div>
+            <div id="zoom-url-p2" style="font-size:10px; color:var(--sf-muted); word-break:break-all;"></div>
           </div>
         </div>
       </div>
@@ -1250,14 +1282,22 @@
         if (p1Url === lastQrP1Url) return;
         lastQrP1Url = p1Url;
 
-        const qr1 = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(p1Url)}`;
-        const qr2 = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(p2Url)}`;
+        const qr1 = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(p1Url)}`;
+        const qr2 = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(p2Url)}`;
         document.getElementById('qr-img-p1').src = qr1;
         document.getElementById('qr-img-p2').src = qr2;
         const mQr1 = document.getElementById('modal-qr-p1');
         const mQr2 = document.getElementById('modal-qr-p2');
         if (mQr1) mQr1.src = qr1;
         if (mQr2) mQr2.src = qr2;
+        const zQr1 = document.getElementById('zoom-qr-p1');
+        const zQr2 = document.getElementById('zoom-qr-p2');
+        if (zQr1) zQr1.src = qr1;
+        if (zQr2) zQr2.src = qr2;
+        const zUrl1 = document.getElementById('zoom-url-p1');
+        const zUrl2 = document.getElementById('zoom-url-p2');
+        if (zUrl1) zUrl1.textContent = p1Url;
+        if (zUrl2) zUrl2.textContent = p2Url;
         const noteEl = document.getElementById('qr-tunnel-note');
         if (noteEl) {
           noteEl.textContent = info.publicOrigin
@@ -1265,6 +1305,23 @@
             : `LAN Controller Link: ${info.baseOrigin || window.location.origin}`;
         }
       }
+
+      window.openQrLightbox = function (focusPlayer = 1) {
+        const modal = document.getElementById('qr-zoom-modal');
+        if (!modal) return;
+        modal.style.display = 'flex';
+        const c1 = document.getElementById('zoom-card-p1');
+        const c2 = document.getElementById('zoom-card-p2');
+        if (c1 && c2) {
+          c1.style.borderColor = focusPlayer === 1 ? '#e04f33' : 'rgba(255,255,255,0.12)';
+          c2.style.borderColor = focusPlayer === 2 ? '#3b82f6' : 'rgba(255,255,255,0.12)';
+        }
+      };
+
+      window.closeQrLightbox = function () {
+        const modal = document.getElementById('qr-zoom-modal');
+        if (modal) modal.style.display = 'none';
+      };
 
       const pollLanInfo = () => {
         fetch('/api/lan-info')
@@ -2779,6 +2836,7 @@
 
       window.startRaceFromMap = function (freeRoam = false) {
         isFreeRoamMode = Boolean(freeRoam);
+        window.closeQrLightbox();
         document.getElementById('sf-map-modal').style.display = 'none';
         document.getElementById('winner-banner').style.display = 'none';
         computeStreetRoute(selectedStart, selectedFinish);
@@ -2940,7 +2998,9 @@
       const keys = {};
       window.addEventListener('keydown', (e) => {
         keys[e.code] = true;
-        if (e.code === 'KeyM') {
+        if (e.code === 'Escape') {
+          window.closeQrLightbox();
+        } else if (e.code === 'KeyM') {
           window.toggleFullSFMap();
         } else if (e.code === 'KeyC') {
           cameraPreset = (cameraPreset + 1) % 3;
@@ -2986,6 +3046,16 @@
                 ms2.textContent = s2;
                 ms2.style.color = msg.p2Connected ? '#34d399' : '#9ca3af';
               }
+              const zs1 = document.getElementById('zoom-status-p1');
+              const zs2 = document.getElementById('zoom-status-p2');
+              if (zs1) {
+                zs1.textContent = msg.p1Connected ? '● Phone 1 Connected' : 'Scan QR with Phone 1';
+                zs1.style.color = msg.p1Connected ? '#34d399' : '#d1d5db';
+              }
+              if (zs2) {
+                zs2.textContent = msg.p2Connected ? '● Phone 2 Connected' : 'Scan QR with Phone 2';
+                zs2.style.color = msg.p2Connected ? '#34d399' : '#d1d5db';
+              }
               if (msg.p1Spec?.color) carP1.bodyMat.color.set(msg.p1Spec.color);
               if (msg.p2Spec?.color) carP2.bodyMat.color.set(msg.p2Spec.color);
             } else if (msg.type === 'mobile_action') {
@@ -3009,6 +3079,7 @@
                 (msg.player === 2 ? carP2 : carP1).bodyMat.color.set(msg.color);
               }
               if ((msg.gas || msg.brake) && !countdownInterval) {
+                window.closeQrLightbox();
                 const modal = document.getElementById('sf-map-modal');
                 if (modal && modal.style.display !== 'none') {
                   modal.style.display = 'none';
