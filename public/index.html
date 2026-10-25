@@ -1730,41 +1730,34 @@
       }
 
       function sampleGroundHeight(x, z, currentY) {
-        // Always sample on the nearest street centerline so building roofs & sidewalk trees never lift the car!
+        // Always sample at the nearest street centerline so building roofs never get sampled!
         const road = findNearestDrivableStreet(x, z);
-        const sx = road && road.dist < 35 ? road.px : x;
-        const sz = road && road.dist < 35 ? road.pz : z;
-
-        const baseElev = estimateBaseElevation(sx, sz);
-        const refY = Number.isFinite(currentY) ? currentY : baseElev;
+        const sx = road && road.dist < 45 ? road.px : x;
+        const sz = road && road.dist < 45 ? road.pz : z;
 
         const candidates = [];
         for (const rec of loadedTiles.values()) {
-          // Only raycast against ground-level (-h0) tiles, never upper skyscraper stories (-h1..h11)
-          if (rec.key.endsWith('-h0') && Math.abs(rec.cx - sx) < 130 && Math.abs(rec.cz - sz) < 130 && rec.mesh) {
+          if (Math.abs(rec.cx - sx) < 150 && Math.abs(rec.cz - sz) < 150 && rec.mesh) {
             candidates.push(rec.mesh);
           }
         }
         if (candidates.length > 0) {
-          // Start ray only 2.8m above current street level (well below building roofs!)
-          rayOrigin.set(sx, refY + 2.8, sz);
+          rayOrigin.set(sx, (Number.isFinite(currentY) ? currentY : 0) + 65, sz);
           downRaycaster.set(rayOrigin, downDir);
-          downRaycaster.far = 35;
+          downRaycaster.far = 220;
           const hits = downRaycaster.intersectObjects(candidates, true);
           if (hits.length > 0) {
-            let lowestValidY = Infinity;
+            // Pick lowest hit along the street centerline (the actual street asphalt!)
+            let streetY = hits[hits.length - 1].point.y;
             for (const h of hits) {
-              // Reject any hit that jumps more than +1.6m above refY or +5.5m above tile base elevation (roofs/overpasses)
-              if (h.point.y <= refY + 1.6 && h.point.y <= baseElev + 5.5) {
-                if (h.point.y < lowestValidY) lowestValidY = h.point.y;
+              if (!Number.isFinite(currentY) || Math.abs(h.point.y - currentY) < 12.0) {
+                streetY = Math.min(streetY, h.point.y);
               }
             }
-            if (Number.isFinite(lowestValidY)) {
-              return lowestValidY;
-            }
+            return streetY;
           }
         }
-        return Number.isFinite(currentY) ? THREE.MathUtils.lerp(currentY, baseElev, 0.08) : baseElev;
+        return Number.isFinite(currentY) ? currentY : estimateBaseElevation(sx, sz);
       }
 
       function updateDynamicTileStreaming(force = false) {
@@ -2232,22 +2225,22 @@
         routeVisualGroup.add(arch);
       }
 
-      // Periodically refine road ribbon elevations as high-res Z17 photogrammetry tiles stream in
+      // Periodically refine road ribbon elevations as high-res photogrammetry tiles stream in
       setInterval(() => {
         if (!activeRoutePoints.length || isFreeRoamMode) return;
         let updated = false;
         for (let i = 0; i < activeRoutePoints.length; i++) {
           const [x, oldY, z] = activeRoutePoints[i];
-          if (Math.hypot(x - carP1.x, z - carP1.z) < 350) {
+          if (Math.hypot(x - carP1.x, z - carP1.z) < 420 || Math.hypot(x - carP2.x, z - carP2.z) < 420) {
             const newY = sampleGroundHeight(x, z, oldY);
-            if (Math.abs(newY - oldY) > 0.35) {
-              activeRoutePoints[i][1] = THREE.MathUtils.lerp(oldY, newY, 0.45);
+            if (Math.abs(newY - oldY) > 0.2) {
+              activeRoutePoints[i][1] = newY;
               updated = true;
             }
           }
         }
         if (updated) buildClearRoadRibbonMesh();
-      }, 1200);
+      }, 650);
 
       // =======================================================================
       // 4. REAL 3D FERRARI 458 ITALIA .GLB SUPERCARS + SPINNING WHEELS
@@ -3056,7 +3049,12 @@
       }
 
       function stepCarPhysics(car, ctrl, isAi, dt) {
-        if (!raceActive) return;
+        if (!raceActive) {
+          // Even during 3-2-1 countdown, keep cars sitting cleanly ON TOP of the loaded road mesh!
+          const gY = sampleGroundHeight(car.x, car.z, car.y) + 0.34;
+          car.y = THREE.MathUtils.lerp(car.y, gY, 0.55);
+          return;
+        }
 
         const maxForward = ctrl.nitro && car.nitro > 2 ? 42.0 : 31.0; // m/s (~95 MPH boost, ~70 MPH normal)
         const maxReverse = 12.0;
@@ -3170,8 +3168,9 @@
           }
         }
 
-        // 3. Smooth Street-Level Elevation Following (never climbs building roofs!)
-        let targetY = car.y;
+        // 3. Smooth Street-Level Elevation Following (always stays ON TOP of the road surface!)
+        const directGroundY = sampleGroundHeight(car.x, car.z, car.y) + 0.32;
+        let targetY = directGroundY;
         let nearestRouteDist = Infinity;
         let nearestIdx = car.routeIdx;
 
@@ -3187,12 +3186,16 @@
         }
 
         if (!isFreeRoamMode && nearestRouteDist < 22 && activeRoutePoints[nearestIdx]) {
-          targetY = activeRoutePoints[nearestIdx][1] + 0.34;
-        } else {
-          targetY = sampleGroundHeight(car.x, car.z, car.y) + 0.28;
+          // Use whichever is higher between route ribbon and actual loaded road mesh so car never sinks under road!
+          targetY = Math.max(activeRoutePoints[nearestIdx][1] + 0.34, directGroundY);
         }
 
-        car.y = THREE.MathUtils.lerp(car.y, targetY, 0.22);
+        if (targetY > car.y) {
+          // Snap upward quickly so car never clips underneath the road mesh
+          car.y = THREE.MathUtils.lerp(car.y, targetY, 0.65);
+        } else {
+          car.y = THREE.MathUtils.lerp(car.y, targetY, 0.24);
+        }
 
         // Argon Hill-Spline Pitching: tilt Ferrari nose smoothly up/down San Francisco hills
         let targetPitch = 0;
