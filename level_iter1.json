@@ -1,0 +1,78 @@
+{
+  "iteration": 1,
+  "route_name": "Embarcadero Sprint -> Shack15 Ferry Building (Draft Pass 1)",
+  "argon_critique": "Pass 1 First Draft: Generated from raw SF Embarcadero OSM corridor.",
+  "audit_timestamp": "00:03.2s",
+  "spawn": {
+    "x": -35,
+    "y": 0,
+    "z": 120,
+    "rotationY": 2.9
+  },
+  "carStats": {
+    "maxSpeed": 0.9,
+    "acceleration": 0.03,
+    "turnSpeed": 0.045
+  },
+  "colliders": [
+    {
+      "id": "embarcadero_west_wall",
+      "label": "Embarcadero West Building Frontage",
+      "x": -52,
+      "y": 14,
+      "z": 45,
+      "w": 12,
+      "h": 28,
+      "d": 190
+    },
+    {
+      "id": "bay_promenade_east_seawall",
+      "label": "SF Bay Waterfront Seawall",
+      "x": 22,
+      "y": 4,
+      "z": 55,
+      "w": 8,
+      "h": 8,
+      "d": 150
+    },
+    {
+      "id": "market_st_transit_island",
+      "label": "Market St Historic Streetcar Island",
+      "x": -38,
+      "y": 3,
+      "z": -15,
+      "w": 8,
+      "h": 6,
+      "d": 26
+    }
+  ],
+  "checkpoints": [
+    {
+      "id": 1,
+      "label": "WP1: Ferry Plaza East Colonnade (UNVERIFIED)",
+      "x": -12,
+      "y": 0,
+      "z": 35,
+      "radius": 8,
+      "isFinish": false
+    },
+    {
+      "id": 2,
+      "label": "WP2: Embarcadero Center Approach",
+      "x": -18,
+      "y": 0,
+      "z": -2,
+      "radius": 8,
+      "isFinish": false
+    },
+    {
+      "id": 3,
+      "label": "SHACK15 FINISH LINE (Ferry Building Arch)",
+      "x": 5,
+      "y": 0,
+      "z": -30,
+      "radius": 10,
+      "isFinish": true
+    }
+  ]
+}

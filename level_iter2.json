@@ -1,0 +1,114 @@
+{
+  "iteration": 2,
+  "route_name": "Embarcadero Sprint -> Shack15 Ferry Building (Argon Verified Pass 2)",
+  "argon_critique": "AUDIT AT 00:03.2s: Test vehicle clipped unmodeled Ferry Plaza East colonnade pillar at (-12, 35) in iter1_crash.webm. Added missing collision proxy 'ferry_pillar_east' (x:-12, z:35, w:6, d:6) and shifted Waypoint #1 -14m West from (-12, 35) to (-26, 35) for a clean racing line to Shack15.",
+  "audit_timestamp": "00:03.2s",
+  "audit_details": {
+    "failure_timestamp": "00:03.2s",
+    "impact_coordinates": {
+      "x": -12,
+      "y": 0,
+      "z": 35
+    },
+    "obstacle_identified": "Ferry Plaza East Colonnade Support Pillar",
+    "collider_added": {
+      "id": "ferry_pillar_east",
+      "x": -12,
+      "y": 6,
+      "z": 35,
+      "w": 6,
+      "h": 12,
+      "d": 6
+    },
+    "waypoint_delta": {
+      "id": 1,
+      "from_x": -12,
+      "to_x": -26,
+      "z": 35,
+      "shift_meters": "-14m West"
+    }
+  },
+  "spawn": {
+    "x": -35,
+    "y": 0,
+    "z": 120,
+    "rotationY": 2.9
+  },
+  "carStats": {
+    "maxSpeed": 0.9,
+    "acceleration": 0.03,
+    "turnSpeed": 0.045
+  },
+  "colliders": [
+    {
+      "id": "embarcadero_west_wall",
+      "label": "Embarcadero West Building Frontage",
+      "x": -52,
+      "y": 14,
+      "z": 45,
+      "w": 12,
+      "h": 28,
+      "d": 190
+    },
+    {
+      "id": "bay_promenade_east_seawall",
+      "label": "SF Bay Waterfront Seawall",
+      "x": 22,
+      "y": 4,
+      "z": 55,
+      "w": 8,
+      "h": 8,
+      "d": 150
+    },
+    {
+      "id": "market_st_transit_island",
+      "label": "Market St Historic Streetcar Island",
+      "x": -38,
+      "y": 3,
+      "z": -15,
+      "w": 8,
+      "h": 6,
+      "d": 26
+    },
+    {
+      "id": "ferry_pillar_east",
+      "label": "Ferry Plaza East Colonnade Proxy (Argon Added)",
+      "x": -12,
+      "y": 6,
+      "z": 35,
+      "w": 6,
+      "h": 12,
+      "d": 6,
+      "isArgonAdded": true
+    }
+  ],
+  "checkpoints": [
+    {
+      "id": 1,
+      "label": "WP1: Embarcadero Express Lane (-14m West Shift)",
+      "x": -26,
+      "y": 0,
+      "z": 35,
+      "radius": 8,
+      "isFinish": false
+    },
+    {
+      "id": 2,
+      "label": "WP2: Embarcadero Center Approach",
+      "x": -18,
+      "y": 0,
+      "z": -2,
+      "radius": 8,
+      "isFinish": false
+    },
+    {
+      "id": 3,
+      "label": "SHACK15 FINISH LINE (Ferry Building Arch)",
+      "x": 5,
+      "y": 0,
+      "z": -30,
+      "radius": 10,
+      "isFinish": true
+    }
+  ]
+}

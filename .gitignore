@@ -1,0 +1,20 @@
+# Environment & Secrets (NEVER COMMIT)
+.env
+.env.*
+opencode.json
+
+# Python Virtual Environment & Cache
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.playwright-tmp/
+
+# Node Dependencies
+node_modules/
+
+# Logs & Temp Files
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

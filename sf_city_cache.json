@@ -1,0 +1,818 @@
+{
+  "source": "sf_embarcadero_real2sim_hybrid",
+  "bbox": [
+    37.791,
+    -122.3995,
+    37.7995,
+    -122.39
+  ],
+  "generatedAt": "2026-10-25T20:04:49.616Z",
+  "landmarks": {
+    "ferryBuilding": {
+      "name": "San Francisco Ferry Building & SHACK15",
+      "x": 5,
+      "z": -44,
+      "w": 38,
+      "d": 18,
+      "towerH": 52
+    },
+    "ferryPillarEast": {
+      "name": "Ferry Plaza East Colonnade Pillar",
+      "x": -12,
+      "y": 6,
+      "z": 35,
+      "w": 6,
+      "h": 12,
+      "d": 6
+    },
+    "shack15Arch": {
+      "name": "SHACK15 FINISH LINE",
+      "x": 5,
+      "y": 0,
+      "z": -30
+    }
+  },
+  "buildings": [
+    {
+      "id": "emb_center_4",
+      "name": "Four Embarcadero Center",
+      "x": -68,
+      "z": 85,
+      "w": 22,
+      "d": 28,
+      "h": 72,
+      "style": "skyscraper"
+    },
+    {
+      "id": "emb_center_3",
+      "name": "Three Embarcadero Center",
+      "x": -96,
+      "z": 85,
+      "w": 22,
+      "d": 28,
+      "h": 64,
+      "style": "skyscraper"
+    },
+    {
+      "id": "emb_center_2",
+      "name": "Two Embarcadero Center",
+      "x": -72,
+      "z": 42,
+      "w": 24,
+      "d": 26,
+      "h": 58,
+      "style": "skyscraper"
+    },
+    {
+      "id": "emb_center_1",
+      "name": "One Embarcadero Center",
+      "x": -102,
+      "z": 40,
+      "w": 24,
+      "d": 26,
+      "h": 68,
+      "style": "skyscraper"
+    },
+    {
+      "id": "hyatt_regency_sf",
+      "name": "Hyatt Regency Embarcadero",
+      "x": -64,
+      "z": 5,
+      "w": 26,
+      "d": 24,
+      "h": 46,
+      "style": "modern"
+    },
+    {
+      "id": "one_market_plaza",
+      "name": "One Market Plaza Tower",
+      "x": -66,
+      "z": -32,
+      "w": 24,
+      "d": 26,
+      "h": 66,
+      "style": "skyscraper"
+    },
+    {
+      "id": "spear_tower",
+      "name": "Spear Street Tower",
+      "x": -95,
+      "z": -34,
+      "w": 24,
+      "d": 24,
+      "h": 56,
+      "style": "skyscraper"
+    },
+    {
+      "id": "rincon_annex",
+      "name": "Rincon Center",
+      "x": -70,
+      "z": -72,
+      "w": 26,
+      "d": 28,
+      "h": 42,
+      "style": "modern"
+    },
+    {
+      "id": "bayside_north_1",
+      "name": "Broadway Waterfront Lofts",
+      "x": -64,
+      "z": 122,
+      "w": 22,
+      "d": 26,
+      "h": 36,
+      "style": "midrise"
+    },
+    {
+      "id": "bayside_north_2",
+      "name": "Battery St Financial Plaza",
+      "x": -94,
+      "z": 124,
+      "w": 24,
+      "d": 26,
+      "h": 50,
+      "style": "skyscraper"
+    },
+    {
+      "id": "bayside_north_3",
+      "name": "Telegraph Hill View Tower",
+      "x": -66,
+      "z": 158,
+      "w": 24,
+      "d": 24,
+      "h": 44,
+      "style": "midrise"
+    },
+    {
+      "id": "transamerica_vista",
+      "name": "Transamerica Pyramid Vista",
+      "x": -135,
+      "z": 95,
+      "w": 26,
+      "d": 26,
+      "h": 98,
+      "style": "pyramid"
+    },
+    {
+      "id": "salesforce_vista",
+      "name": "Salesforce Tower South Vista",
+      "x": -130,
+      "z": -65,
+      "w": 28,
+      "d": 28,
+      "h": 108,
+      "style": "skyscraper"
+    },
+    {
+      "id": "pier_15_exploratorium",
+      "name": "Pier 15 Exploratorium",
+      "x": 52,
+      "z": 135,
+      "w": 38,
+      "d": 22,
+      "h": 14,
+      "style": "pier"
+    },
+    {
+      "id": "pier_9_headhouse",
+      "name": "Pier 9 Waterfront Shed",
+      "x": 50,
+      "z": 98,
+      "w": 34,
+      "d": 18,
+      "h": 12,
+      "style": "pier"
+    },
+    {
+      "id": "pier_7_promenade",
+      "name": "Pier 7 Historic Wooden Pier",
+      "x": 56,
+      "z": 66,
+      "w": 44,
+      "d": 10,
+      "h": 8,
+      "style": "pier"
+    },
+    {
+      "id": "pier_3_shed",
+      "name": "Pier 3 Hornblower Landing",
+      "x": 48,
+      "z": 32,
+      "w": 34,
+      "d": 18,
+      "h": 13,
+      "style": "pier"
+    },
+    {
+      "id": "pier_1_headhouse",
+      "name": "Pier 1 Bay Conservation HQ",
+      "x": 44,
+      "z": -2,
+      "w": 32,
+      "d": 18,
+      "h": 15,
+      "style": "pier"
+    },
+    {
+      "id": "pier_14_south",
+      "name": "Pier 14 Bay Breakwater",
+      "x": 54,
+      "z": -72,
+      "w": 46,
+      "d": 12,
+      "h": 9,
+      "style": "pier"
+    }
+  ],
+  "elements": [
+    {
+      "type": "way",
+      "id": 900000,
+      "tags": {
+        "building": "yes",
+        "name": "Four Embarcadero Center",
+        "building:levels": "21"
+      },
+      "geometry": [
+        {
+          "lat": 37.79430810810811,
+          "lon": -122.39569772727273
+        },
+        {
+          "lat": 37.79430810810811,
+          "lon": -122.39544772727274
+        },
+        {
+          "lat": 37.794560360360364,
+          "lon": -122.39544772727274
+        },
+        {
+          "lat": 37.794560360360364,
+          "lon": -122.39569772727273
+        },
+        {
+          "lat": 37.79430810810811,
+          "lon": -122.39569772727273
+        }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 900001,
+      "tags": {
+        "building": "yes",
+        "name": "Three Embarcadero Center",
+        "building:levels": "18"
+      },
+      "geometry": [
+        {
+          "lat": 37.79430810810811,
+          "lon": -122.3960159090909
+        },
+        {
+          "lat": 37.79430810810811,
+          "lon": -122.39576590909091
+        },
+        {
+          "lat": 37.794560360360364,
+          "lon": -122.39576590909091
+        },
+        {
+          "lat": 37.794560360360364,
+          "lon": -122.3960159090909
+        },
+        {
+          "lat": 37.79430810810811,
+          "lon": -122.3960159090909
+        }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 900002,
+      "tags": {
+        "building": "yes",
+        "name": "Two Embarcadero Center",
+        "building:levels": "17"
+      },
+      "geometry": [
+        {
+          "lat": 37.79470450450451,
+          "lon": -122.39575454545454
+        },
+        {
+          "lat": 37.79470450450451,
+          "lon": -122.39548181818182
+        },
+        {
+          "lat": 37.794938738738736,
+          "lon": -122.39548181818182
+        },
+        {
+          "lat": 37.794938738738736,
+          "lon": -122.39575454545454
+        },
+        {
+          "lat": 37.79470450450451,
+          "lon": -122.39575454545454
+        }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 900003,
+      "tags": {
+        "building": "yes",
+        "name": "One Embarcadero Center",
+        "building:levels": "19"
+      },
+      "geometry": [
+        {
+          "lat": 37.79472252252253,
+          "lon": -122.39609545454545
+        },
+        {
+          "lat": 37.79472252252253,
+          "lon": -122.39582272727273
+        },
+        {
+          "lat": 37.794956756756754,
+          "lon": -122.39582272727273
+        },
+        {
+          "lat": 37.794956756756754,
+          "lon": -122.39609545454545
+        },
+        {
+          "lat": 37.79472252252253,
+          "lon": -122.39609545454545
+        }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 900004,
+      "tags": {
+        "building": "yes",
+        "name": "Hyatt Regency Embarcadero",
+        "building:levels": "13"
+      },
+      "geometry": [
+        {
+          "lat": 37.79504684684685,
+          "lon": -122.39567500000001
+        },
+        {
+          "lat": 37.79504684684685,
+          "lon": -122.39537954545455
+        },
+        {
+          "lat": 37.79526306306307,
+          "lon": -122.39537954545455
+        },
+        {
+          "lat": 37.79526306306307,
+          "lon": -122.39567500000001
+        },
+        {
+          "lat": 37.79504684684685,
+          "lon": -122.39567500000001
+        }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 900005,
+      "tags": {
+        "building": "yes",
+        "name": "One Market Plaza Tower",
+        "building:levels": "19"
+      },
+      "geometry": [
+        {
+          "lat": 37.795371171171176,
+          "lon": -122.39568636363636
+        },
+        {
+          "lat": 37.795371171171176,
+          "lon": -122.39541363636364
+        },
+        {
+          "lat": 37.795605405405404,
+          "lon": -122.39541363636364
+        },
+        {
+          "lat": 37.795605405405404,
+          "lon": -122.39568636363636
+        },
+        {
+          "lat": 37.795371171171176,
+          "lon": -122.39568636363636
+        }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 900006,
+      "tags": {
+        "building": "yes",
+        "name": "Spear Street Tower",
+        "building:levels": "16"
+      },
+      "geometry": [
+        {
+          "lat": 37.7953981981982,
+          "lon": -122.3960159090909
+        },
+        {
+          "lat": 37.7953981981982,
+          "lon": -122.39574318181819
+        },
+        {
+          "lat": 37.795614414414416,
+          "lon": -122.39574318181819
+        },
+        {
+          "lat": 37.795614414414416,
+          "lon": -122.3960159090909
+        },
+        {
+          "lat": 37.7953981981982,
+          "lon": -122.3960159090909
+        }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 900007,
+      "tags": {
+        "building": "yes",
+        "name": "Rincon Center",
+        "building:levels": "12"
+      },
+      "geometry": [
+        {
+          "lat": 37.795722522522524,
+          "lon": -122.39574318181819
+        },
+        {
+          "lat": 37.795722522522524,
+          "lon": -122.39544772727272
+        },
+        {
+          "lat": 37.79597477477478,
+          "lon": -122.39544772727272
+        },
+        {
+          "lat": 37.79597477477478,
+          "lon": -122.39574318181819
+        },
+        {
+          "lat": 37.795722522522524,
+          "lon": -122.39574318181819
+        }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 900008,
+      "tags": {
+        "building": "yes",
+        "name": "Broadway Waterfront Lofts",
+        "building:levels": "10"
+      },
+      "geometry": [
+        {
+          "lat": 37.79398378378379,
+          "lon": -122.39565227272728
+        },
+        {
+          "lat": 37.79398378378379,
+          "lon": -122.39540227272728
+        },
+        {
+          "lat": 37.794218018018015,
+          "lon": -122.39540227272728
+        },
+        {
+          "lat": 37.794218018018015,
+          "lon": -122.39565227272728
+        },
+        {
+          "lat": 37.79398378378379,
+          "lon": -122.39565227272728
+        }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 900009,
+      "tags": {
+        "building": "yes",
+        "name": "Battery St Financial Plaza",
+        "building:levels": "14"
+      },
+      "geometry": [
+        {
+          "lat": 37.79396576576577,
+          "lon": -122.39600454545455
+        },
+        {
+          "lat": 37.79396576576577,
+          "lon": -122.39573181818183
+        },
+        {
+          "lat": 37.7942,
+          "lon": -122.39573181818183
+        },
+        {
+          "lat": 37.7942,
+          "lon": -122.39600454545455
+        },
+        {
+          "lat": 37.79396576576577,
+          "lon": -122.39600454545455
+        }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 900010,
+      "tags": {
+        "building": "yes",
+        "name": "Telegraph Hill View Tower",
+        "building:levels": "13"
+      },
+      "geometry": [
+        {
+          "lat": 37.79366846846847,
+          "lon": -122.39568636363636
+        },
+        {
+          "lat": 37.79366846846847,
+          "lon": -122.39541363636364
+        },
+        {
+          "lat": 37.793884684684684,
+          "lon": -122.39541363636364
+        },
+        {
+          "lat": 37.793884684684684,
+          "lon": -122.39568636363636
+        },
+        {
+          "lat": 37.79366846846847,
+          "lon": -122.39568636363636
+        }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 900011,
+      "tags": {
+        "building": "yes",
+        "name": "Transamerica Pyramid Vista",
+        "building:levels": "28"
+      },
+      "geometry": [
+        {
+          "lat": 37.794227027027034,
+          "lon": -122.39648181818183
+        },
+        {
+          "lat": 37.794227027027034,
+          "lon": -122.39618636363636
+        },
+        {
+          "lat": 37.79446126126126,
+          "lon": -122.39618636363636
+        },
+        {
+          "lat": 37.79446126126126,
+          "lon": -122.39648181818183
+        },
+        {
+          "lat": 37.794227027027034,
+          "lon": -122.39648181818183
+        }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 900012,
+      "tags": {
+        "building": "yes",
+        "name": "Salesforce Tower South Vista",
+        "building:levels": "31"
+      },
+      "geometry": [
+        {
+          "lat": 37.79565945945946,
+          "lon": -122.39643636363637
+        },
+        {
+          "lat": 37.79565945945946,
+          "lon": -122.39611818181818
+        },
+        {
+          "lat": 37.79591171171171,
+          "lon": -122.39611818181818
+        },
+        {
+          "lat": 37.79591171171171,
+          "lon": -122.39643636363637
+        },
+        {
+          "lat": 37.79565945945946,
+          "lon": -122.39643636363637
+        }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 900013,
+      "tags": {
+        "building": "yes",
+        "name": "Pier 15 Exploratorium",
+        "building:levels": "4"
+      },
+      "geometry": [
+        {
+          "lat": 37.79388468468469,
+          "lon": -122.39442500000001
+        },
+        {
+          "lat": 37.79388468468469,
+          "lon": -122.39399318181819
+        },
+        {
+          "lat": 37.79408288288288,
+          "lon": -122.39399318181819
+        },
+        {
+          "lat": 37.79408288288288,
+          "lon": -122.39442500000001
+        },
+        {
+          "lat": 37.79388468468469,
+          "lon": -122.39442500000001
+        }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 900014,
+      "tags": {
+        "building": "yes",
+        "name": "Pier 9 Waterfront Shed",
+        "building:levels": "3"
+      },
+      "geometry": [
+        {
+          "lat": 37.79423603603604,
+          "lon": -122.394425
+        },
+        {
+          "lat": 37.79423603603604,
+          "lon": -122.39403863636365
+        },
+        {
+          "lat": 37.794398198198195,
+          "lon": -122.39403863636365
+        },
+        {
+          "lat": 37.794398198198195,
+          "lon": -122.394425
+        },
+        {
+          "lat": 37.79423603603604,
+          "lon": -122.394425
+        }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 900015,
+      "tags": {
+        "building": "yes",
+        "name": "Pier 7 Historic Wooden Pier",
+        "building:levels": "2"
+      },
+      "geometry": [
+        {
+          "lat": 37.794560360360364,
+          "lon": -122.39441363636364
+        },
+        {
+          "lat": 37.794560360360364,
+          "lon": -122.39391363636365
+        },
+        {
+          "lat": 37.79465045045045,
+          "lon": -122.39391363636365
+        },
+        {
+          "lat": 37.79465045045045,
+          "lon": -122.39441363636364
+        },
+        {
+          "lat": 37.794560360360364,
+          "lon": -122.39441363636364
+        }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 900016,
+      "tags": {
+        "building": "yes",
+        "name": "Pier 3 Hornblower Landing",
+        "building:levels": "4"
+      },
+      "geometry": [
+        {
+          "lat": 37.794830630630635,
+          "lon": -122.39444772727272
+        },
+        {
+          "lat": 37.794830630630635,
+          "lon": -122.39406136363637
+        },
+        {
+          "lat": 37.79499279279279,
+          "lon": -122.39406136363637
+        },
+        {
+          "lat": 37.79499279279279,
+          "lon": -122.39444772727272
+        },
+        {
+          "lat": 37.794830630630635,
+          "lon": -122.39444772727272
+        }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 900017,
+      "tags": {
+        "building": "yes",
+        "name": "Pier 1 Bay Conservation HQ",
+        "building:levels": "4"
+      },
+      "geometry": [
+        {
+          "lat": 37.79513693693694,
+          "lon": -122.39448181818182
+        },
+        {
+          "lat": 37.79513693693694,
+          "lon": -122.39411818181819
+        },
+        {
+          "lat": 37.7952990990991,
+          "lon": -122.39411818181819
+        },
+        {
+          "lat": 37.7952990990991,
+          "lon": -122.39448181818182
+        },
+        {
+          "lat": 37.79513693693694,
+          "lon": -122.39448181818182
+        }
+      ]
+    },
+    {
+      "type": "way",
+      "id": 900018,
+      "tags": {
+        "building": "yes",
+        "name": "Pier 14 Bay Breakwater",
+        "building:levels": "3"
+      },
+      "geometry": [
+        {
+          "lat": 37.7957945945946,
+          "lon": -122.39444772727273
+        },
+        {
+          "lat": 37.7957945945946,
+          "lon": -122.393925
+        },
+        {
+          "lat": 37.795902702702705,
+          "lon": -122.393925
+        },
+        {
+          "lat": 37.795902702702705,
+          "lon": -122.39444772727273
+        },
+        {
+          "lat": 37.7957945945946,
+          "lon": -122.39444772727273
+        }
+      ]
+    }
+  ]
+}
