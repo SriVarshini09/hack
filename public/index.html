@@ -1648,31 +1648,123 @@
       const downRaycaster = new THREE.Raycaster();
       const downDir = new THREE.Vector3(0, -1, 0);
       const rayOrigin = new THREE.Vector3();
+      const wallRaycaster = new THREE.Raycaster();
+      const wallRayOrigin = new THREE.Vector3();
+      const wallRayDir = new THREE.Vector3();
+
+      // Spatial hash grid (48m cells) of all San Francisco street segments for instant 60FPS building/curb collision
+      const STREET_CELL_SIZE = 48;
+      const streetSpatialGrid = new Map(); // "cx,cz" -> [{ ax, az, bx, bz, halfW }, ...]
+
+      function addSegmentToStreetGrid(ax, az, bx, bz, halfW) {
+        const minCx = Math.floor((Math.min(ax, bx) - 12) / STREET_CELL_SIZE);
+        const maxCx = Math.floor((Math.max(ax, bx) + 12) / STREET_CELL_SIZE);
+        const minCz = Math.floor((Math.min(az, bz) - 12) / STREET_CELL_SIZE);
+        const maxCz = Math.floor((Math.max(az, bz) + 12) / STREET_CELL_SIZE);
+        const seg = { ax, az, bx, bz, halfW };
+        for (let cx = minCx; cx <= maxCx; cx++) {
+          for (let cz = minCz; cz <= maxCz; cz++) {
+            const k = `${cx},${cz}`;
+            let list = streetSpatialGrid.get(k);
+            if (!list) {
+              list = [];
+              streetSpatialGrid.set(k, list);
+            }
+            list.push(seg);
+          }
+        }
+      }
+
+      // Finds closest point on any drivable SF street or active GPS route in <0.05ms
+      function findNearestDrivableStreet(x, z) {
+        let bestDist = Infinity;
+        let bestPx = x, bestPz = z, bestHalfW = 9.0, bestTx = 0, bestTz = -1;
+
+        const checkSeg = (ax, az, bx, bz, halfW) => {
+          const abx = bx - ax;
+          const abz = bz - az;
+          const len2 = abx * abx + abz * abz;
+          if (len2 < 0.01) return;
+          const t = THREE.MathUtils.clamp(((x - ax) * abx + (z - az) * abz) / len2, 0, 1);
+          const px = ax + abx * t;
+          const pz = az + abz * t;
+          const d = Math.hypot(x - px, z - pz);
+          if (d < bestDist) {
+            bestDist = d;
+            bestPx = px;
+            bestPz = pz;
+            bestHalfW = halfW;
+            const len = Math.sqrt(len2);
+            bestTx = abx / len;
+            bestTz = abz / len;
+          }
+        };
+
+        // 1. Check active route corridor first
+        if (activeRoutePoints.length >= 2) {
+          for (let i = 0; i < activeRoutePoints.length - 1; i++) {
+            const p0 = activeRoutePoints[i];
+            const p1 = activeRoutePoints[i + 1];
+            if (Math.abs(p0[0] - x) < 60 && Math.abs(p0[2] - z) < 60) {
+              checkSeg(p0[0], p0[2], p1[0], p1[2], 8.5);
+            }
+          }
+        }
+
+        // 2. Check 3x3 neighborhood in SF street spatial grid
+        const cx0 = Math.floor(x / STREET_CELL_SIZE);
+        const cz0 = Math.floor(z / STREET_CELL_SIZE);
+        for (let dx = -1; dx <= 1; dx++) {
+          for (let dz = -1; dz <= 1; dz++) {
+            const bucket = streetSpatialGrid.get(`${cx0 + dx},${cz0 + dz}`);
+            if (!bucket) continue;
+            for (let i = 0; i < bucket.length; i++) {
+              const s = bucket[i];
+              checkSeg(s.ax, s.az, s.bx, s.bz, s.halfW);
+            }
+          }
+        }
+
+        if (bestDist === Infinity) return null;
+        return { px: bestPx, pz: bestPz, dist: bestDist, halfW: bestHalfW, tx: bestTx, tz: bestTz };
+      }
 
       function sampleGroundHeight(x, z, currentY) {
+        // Always sample on the nearest street centerline so building roofs & sidewalk trees never lift the car!
+        const road = findNearestDrivableStreet(x, z);
+        const sx = road && road.dist < 35 ? road.px : x;
+        const sz = road && road.dist < 35 ? road.pz : z;
+
+        const baseElev = estimateBaseElevation(sx, sz);
+        const refY = Number.isFinite(currentY) ? currentY : baseElev;
+
         const candidates = [];
         for (const rec of loadedTiles.values()) {
-          if (Math.abs(rec.cx - x) < 150 && Math.abs(rec.cz - z) < 150 && rec.mesh) {
+          // Only raycast against ground-level (-h0) tiles, never upper skyscraper stories (-h1..h11)
+          if (rec.key.endsWith('-h0') && Math.abs(rec.cx - sx) < 130 && Math.abs(rec.cz - sz) < 130 && rec.mesh) {
             candidates.push(rec.mesh);
           }
         }
         if (candidates.length > 0) {
-          rayOrigin.set(x, (Number.isFinite(currentY) ? currentY : 0) + 45, z);
+          // Start ray only 2.8m above current street level (well below building roofs!)
+          rayOrigin.set(sx, refY + 2.8, sz);
           downRaycaster.set(rayOrigin, downDir);
-          downRaycaster.far = 180;
+          downRaycaster.far = 35;
           const hits = downRaycaster.intersectObjects(candidates, true);
           if (hits.length > 0) {
-            // Pick lowest street-level hit so cars ignore tree canopies or roof overhangs
-            let streetY = hits[hits.length - 1].point.y;
+            let lowestValidY = Infinity;
             for (const h of hits) {
-              if (!Number.isFinite(currentY) || Math.abs(h.point.y - currentY) < 8.5) {
-                streetY = Math.min(streetY, h.point.y);
+              // Reject any hit that jumps more than +1.6m above refY or +5.5m above tile base elevation (roofs/overpasses)
+              if (h.point.y <= refY + 1.6 && h.point.y <= baseElev + 5.5) {
+                if (h.point.y < lowestValidY) lowestValidY = h.point.y;
               }
             }
-            return streetY;
+            if (Number.isFinite(lowestValidY)) {
+              return lowestValidY;
+            }
           }
         }
-        return Number.isFinite(currentY) ? currentY : estimateBaseElevation(x, z);
+        return Number.isFinite(currentY) ? THREE.MathUtils.lerp(currentY, baseElev, 0.08) : baseElev;
       }
 
       function updateDynamicTileStreaming(force = false) {
@@ -1801,7 +1893,12 @@
               if (z > maxZ) maxZ = z;
             }
             if (pts.length >= 2) {
-              decodedStreets.push({ roadClass, width: Math.max(7, widthDm * 0.1), points: pts, minX, maxX, minZ, maxZ });
+              const streetW = Math.max(7, widthDm * 0.1);
+              decodedStreets.push({ roadClass, width: streetW, points: pts, minX, maxX, minZ, maxZ });
+              const halfDrivable = Math.min(10.5, Math.max(6.8, streetW * 0.52 + 1.8));
+              for (let i = 0; i < pts.length - 1; i++) {
+                addSegmentToStreetGrid(pts[i][0], pts[i][1], pts[i + 1][0], pts[i + 1][1], halfDrivable);
+              }
             }
 
             // Build A* road routing graph across all SF streets
@@ -3017,12 +3114,63 @@
           }
         }
 
+        const prevX = car.x;
+        const prevZ = car.z;
         const vx = -Math.sin(car.rotationY) * car.speed * dt;
         const vz = -Math.cos(car.rotationY) * car.speed * dt;
         car.x += vx;
         car.z += vz;
 
-        // Smooth elevation following: use clean route ribbon height if on route, else photogrammetry ground
+        // 1. Building Wall & Street Corridor Collision (prevents driving into or onto buildings in both Race & Free Roam!)
+        const road = findNearestDrivableStreet(car.x, car.z);
+        if (road && road.dist > road.halfW) {
+          const nx = (car.x - road.px) / (road.dist || 1);
+          const nz = (car.z - road.pz) / (road.dist || 1);
+          // Clamp car position to the street curb / building facade boundary
+          car.x = road.px + nx * road.halfW;
+          car.z = road.pz + nz * road.halfW;
+
+          // Deflect car heading smoothly along the street tangent so it slides along building walls
+          const moveDir = car.speed >= 0 ? 1 : -1;
+          const fx = -Math.sin(car.rotationY) * moveDir;
+          const fz = -Math.cos(car.rotationY) * moveDir;
+          const intoWall = fx * nx + fz * nz;
+          if (intoWall > 0.02) {
+            const dotTang = fx * road.tx + fz * road.tz;
+            const slideTx = dotTang >= 0 ? road.tx : -road.tx;
+            const slideTz = dotTang >= 0 ? road.tz : -road.tz;
+            const alignedYaw = Math.atan2(-slideTx * moveDir, -slideTz * moveDir);
+            const yawDiff = Math.atan2(Math.sin(alignedYaw - car.rotationY), Math.cos(alignedYaw - car.rotationY));
+            car.rotationY += yawDiff * Math.min(1, 7.5 * dt);
+            car.speed *= Math.max(0.72, 1 - intoWall * 2.4 * dt);
+          }
+        }
+
+        // 2. Second-Story Building Facade Raycast Check (blocks protruding 3D building walls while ignoring street-level bumps)
+        if (Math.abs(car.speed) > 0.5) {
+          const moveSign = car.speed >= 0 ? 1 : -1;
+          wallRayDir.set(-Math.sin(car.rotationY) * moveSign, 0, -Math.cos(car.rotationY) * moveSign).normalize();
+          wallRayOrigin.set(prevX, car.y + 3.2, prevZ);
+          wallRaycaster.set(wallRayOrigin, wallRayDir);
+          wallRaycaster.far = 3.2;
+          const nearMeshes = [];
+          for (const rec of loadedTiles.values()) {
+            if (Math.abs(rec.cx - car.x) < 95 && Math.abs(rec.cz - car.z) < 95 && rec.mesh) {
+              nearMeshes.push(rec.mesh);
+            }
+          }
+          if (nearMeshes.length > 0) {
+            const wallHits = wallRaycaster.intersectObjects(nearMeshes, true);
+            if (wallHits.length > 0 && road) {
+              // Push car back toward street centerline & scrub speed
+              car.x = THREE.MathUtils.lerp(prevX, road.px, 0.25);
+              car.z = THREE.MathUtils.lerp(prevZ, road.pz, 0.25);
+              car.speed *= 0.65;
+            }
+          }
+        }
+
+        // 3. Smooth Street-Level Elevation Following (never climbs building roofs!)
         let targetY = car.y;
         let nearestRouteDist = Infinity;
         let nearestIdx = car.routeIdx;
@@ -3040,12 +3188,6 @@
 
         if (!isFreeRoamMode && nearestRouteDist < 22 && activeRoutePoints[nearestIdx]) {
           targetY = activeRoutePoints[nearestIdx][1] + 0.34;
-          // Gentle corridor curb guidance so cars don't clip deep into sidewalk photogrammetry walls
-          if (nearestRouteDist > 10.5) {
-            const [rx, , rz] = activeRoutePoints[nearestIdx];
-            car.x = THREE.MathUtils.lerp(car.x, rx, 0.08);
-            car.z = THREE.MathUtils.lerp(car.z, rz, 0.08);
-          }
         } else {
           targetY = sampleGroundHeight(car.x, car.z, car.y) + 0.28;
         }
